@@ -8,7 +8,7 @@ export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <nav className="w-full border-b border-white/15 bg-[#0A0A0A]">
+    <nav className="w-full border-b border-white/15 bg-[#212121] ">
       <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-13 py-4">
         <div className="flex justify-between items-center w-full">
           {/* Sidebar toggle (mobile) */}

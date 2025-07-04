@@ -13,7 +13,7 @@ export default function Sidebar() {
         borderRight: '1px solid rgba(255, 255, 255, 0.1)'
       }}
     >
-      <div className="flex flex-col pt-8 px-6 gap-1">
+      <div className="flex flex-col px-6 gap-1 pt-25">
         {/* Homepage Item */}
         <button
           onClick={() => setActiveItem('homepage')}
