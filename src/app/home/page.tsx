@@ -25,6 +25,14 @@ export default function HomePage() {
     { name: 'Texas Holdem', players: 1248 },
     { name: 'Dice Master', players: 1248 },
     { name: 'Virtual Sports', players: 1248 },
+    { name: 'Wheel of Fortune', players: 1248 },
+    { name: 'Craps Champion', players: 1248 },
+    { name: 'Texas Holdem', players: 1248 },
+    { name: 'Dice Master', players: 1248 },
+    { name: 'Virtual Sports', players: 1248 },
+    { name: 'Wheel of Fortune', players: 1248 },
+     { name: 'Dice Master', players: 1248 },
+    { name: 'Virtual Sports', players: 1248 },
     { name: 'Wheel of Fortune', players: 1248 }
   ]
 
@@ -38,10 +46,13 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="p-4 sm:p-6 text-white max-w-screen-xl mx-auto">
+    <div className="p-4 sm:p-6 text-white max-w-screen-xl mx-auto ">
+      <div className=' w-full h-[223px] bg-[#212121] rounded-[20px] border border-white/6'>
+
+      </div>
       {/* Available Games */}
       <section className="mb-8">
-        <h1 className="text-2xl font-bold mb-6 ml-1">Available Games</h1>
+        <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1 mt-6">Available Games</h1>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {availableGames.map((game, index) => (
             <div
@@ -57,10 +68,10 @@ export default function HomePage() {
                 className="object-cover"
               />
               <div className="flex flex-col items-end">
-                <h3 className="font-medium">{game.name}</h3>
+                <h3 className="font-medium text-white/70 text-sm">{game.name}</h3>
                 <div className="flex items-center mt-1">
                   <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-white">
                     {game.players.toLocaleString()} playing
                   </span>
                 </div>
@@ -71,33 +82,34 @@ export default function HomePage() {
       </section>
 
       {/* Trending Games */}
-      <section className="mb-10">
-        <div className="flex items-center gap-2 mb-4 ml-2">
+      <section className="mb-10 bg-[#212121] border border-[#ffffff]/6 rounded-[15px] p-5 ">
+        <div className="flex items-center gap-2 mb-5 ml-1 ">
           <Image src="/assets/casino.svg" alt="casino logo" width={24} height={24} />
-          <h2 className="text-xl font-bold">Trending Games</h2>
+          <h2 className="text-[18px] font-medium ">Trending Games</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          {trendingGames.map((game, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div className="w-full max-w-[205px] h-[166px] p-3 bg-[#212121] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
-                <div className="absolute top-2 left-2 w-[30px] h-[30px] bg-[#C8A2FF] rounded-full flex items-center justify-center">
-                  <ArrowUpRight className="w-4 h-4 text-black" />
-                </div>
-              </div>
-              <h3 className="font-medium mt-3 text-center">{game.name}</h3>
-              <div className="flex items-center mt-1">
-                <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
-                <span className="text-xs text-gray-400">
-                  {game.players.toLocaleString()} playing
-                </span>
-              </div>
-            </div>
-          ))}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+  {trendingGames.map((game, index) => (
+    <div key={index} className="flex flex-col items-start">
+      <div className="w-full max-w-[166px] h-[205px] p-3 bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
+        <div className="absolute top-2 left-2 w-[30px] h-[30px] bg-[#C8A2FF] rounded-full flex items-center justify-center">
+          <ArrowUpRight className="w-4 h-4 text-black" />
         </div>
-      </section>
+      </div>
 
-      {/* Live Wins */}
+      <h3 className="font-medium mt-3 text-left text-[13px] text-[#2c2c2c]">{game.name}</h3>
+      <div className="flex items-center mt-1">
+        <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
+        <span className="text-xs text-[#2c2c2c]">{game.players.toLocaleString()}<span className=' text-[#ffffff]/60'> Playing</span></span>
+      </div>
+    </div>
+  ))}
+</div>
+
+      
+
+    <div className=' mt-10'>
       <LiveWinsSection />
+    </div>
 
       {/* FAQs */}
       <section className="mt-20 flex flex-col md:flex-row gap-10">
@@ -125,6 +137,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+      </section>
       </section>
     </div>
   )

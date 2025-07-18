@@ -3,6 +3,7 @@
 import { Bitcoin } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import LiveWinsSection from '../../../../components/live-wins'
+import { TfiLocationPin } from "react-icons/tfi";
 
 export default function StakeRingWheelGame() {
   const [betAmount, setBetAmount] = useState(0.025)
@@ -60,10 +61,10 @@ export default function StakeRingWheelGame() {
 
   return (
     <div className="px-4 py-6">
-      {/* Wheel Section */}
       <div className="bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 justify-between items-center lg:items-start p-6">
-        {/* Segment Colors + Odds */}
-        <div className="flex lg:flex-col flex-wrap gap-2 justify-center">
+        
+        {/* Segment Colors – large screens only */}
+        <div className="hidden lg:flex lg:flex-col flex-wrap gap-2 justify-center">
           {segmentColors.map((color, idx) => (
             <div
               key={idx}
@@ -77,8 +78,9 @@ export default function StakeRingWheelGame() {
           ))}
         </div>
 
-        {/* Wheel */}
+        {/* Wheel + Odds */}
         <div className="flex flex-col justify-center items-center w-full max-w-[360px] relative">
+          {/* Wheel */}
           <div
             className="relative w-full aspect-square max-w-[340px] rounded-full flex items-center justify-center"
             style={{ backgroundColor }}
@@ -92,12 +94,12 @@ export default function StakeRingWheelGame() {
             />
             <div className="w-[70%] aspect-square rounded-full bg-[#1C1C1C] z-10" />
             <div className="absolute top-[-16px] left-1/2 -translate-x-1/2 z-20">
-              <div className="w-4 h-4 border-l-8 border-r-8 border-b-8 border-transparent border-b-yellow-400" />
+              <TfiLocationPin className="w-[30px] h-[25px] -mt-2 text-[#c8a2ff]" />
             </div>
           </div>
 
-          {/* Odds Buttons */}
-          <div className="flex gap-3 mt-6 flex-wrap justify-center">
+          {/* Odds – large screens only */}
+          <div className="hidden lg:flex gap-3 mt-6 flex-wrap justify-start self-start -ml-[100px]">
             {oddsOptions.map((odds) => (
               <button
                 key={odds}
@@ -112,64 +114,69 @@ export default function StakeRingWheelGame() {
               </button>
             ))}
           </div>
+
+          {/* Segment colors – visible only on small screens under the wheel */}
+          <div className="flex lg:hidden flex-wrap gap-2 justify-center mt-6">
+            {segmentColors.map((color, idx) => (
+              <div
+                key={idx}
+                className="w-[60px] h-[50px] rounded-[10px] border border-white/10 flex flex-col"
+              >
+                <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
+                  {oddsOptions[idx % oddsOptions.length]}x
+                </div>
+                <div style={{ backgroundColor: color, height: '20%' }} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bet Panel */}
         <div className="w-full lg:w-[347px] bg-[#1C1C1C] rounded-[16px] border border-white/10 p-4 flex flex-col gap-4">
           {/* Amount */}
           <div>
-            <p className="text-sm text-gray-400">Bet Amount (BTC)</p>
-            <div className="flex items-center bg-[#1A1A1A] rounded-lg mt-2 px-3">
-              <Bitcoin className="w-5 h-5 text-yellow-400 mr-2" />
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(parseFloat(e.target.value))}
-                className="bg-transparent border-none text-white text-lg font-semibold w-full focus:outline-none py-2"
-                step="0.001"
-                min="0"
-              />
+            <p className="text-sm text-white/60">Bet Amount</p>
+            <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
+              <span className="text-sm text-white">{betAmount}</span>
+              <div className="flex items-center gap-2">
+                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                </div>
+                <div className="bg-black px-3 py-1 rounded-lg">
+                  <p className="text-white font-medium leading-none">2x</p>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Risk Level */}
           <div>
-            <p className="text-sm text-gray-400">Select Risk</p>
+            <p className="text-sm text-white/60">Risk</p>
             <select
               value={selectedRisk}
               onChange={(e) => setSelectedRisk(e.target.value)}
-              className="mt-2 bg-[#1A1A1A] text-white rounded-lg p-2 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-[12px] p-4 w-full"
             >
-              <option value="low">Low Risk</option>
-              <option value="medium">Medium Risk</option>
-              <option value="high">High Risk</option>
+              <option value="low">Low </option>
+              <option value="medium">Medium </option>
+              <option value="high">High </option>
             </select>
           </div>
 
           {/* Segment Selector */}
           <div>
-            <p className="text-sm text-gray-400">Select Segments</p>
+            <p className="text-sm text-white/60">Segments</p>
             <select
               value={selectedSegments}
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
-              className="mt-2 bg-[#1A1A1A] text-white rounded-lg p-2 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-lg p-4 w-full"
             >
               {Array.from({ length: 15 }, (_, i) => i + 6).map((num) => (
                 <option key={num} value={num}>
-                  {num} Segments
+                  {num} 
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Win Amount */}
-          <div>
-            <p className="text-sm text-gray-400 mt-2 mb-1">Amount to Win</p>
-            <div className="bg-[#1A1A1A] rounded-lg px-4 py-3">
-              <span className="text-xl font-semibold">
-                {winnableAmount.toFixed(6)} BTC
-              </span>
-            </div>
           </div>
 
           {/* Spin Button */}
@@ -178,9 +185,9 @@ export default function StakeRingWheelGame() {
             disabled={isSpinning}
             className={`${
               isSpinning ? 'opacity-50 cursor-not-allowed' : ''
-            } bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full py-3 mt-auto transition`}
+            } bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-3.5 mt-auto transition`}
           >
-            {isSpinning ? 'Spinning...' : 'Spin Wheel'}
+            Bet
           </button>
         </div>
       </div>
@@ -200,8 +207,8 @@ export default function StakeRingWheelGame() {
         </div>
       )}
 
-      {/* Live Wins */}
-      <div className="mt-8">
+      {/* Live Wins Section */}
+      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
         <LiveWinsSection />
       </div>
     </div>

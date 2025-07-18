@@ -5,7 +5,6 @@ import {
   Search,
   Calendar,
   Bell,
-  Menu,
   X,
   Bitcoin,
   Wallet,
@@ -14,6 +13,7 @@ import {
   Settings,
   LogOut
 } from 'lucide-react'
+import { RiMenu4Line } from 'react-icons/ri'
 import Image from 'next/image'
 import WalletModal from './wallet-modal'
 import TransactionsModal from './transactions-modal'
@@ -27,16 +27,16 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full border-b border-white/15 bg-transparent sm:bg-[#212121] relative z-20 transition-colors duration-300">
+      <nav className="w-full sm:border-b border-white/15 bg-transparent sm:bg-[#212121] relative z-20 transition-colors duration-300">
         <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-13 py-4 sm:flex sm:justify-end sm:pl-[35%]">
 
           {/* ✅ Mobile Layout */}
           <div className="flex items-center justify-between sm:hidden w-full">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="w-10 h-10 rounded-md  hover:text-white transition"
+              className="w-10 h-10 rounded-md text-white hover:text-[#C8A2FF] transition"
             >
-              {sidebarOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6" />}
+              {sidebarOpen ? <X className="w-6 h-6" /> : <RiMenu4Line className="w-6 h-6" />}
             </button>
             <ConnectButton />
           </div>
@@ -76,7 +76,7 @@ export default function Navbar() {
               <Wallet className="w-4 h-4" />
             </button>
 
-            {/* Connect Wallet Button */}
+            {/* Connect Wallet */}
             <ConnectButton />
 
             {/* Notification */}
@@ -84,7 +84,7 @@ export default function Navbar() {
               <Bell className="w-4 h-4" />
             </button>
 
-            {/* User Dropdown */}
+            {/* User Avatar Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}

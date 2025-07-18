@@ -64,6 +64,67 @@ export const marketData = [
       { time: "Today", yes: 45, no: 55 },
     ],
   },
+  {
+    id: 4,
+    question: "Will Bitcoin reach $100k by 2025?",
+    volume: "$600,000",
+    change: "+20.1%",
+    positive: true,
+    comments: [
+      {
+        name: "Satoshi",
+        avatar: "/avatars/satoshi.png",
+        text: "HODL 🚀🚀🚀",
+      },
+    ],
+    trend: [
+      { time: "1w ago", yes: 20, no: 80 },
+      { time: "3d ago", yes: 35, no: 65 },
+      { time: "Yesterday", yes: 50, no: 50 },
+      { time: "Today", yes: 45, no: 55 },
+    ],
+  },
+  {
+    id: 5,
+    question: "Will Bitcoin reach $100k by 2025?",
+    volume: "$600,000",
+    change: "+20.1%",
+    positive: true,
+    comments: [
+      {
+        name: "Satoshi",
+        avatar: "/avatars/satoshi.png",
+        text: "HODL 🚀🚀🚀",
+      },
+    ],
+    trend: [
+      { time: "1w ago", yes: 20, no: 80 },
+      { time: "3d ago", yes: 35, no: 65 },
+      { time: "Yesterday", yes: 50, no: 50 },
+      { time: "Today", yes: 45, no: 55 },
+    ],
+  },
+  {
+    id: 6,
+    question: "Will Bitcoin reach $100k by 2025?",
+    volume: "$600,000",
+    change: "+20.1%",
+    positive: true,
+    comments: [
+      {
+        name: "Satoshi",
+        avatar: "/avatars/satoshi.png",
+        text: "HODL 🚀🚀🚀",
+      },
+    ],
+    trend: [
+      { time: "1w ago", yes: 20, no: 80 },
+      { time: "3d ago", yes: 35, no: 65 },
+      { time: "Yesterday", yes: 50, no: 50 },
+      { time: "Today", yes: 45, no: 55 },
+    ],
+  },
+  
 ];
 
 

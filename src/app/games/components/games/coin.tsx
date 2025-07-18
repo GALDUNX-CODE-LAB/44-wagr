@@ -52,7 +52,8 @@ export default function CoinTossGame() {
     <div className="p-4 md:p-6">
       <div className="bg-[#212121] text-white rounded-xl p-4 md:p-6 flex flex-col lg:flex-row justify-between gap-6">
         {/* Coin Animation and Odds */}
-        <div className="flex-1 flex flex-col items-center justify-between gap-6">
+        <div className="flex-1 flex flex-col justify-between">
+          {/* Coin Animation */}
           <div className="w-full flex justify-center">
             <div className="w-[200px] h-[200px] md:w-[300px] md:h-[300px]">
               <div
@@ -76,8 +77,8 @@ export default function CoinTossGame() {
             </div>
           </div>
 
-          {/* Odds Buttons */}
-          <div className="flex flex-wrap justify-center gap-3">
+          {/* Odds Buttons pinned bottom-left */}
+          <div className="mt-auto flex flex-wrap gap-3 pt-6">
             {oddsOptions.map((odds) => (
               <button
                 key={odds}
@@ -98,59 +99,83 @@ export default function CoinTossGame() {
         <div className="w-full lg:w-[347px] flex-shrink-0 bg-[#1C1C1C] border border-white/10 p-4 rounded-[16px] flex flex-col gap-4">
           {/* Bet Amount */}
           <div>
-            <p className="text-sm text-gray-400">Bet Amount (BTC)</p>
-            <div className="flex items-center bg-[#1A1A1A] rounded-lg mt-2 px-3 py-2">
-              <Bitcoin className="w-5 h-5 text-yellow-400 mr-2" />
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(parseFloat(e.target.value))}
-                className="bg-transparent text-white text-lg font-semibold w-full focus:outline-none"
-                step="0.001"
-                min="0"
-              />
+            <p className=" text-sm text-white/60">Bet Amount</p>
+            
+            <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-2">
+                 <div className="flex items-center gap-2">
+              
+              
+              <span className=' text-sm text-white'>{betAmount} </span>
+              
+            </div>
+                  <div className="flex items-center gap-2">
+  <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
+    <Bitcoin className="w-4 h-4 text-yellow-400" />
+  </div>
+  <div className="bg-black px-3 py-1 rounded-lg">
+    <p className="text-white font-medium leading-none">2x</p>
+  </div>
+</div>
+
             </div>
           </div>
 
           {/* Random Side Button */}
           <button
             onClick={handleRandomPick}
-            className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full py-2 transition"
+            className=" text-white text-sm font-medium rounded-[10px] bg-[#212121] p-3 transition"
           >
             Pick Random Side
           </button>
 
           {/* Side Selection */}
-          <div className="flex gap-4">
-            {['Heads', 'Tails'].map((side) => (
-              <button
-                key={side}
-                onClick={() => setSelectedSide(side as 'Heads' | 'Tails')}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold border flex items-center justify-center gap-2 ${
-                  selectedSide === side
-                    ? 'bg-[#C8A2FF] text-black'
-                    : 'bg-[#212121] border-white/10 text-white hover:bg-[#2A2A2A]'
-                }`}
-              >
-                {side} {side === 'Heads' ? <Circle className="w-4 h-4" /> : <Star className="w-4 h-4" />}
-              </button>
-            ))}
-          </div>
+                <div className="flex gap-4">
+  {['Heads', 'Tails'].map((side) => (
+    <button
+      key={side}
+      onClick={() => setSelectedSide(side as 'Heads' | 'Tails')}
+      className={`flex-1 py-2 rounded-full text-sm font-semibold border flex items-center justify-center gap-2 ${
+        selectedSide === side
+          ? 'bg-[#C8A2FF] text-black'
+          : 'bg-[#212121] border-white/10 text-white hover:bg-[#2A2A2A]'
+      }`}
+    >
+      {side}
+      {side === 'Heads' ? (
+        <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
+          <div className="w-2.5 h-2.5 rounded-full bg-black" />
+        </div>
+      ) : (
+        <div className="w-4 h-4 rounded-full bg-[#C8A2FF] flex items-center justify-center">
+          <Star className="w-2.5 h-2.5 text-black fill-black" />
+        </div>
+      )}
+    </button>
+  ))}
+</div>
 
           {/* Winnable Amount */}
           <div>
-            <p className="text-sm text-gray-400 mb-1">Amount to Win</p>
-            <div className="bg-[#1A1A1A] rounded-lg p-2 text-xl font-semibold">
-              {winnableAmount.toFixed(6)} BTC
+            <p className=" text-sm text-white/60">Proft On Win</p>
+            <div className="bg-[#212121] rounded-lg p-3 mt-1">
+              <div className=' flex justify-between '>
+                <span className="text-sm text-white">{winnableAmount.toFixed(6)}</span>
+              <div className=' bg-white rounded-[1000px] p-1'>
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+              </div>
+                
+            
+            </div>
+              
             </div>
           </div>
 
           {/* Place Bet Button */}
           <button
             onClick={handlePlaceBet}
-            className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full py-2 transition"
+            className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition"
           >
-            Place Bet
+             Bet
           </button>
         </div>
       </div>
@@ -171,9 +196,9 @@ export default function CoinTossGame() {
       )}
 
       {/* Live Wins Section */}
-      <div className="mt-10">
-        <LiveWinsSection />
-      </div>
+      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+              <LiveWinsSection />
+            </div>
     </div>
   )
 }

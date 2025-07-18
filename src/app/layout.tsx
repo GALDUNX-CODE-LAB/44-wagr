@@ -34,9 +34,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-black">
+    <html lang="en" className="bg-[#1c1c1c]">
       <body
-        className={` ${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased bg-[#0a0a0a] text-[#ededed] font-inter min-h-screen`}
+        className={` ${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased   text-[#ededed] font-inter min-h-screen`}
       >
         <WalletProvider>
   <div className="flex h-screen">

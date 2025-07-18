@@ -42,7 +42,7 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
           </div>
 
           {/* Graph */}
-          <div className="relative mt-4 h-[212px] w-full">
+          <div className="relative mt-4 h-[212px] w-[95%]">
             <div className="absolute inset-0 flex flex-col justify-between">
               {[50, 40, 30, 20, 10].map((p) => (
                 <div

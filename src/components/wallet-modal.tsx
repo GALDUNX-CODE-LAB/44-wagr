@@ -51,7 +51,7 @@ export default function WalletModal({ open, onClose }: WalletModalProps) {
                   onClick={() => setSelectedCoin(coin)}
                   className="h-[60px] rounded-[13px] border border-[#FFFFFF1A] bg-[#1C1C1C] flex items-center justify-center gap-2 hover:border-[#C8A2FF] transition px-2"
                 >
-                  <Image src={coin.icon} alt={coin.name} width={24} height={24} />
+                  {/* <Image src={coin.icon} alt={coin.name} width={24} height={24} /> */}
                   <span className="text-white text-sm">{coin.name}</span>
                 </button>
               ))}

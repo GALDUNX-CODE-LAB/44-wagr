@@ -9,7 +9,7 @@ import {
   Ticket,
   ShoppingCart
 } from 'lucide-react'
-import { BsPciCardSound } from "react-icons/bs";
+import { TbCards } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
 import { TbGraph } from "react-icons/tb";
 import { RiNftLine } from "react-icons/ri";
@@ -17,22 +17,23 @@ import { RiNftLine } from "react-icons/ri";
 export default function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
-  const [activeItem, setActiveItem] = useState('homepage')
+  const [activeItem, setActiveItem] = useState('Home page')
 
   useEffect(() => {
-    if (pathname.startsWith('/games')) setActiveItem('games')
-    else if (pathname.startsWith('/bets')) setActiveItem('bets')
-    else if (pathname.startsWith('/nft-lottery')) setActiveItem('lottery')
-    else if (pathname.startsWith('/meta-market')) setActiveItem('market')
-    else setActiveItem('homepage')
+    if (pathname.startsWith('/games')) setActiveItem('Games')
+    else if (pathname.startsWith('/bets')) setActiveItem(' My Bets')
+    else if (pathname.startsWith('/nft-lottery')) setActiveItem('Nft Lottery')
+    else if (pathname.startsWith('/meta-market')) setActiveItem('Meta Market')
+    else setActiveItem('Home page')
   }, [pathname])
 
   const navItems = [
-    { href: '/home', icon: <RxDashboard className="w-6 h-6" />, key: 'homepage' },
-    { href: '/games', icon: <Gamepad2 className="w-6 h-6" />, key: 'games' },
-    { href: '/bets', icon: <BsPciCardSound className="w-6 h-6" />, key: 'bets' },
-    { href: '/nft-lottery', icon: <RiNftLine className="w-6 h-6" />, key: 'lottery' },
-    { href: '/meta-market', icon: <TbGraph className="w-6 h-6" />, key: 'market' },
+    { href: '/home', icon: <RxDashboard className="w-6 h-6" />, key: 'Home page' },
+    { href: '/games', icon: <Gamepad2 className="w-6 h-6" />, key: 'Games' },
+    { href: '/bets', icon: <TbCards className="w-6 h-6" />, key: 'My Bets' },
+    { href: '/nft-lottery', icon: <RiNftLine className="w-6 h-6" />, key: 'Nft Lottery' },
+    { href: '/meta-market', icon: <TbGraph className="w-6 h-6" />, key: 'Meta Market' },
+    { href: '/bets', icon: <TbCards className="w-6 h-6" />, key: 'Bets' },
   ]
 
   return (
@@ -103,7 +104,7 @@ function SidebarItem({
       }`}
     >
       {icon}
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-sm font-medium text-white/40">{label}</span>
     </button>
   )
 }

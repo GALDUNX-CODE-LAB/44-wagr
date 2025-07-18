@@ -32,7 +32,7 @@ const DiceRollerComponent = (_, ref) => {
   return (
     <div className="flex flex-col items-center gap-8 w-full px-4 relative">
       {/* Progress Bar Container */}
-      <div className="relative w-full max-w-[710px]">
+      <div className="relative w-full max-w-[850px]">
         <div className="relative h-[70px] rounded-full border-[12px] border-[#1C1C1C] flex items-center justify-center overflow-hidden">
           <div
             className="w-full h-0 border-t-[10px]"

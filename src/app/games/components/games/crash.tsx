@@ -3,16 +3,19 @@
 import { Bitcoin } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import LiveWinsSection from '../../../../components/live-wins'
+import { ChevronUp, ChevronDown } from 'lucide-react' 
 
 export default function CrashGame() {
   const [betAmount, setBetAmount] = useState<number>(0.025)
-  const [autoCashout, setAutoCashout] = useState<number>(2)
-  const [multiplier, setMultiplier] = useState<number>(1)
+  const [autoCashout, setAutoCashout] = useState<number>(2.5)
+  const [multiplier, setMultiplier] = useState<number>(3)
   const [isRunning, setIsRunning] = useState<boolean>(false)
   const [crashPoint, setCrashPoint] = useState<number>(0)
   const [hasCrashed, setHasCrashed] = useState<boolean>(false)
   const [profit, setProfit] = useState<number>(0)
   const [isCashingOut, setIsCashingOut] = useState<boolean>(false)
+
+  const oddsOptions = [2.5, 80.57, 50.57, 70.77]
 
   useEffect(() => {
     setProfit(+(betAmount * multiplier).toFixed(6))
@@ -74,19 +77,40 @@ export default function CrashGame() {
 
   return (
     <div className="p-4">
-      <div className="bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
-        {/* Crash Graph */}
+      <div className="bg-[#212121] text-white rounded-xl flex flex-col lg:justify-between lg:flex-row gap-6 p-4 lg:p-6">
+        {/* Crash Graph Section */}
         <div className="relative w-full lg:w-[60%] h-[386px] overflow-hidden">
-          {/* Y Axis */}
-          <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between">
-            {[5, 4, 3, 2, 1].map((y) => (
-              <div key={y} className="flex items-center">
-                <div className="w-[50px] h-[30px] rounded-lg bg-[#1C1C1C] border border-white/10 flex items-center justify-center text-xs">
-                  {y.toFixed(1)}x
-                </div>
-              </div>
+          {/* Odds Options - Top Right */}
+          <div className="absolute top-2 right-2 flex gap-2">
+            {oddsOptions.map((odds) => (
+              <button
+                key={odds}
+                onClick={() => setAutoCashout(odds)}
+                className={`px-3 py-1 text-xs rounded-full border border-white/10 font-medium ${
+                  autoCashout === odds ? 'bg-[#C8A2FF] text-black' : 'bg-[#1A1A1A] text-white'
+                }`}
+              >
+                {odds}x
+              </button>
             ))}
           </div>
+
+          {/* Y Axis Labels */}
+              {/* Y Axis with Connecting Black Line */}
+<div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between items-center w-[60px]">
+  {/* Vertical connecting line */}
+  <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[10px] bg-[#1c1c1c] z-0 rounded" />
+
+  {/* Labels */}
+  {[5, 4,3.5, 3, 2.5, 2, 1].map((y) => (
+    <div key={y} className="relative z-10">
+      <div className="w-[50px] h-[30px] rounded-lg bg-[#1C1C1C] border border-white/10 flex items-center justify-center text-xs">
+        {y.toFixed(1)}x
+      </div>
+    </div>
+  ))}
+</div>
+
 
           {/* Line Graph */}
           <svg
@@ -111,9 +135,9 @@ export default function CrashGame() {
           </svg>
 
           {/* Multiplier Label */}
-          <div className="absolute bottom-2 right-2 text-sm font-mono">
+          {/* <div className="absolute bottom-2 right-2 text-sm font-mono">
             {multiplier.toFixed(2)}x
-          </div>
+          </div> */}
 
           {/* Crash Overlay */}
           {hasCrashed && (
@@ -130,74 +154,96 @@ export default function CrashGame() {
         {/* Bet Controls */}
         <div className="w-full lg:w-[347px] bg-[#1C1C1C] p-4 rounded-xl flex flex-col gap-4">
           {/* Amount Input */}
-          <div>
-            <p className="text-sm text-gray-400">Bet Amount (BTC)</p>
-            <div className="flex items-center bg-[#1A1A1A] rounded-lg mt-2 px-3 py-2">
-              <Bitcoin className="w-5 h-5 text-yellow-400 mr-2" />
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
-                className="bg-transparent border-none text-white text-lg font-semibold w-full focus:outline-none"
-                step="0.001"
-                min="0"
-              />
+               <div>
+            <p className=" text-sm text-white/60">Bet Amount</p>
+            
+            <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-2">
+                 <div className="flex items-center gap-2">
+              
+              
+              <span className=' text-sm text-white'>{betAmount} </span>
+              
+            </div>
+                  <div className="flex items-center gap-2">
+  <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
+    <Bitcoin className="w-4 h-4 text-yellow-400" />
+  </div>
+  <div className="bg-black px-3 py-1 rounded-lg">
+    <p className="text-white font-medium leading-none">2x</p>
+  </div>
+</div>
+
             </div>
           </div>
 
           {/* Auto Cashout */}
-          <div>
-            <p className="text-sm text-gray-400">Auto Cashout (x)</p>
-            <input
-              type="number"
-              value={autoCashout}
-              onChange={(e) => setAutoCashout(Number(e.target.value))}
-              className="bg-[#1A1A1A] border-none rounded-lg px-3 py-2 text-lg font-semibold text-white focus:outline-none w-full mt-2"
-              step="0.1"
-              min="1"
-            />
-          </div>
+           
+                <div className="w-full">
+  <p className="text-sm text-white/60 mb-2">Cashout At</p>
+  <div className="flex items-center bg-[#212121] rounded-lg px-3 py-2 border border-white/10">
+    <div className="flex items-center w-full">
+      <input
+        type="number"
+        value={autoCashout}
+        onChange={(e) => setAutoCashout(Number(e.target.value))}
+        className="bg-transparent text-white text-sm font-medium w-full focus:outline-none"
+        step="0.1"
+        min="1"
+      />
+      
+    </div>
+    <div className="flex flex-row gap-1 ml-2">
+      <button
+        onClick={() => setAutoCashout(prev => +(prev + 0.1).toFixed(1))}
+        className="w-[30px] h-[30px] flex items-center justify-center rounded-[5px] border border-white/10"
+      >
+        <ChevronUp className="w-4 h-4 text-white" strokeWidth={2} />
+      </button>
+      <button
+        onClick={() => setAutoCashout(prev => Math.max(1, +(prev - 0.1).toFixed(1)))}
+        className="w-[30px] h-[30px] flex items-center justify-center rounded-[5px] border border-white/10"
+      >
+        <ChevronDown className="w-4 h-4 text-white" strokeWidth={2} />
+      </button>
+    </div>
+  </div>
+</div>
+
 
           {/* Profit */}
           <div>
-            <p className="text-sm text-gray-400">Profit on Cashout</p>
-            <div className="bg-[#1A1A1A] rounded-lg p-3">
-              <span className="text-xl font-mono font-semibold">
-                {profit.toFixed(6)} BTC
-              </span>
+            <p className=" text-sm text-white/60">Proft On Win</p>
+            <div className="bg-[#212121] rounded-lg p-3 mt-1">
+              <div className=' flex justify-between '>
+                <span className="text-sm text-white">{profit.toFixed(6)}</span>
+              <div className=' bg-white rounded-[1000px] p-1'>
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+              </div>
+                
+            
+            </div>
+              
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 mt-auto flex-col sm:flex-row">
-            <button
-              onClick={handleCashout}
-              disabled={!isRunning || isCashingOut}
-              className={`w-full sm:w-1/2 ${
-                !isRunning
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-green-500 hover:bg-green-600'
-              } text-white font-semibold rounded-full py-3 transition`}
-            >
-              {isCashingOut ? 'Cashing Out...' : 'Cash Out'}
-            </button>
-            <button
-              onClick={handlePlaceBet}
-              disabled={isRunning}
-              className={`w-full sm:w-1/2 ${
-                isRunning
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-[#C8A2FF] hover:bg-[#D5B3FF]'
-              } text-black font-semibold rounded-full py-3 transition`}
-            >
-              {isRunning ? 'In Progress...' : hasCrashed ? 'Next Round' : 'Place Bet'}
-            </button>
-          </div>
+              <div className="mt-auto">
+  <button
+    onClick={handlePlaceBet}
+    disabled={isRunning}
+    className={`w-full text-center ${
+      isRunning ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#C8A2FF] hover:bg-[#D5B3FF]'
+    } text-black font-semibold rounded-[12px] py-3 transition`}
+  >
+    Bet (Next Round)
+  </button>
+</div>
+
         </div>
       </div>
 
       {/* Live Wins Section */}
-      <div className="mt-10">
+      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
         <LiveWinsSection />
       </div>
     </div>
