@@ -4,6 +4,7 @@ import { Bitcoin } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import LiveWinsSection from '../../../../components/live-wins'
 import { ChevronUp, ChevronDown } from 'lucide-react' 
+import LiveWatchTables from '../../../../components/live-watch'
 
 export default function CrashGame() {
   const [betAmount, setBetAmount] = useState<number>(0.025)
@@ -241,6 +242,10 @@ export default function CrashGame() {
 
         </div>
       </div>
+
+       <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+        <LiveWatchTables />
+      </div>      
 
       {/* Live Wins Section */}
       <div className="mt-10 bg-[#212121] rounded-[20px] p-6">

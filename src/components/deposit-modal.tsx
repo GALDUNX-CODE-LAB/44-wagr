@@ -87,25 +87,26 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
         </div>
 
         {/* QR & Instructions */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
           {/* QR Code */}
-          <div className="w-full sm:w-1/2 flex justify-center">
-            <div className="bg-white p-2 rounded">
+          <div className=" flex justify-center">
+            <div className="bg-white p-6 my-auto rounded">
               {isLoading ? (
-                <div className="w-[128px] h-[128px] flex items-center justify-center bg-gray-200 animate-pulse" />
+                <div className="w-[128px] h-[128px]  flex items-center justify-center bg-gray-200 animate-pulse" />
               ) : (
                 <QRCode 
                   value={address} 
                   size={128} 
                   bgColor="#ffffff" 
                   fgColor="#000000" 
+
                 />
               )}
             </div>
           </div>
 
           {/* Instruction Box */}
-          <div className="w-full sm:w-1/2 bg-[#212121] border border-white/10 rounded-[20px] p-4">
+          <div className=" bg-[#212121] border border-white/10 rounded-[20px] p-4">
             <p className="text-white text-sm mb-4 leading-relaxed">
               Scan the QR code or copy the address and send your desired amount. 
               Send BTC to this address to receive the current USD value in PackDraw credit.

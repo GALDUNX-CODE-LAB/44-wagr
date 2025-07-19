@@ -69,7 +69,9 @@ export default function Navbar() {
               }}
             >
               <div className="flex items-center gap-1">
-                <Bitcoin className="w-4 h-4 text-yellow-400" />
+                  <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
+                                    <Bitcoin className="w-4 h-4 text-yellow-400" />
+                                  </div>
                 <span>0.0867</span>
               </div>
               <div className="w-px h-5 bg-white/20 mx-2" />
