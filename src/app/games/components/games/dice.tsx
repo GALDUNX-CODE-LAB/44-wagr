@@ -21,9 +21,9 @@ export default function DiceGame() {
 
   return (
     <div className="p-4">
-      <div className="bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-6 p-4 min-h-[400px]">
+      <div className="bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 p-4 min-h-[400px]">
         {/* Left Section */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 flex flex-col gap-8">
           {/* Bet Settings */}
           <div className="w-full flex flex-wrap font-medium gap-4 bg-[#1c1c1c]">
             <div className="flex-1 min-w-[200px] p-4  rounded-[20px]">
@@ -47,12 +47,12 @@ export default function DiceGame() {
           </div>
 
           {/* Dice Animation centered in left section */}
-          <div className="flex-grow flex justify-center items-center">
+          <div className="flex-grow flex justify-center items-center mt-5">
             <DiceRoller ref={diceRef} />
           </div>
 
           {/* Odds Buttons at the Bottom */}
-          <div className="flex flex-wrap gap-2 mt-auto">
+          <div className="flex flex-wrap gap-2 mt-5">
             {oddsOptions.map((odds) => (
               <button
                 key={odds}
@@ -70,10 +70,10 @@ export default function DiceGame() {
         </div>
 
         {/* Right Section (Bet Summary) */}
-        <div className="w-full lg:w-[375px] flex flex-col p-4 gap-4 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
+        <div className="w-full lg:w-[375px] flex flex-col p-4 gap-8 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
           {/* Bet Details */}
           <p className=" text-sm text-white/60">Bet Amount</p>
-          <div className="flex items-center justify-between bg-[#1A1A1A] rounded-lg p-4">
+          <div className="flex items-center justify-between bg-[#212121] rounded-lg p-4">
             
             <div className="flex items-center gap-2">
               
@@ -117,7 +117,7 @@ export default function DiceGame() {
       </div>
 
       {/* Live Wins Section */}
-      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+      <div className="mt-12 bg-[#212121] rounded-[20px] p-6">
         <LiveWinsSection />
       </div>
     </div>

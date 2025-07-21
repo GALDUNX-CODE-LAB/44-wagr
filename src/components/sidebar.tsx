@@ -21,19 +21,19 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (pathname.startsWith('/games')) setActiveItem('Games')
-    else if (pathname.startsWith('/bets')) setActiveItem(' My Bets')
+    else if (pathname.startsWith('/bets')) setActiveItem('My Bets')
     else if (pathname.startsWith('/nft-lottery')) setActiveItem('Nft Lottery')
     else if (pathname.startsWith('/meta-market')) setActiveItem('Meta Market')
     else setActiveItem('Home page')
   }, [pathname])
 
   const navItems = [
-    { href: '/home', icon: <RxDashboard className="w-6 h-6" />, key: 'Home page' },
-    { href: '/games', icon: <Gamepad2 className="w-6 h-6" />, key: 'Games' },
-    { href: '/bets', icon: <TbCards className="w-6 h-6" />, key: 'My Bets' },
-    { href: '/nft-lottery', icon: <RiNftLine className="w-6 h-6" />, key: 'Nft Lottery' },
-    { href: '/meta-market', icon: <TbGraph className="w-6 h-6" />, key: 'Meta Market' },
-    { href: '/bets', icon: <TbCards className="w-6 h-6" />, key: 'Bets' },
+    { href: '/home', icon: <RxDashboard className="w-8 h-8" />, key: 'Home page' },
+    { href: '/games', icon: <Gamepad2 className="w-8 h-8" />, key: 'Games' },
+    { href: '/bets', icon: <TbCards className="w-8 h-8" />, key:  'My Bets' },
+    { href: '/nft-lottery', icon: <RiNftLine className="w-8 h-8" />, key: 'Nft Lottery' },
+    { href: '/meta-market', icon: <TbGraph className="w-8 h-8" />, key: 'Meta Market' },
+    
   ]
 
   return (
@@ -57,7 +57,7 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-5 backdrop-blur-sm rounded-full p-3 flex justify-around items-center left-0 right-0 z-50 lg:hidden  border-[#FFFFFF0F] bg-[#212121]  h-[96px] px-2 ">
+      <nav className=" rounded-t-[10px] fixed bottom-[200px] max-w-full mx-auto px-4  b backdrop-blur-sm  p-5 flex justify-around items-center left-0 right-0 z-50 lg:hidden  border-[#FFFFFF0F] bg-[#212121]  h-[120px]  ">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href)
           return (
@@ -68,13 +68,11 @@ export default function Sidebar() {
                 isActive ? 'text-[#C8A2FF]' : 'text-white/60'
               }`}
             >
-              <div className="w-full flex justify-center items-center">
+              <div className="w-full text-base flex flex-col justify-center items-center">
                 {item.icon}
+                {item.key}
               </div>
-              <div
-                className="w-full h-1 mt-2 rounded-full bg-[#C8A2FF] transition-all duration-300"
-                style={{ visibility: isActive ? 'visible' : 'hidden' }}
-              />
+              
             </button>
           )
         })}
