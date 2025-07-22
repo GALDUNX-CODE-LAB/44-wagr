@@ -4,8 +4,23 @@ import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import LiveWinsSection from '../../components/live-wins'
+import { useEffect } from 'react';
+import { devLogin } from '../../lib/api/auth'
 
 export default function HomePage() {
+
+  
+useEffect(() => {
+  devLogin('0xf8d4c25d15823ea9d37f1b3e4ee566abf1d24e4c')
+    .then(({ user }) => {
+      console.log('Logged in:', user);
+    })
+    .catch((err) => {
+      console.error('Login failed:', err.message);
+    });
+}, []);
+
+
   const router = useRouter()
 
   const availableGames = [
@@ -87,7 +102,7 @@ export default function HomePage() {
           <Image src="/assets/casino.svg" alt="casino logo" width={24} height={24} />
           <h2 className="text-[18px] font-medium ">Trending Games</h2>
         </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 xl:grid-cols-6 gap-4">
   {trendingGames.map((game, index) => (
     <div key={index} className="flex flex-col items-start">
       <div className="w-full max-w-[166px] h-[205px] p-3 bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
