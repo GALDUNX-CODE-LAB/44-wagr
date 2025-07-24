@@ -1,3 +1,4 @@
+// @ts-ignore: ignoring missing module types
 import type { Config } from "tailwindcss";
 
 export default {
