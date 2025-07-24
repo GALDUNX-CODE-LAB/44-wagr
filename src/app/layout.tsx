@@ -35,24 +35,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-[#1c1c1c]">
-      <body
-        className={` ${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased   text-[#ededed] font-inter min-h-screen`}
-      >
+      <body className={`text-[#ededed] font-inter min-h-screen`}>
         <WalletProvider>
-  <div className="flex h-screen">
-    
-    <div className="">
-      <Sidebar />
-    </div>
+          <div className="flex h-screen">
+            <div className="">
+              <Sidebar />
+            </div>
 
-    {/* Main content area */}
-    <div className="flex-1 flex flex-col lg:ml-[245px]">
-      <Navbar />
-      <main className="flex-1 p-4">{children}</main>
-    </div>
-  </div>
-</WalletProvider>
-
+            {/* Main content area */}
+            <div className="flex-1 flex flex-col lg:ml-[245px]">
+              <Navbar />
+              <main className="flex-1 p-4">
+                <div className="container mx-auto">{children}</div>
+              </main>
+            </div>
+          </div>
+        </WalletProvider>
       </body>
     </html>
   );

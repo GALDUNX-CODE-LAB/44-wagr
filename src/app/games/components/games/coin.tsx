@@ -1,19 +1,19 @@
 "use client";
 
-import { Bitcoin, Star } from 'lucide-react';
-import { useState } from 'react';
-import LiveWinsSection from '../../../../components/live-wins';
-import { useMutation } from '@tanstack/react-query';
-import { placeCoinflipBet } from '../../../../lib/api/coin-api';
+import { Bitcoin, Star } from "lucide-react";
+import { useState } from "react";
+import LiveWinsSection from "../../../../components/live-wins";
+import { useMutation } from "@tanstack/react-query";
+import { placeCoinflipBet } from "../../../../lib/api/coin-api";
 
 export default function CoinTossGame() {
   const [betAmount, setBetAmount] = useState(0);
-  const [selectedSide, setSelectedSide] = useState<'Heads' | 'Tails' | ''>('');
+  const [selectedSide, setSelectedSide] = useState<"heads" | "tails" | "">("");
   const [activeOdds, setActiveOdds] = useState(2);
-  const [coinSide, setCoinSide] = useState<'Heads' | 'Tails'>('Heads');
+  const [coinSide, setCoinSide] = useState<"heads" | "tails">("heads");
   const [isFlipping, setIsFlipping] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [resultText, setResultText] = useState('');
+  const [resultText, setResultText] = useState("");
   const [coinRotation, setCoinRotation] = useState(0);
 
   const oddsOptions = [2, 4, 6, 8];
@@ -26,66 +26,65 @@ export default function CoinTossGame() {
       setShowResult(false);
     },
     onSuccess: (response) => {
-      
-  console.log("🔁 Full Server Response:", response); // 🔍 Log full server response
+      console.log("🔁 Full Server Response:", response); // 🔍 Log full server response
 
-  const data = response.data || response;
+      const data = response.data || response;
 
-  if (!data || !data.result) {
-    setIsFlipping(false);
-    setResultText('Something went wrong: Missing result.');
-    setShowResult(true);
-    return;
-  }
+      if (!data || !data.result) {
+        setIsFlipping(false);
+        setResultText("Something went wrong: Missing result.");
+        setShowResult(true);
+        return;
+      }
 
-  const result = data.result.toLowerCase() === 'heads' ? 'Heads' : 'Tails';
-  const baseRotation = 1080;
-  const targetRotation = result === 'Heads' ? baseRotation : baseRotation + 180;
+      const result = data.result.toLowerCase() === "heads" ? "heads" : "tails";
+      const baseRotation = 1080;
+      const targetRotation = result === "heads" ? baseRotation : baseRotation + 180;
 
-  setCoinRotation((prev) => prev + targetRotation);
-  setCoinSide(result);
+      setCoinRotation((prev) => prev + targetRotation);
+      setCoinSide(result);
 
-  setTimeout(() => {
-    setIsFlipping(false);
-    setResultText(
-      data.isWin
-        ? `🎉 You WON! Coin landed on ${result} — You earned ${data.payout || winnableAmount}`
-        : `❌ You LOST! Coin landed on ${result}`
-    );
-    setShowResult(true);
-  }, 2000);
-},
+      setTimeout(() => {
+        setIsFlipping(false);
+        setResultText(
+          data.isWin
+            ? `🎉 You WON! Coin landed on ${result} — You earned ${data.payout || winnableAmount}`
+            : `❌ You LOST! Coin landed on ${result}`
+        );
+        setShowResult(true);
+      }, 2000);
+    },
 
     onError: (error: any) => {
       setIsFlipping(false);
-      setResultText(error.response?.data?.message || error.message || 'Something went wrong');
+      setResultText(error.response?.data?.message || error.message || "Something went wrong");
       setShowResult(true);
     },
   });
 
   const handleRandomPick = () => {
-    const sides = ['Heads', 'Tails'];
+    const sides = ["Heads", "Tails"];
     const randomSide = sides[Math.floor(Math.random() * sides.length)];
-    setSelectedSide(randomSide as 'Heads' | 'Tails');
+    setSelectedSide(randomSide as "heads" | "tails");
   };
 
   const handlePlaceBet = () => {
     if (!selectedSide) {
-      setResultText('Please select a side before betting!');
+      setResultText("Please select a side before betting!");
       setShowResult(true);
       return;
     }
 
     if (betAmount <= 0) {
-      setResultText('Bet amount must be greater than 0');
+      setResultText("Bet amount must be greater than 0");
       setShowResult(true);
       return;
     }
 
     mutation.mutate({
       betAmount: betAmount,
-      choice: selectedSide.toLowerCase(),
-      odds: activeOdds
+      choice: selectedSide,
+      // odds: activeOdds
     });
   };
 
@@ -100,8 +99,8 @@ export default function CoinTossGame() {
                 className="w-full h-full transition-transform duration-[2s] ease-in-out"
                 style={{
                   transform: `rotateY(${coinRotation}deg)`,
-                  transformStyle: 'preserve-3d',
-                  position: 'relative',
+                  transformStyle: "preserve-3d",
+                  position: "relative",
                 }}
               >
                 <div className="absolute inset-0 rounded-full flex items-center justify-center bg-red-500 backface-hidden">
@@ -121,8 +120,8 @@ export default function CoinTossGame() {
                 onClick={() => setActiveOdds(odds)}
                 className={`w-[72px] h-[30px] rounded-full text-sm font-medium transition ${
                   activeOdds === odds
-                    ? 'bg-[#C8A2FF] text-black'
-                    : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
+                    ? "bg-[#C8A2FF] text-black"
+                    : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
                 }`}
               >
                 {odds}x
@@ -165,19 +164,19 @@ export default function CoinTossGame() {
           </button>
 
           <div className="flex gap-4">
-            {['Heads', 'Tails'].map((side) => (
+            {["Heads", "Tails"].map((side) => (
               <button
                 key={side}
-                onClick={() => setSelectedSide(side as 'Heads' | 'Tails')}
+                onClick={() => setSelectedSide(side as "heads" | "tails")}
                 disabled={isFlipping}
                 className={`flex-1 py-2 rounded-full text-sm font-semibold border flex items-center justify-center gap-2 ${
                   selectedSide === side
-                    ? 'bg-[#C8A2FF] text-black'
-                    : 'bg-[#212121] border-white/10 text-white hover:bg-[#2A2A2A]'
-                } ${isFlipping ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    ? "bg-[#C8A2FF] text-black"
+                    : "bg-[#212121] border-white/10 text-white hover:bg-[#2A2A2A]"
+                } ${isFlipping ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {side}
-                {side === 'Heads' ? (
+                {side === "Heads" ? (
                   <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
                     <div className="w-2.5 h-2.5 rounded-full bg-black" />
                   </div>
@@ -206,10 +205,10 @@ export default function CoinTossGame() {
             onClick={handlePlaceBet}
             disabled={isFlipping || !selectedSide}
             className={`bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition ${
-              isFlipping ? 'opacity-50 cursor-not-allowed' : ''
+              isFlipping ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {isFlipping ? 'Flipping...' : 'Bet'}
+            {isFlipping ? "Flipping..." : "Bet"}
           </button>
         </div>
       </div>
