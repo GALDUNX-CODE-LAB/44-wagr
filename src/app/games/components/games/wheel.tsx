@@ -3,9 +3,11 @@
 import { Bitcoin } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import LiveWinsSection from '../../../../components/live-wins'
+import { TfiLocationPin } from "react-icons/tfi";
+import { useWheelBet } from '../../../../lib/hooks/useWheel';
 
 export default function StakeRingWheelGame() {
-  const [betAmount, setBetAmount] = useState(0.025)
+  const [betAmount, setBetAmount] = useState(0.01)
   const [activeOdds, setActiveOdds] = useState(2)
   const [wheelRotation, setWheelRotation] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
@@ -13,6 +15,27 @@ export default function StakeRingWheelGame() {
   const [resultText, setResultText] = useState('')
   const [selectedRisk, setSelectedRisk] = useState('medium')
   const [selectedSegments, setSelectedSegments] = useState(18)
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null)
+
+ type WheelSegment = {
+  value: number;
+  color: string;
+  multiplier: number;
+};
+ 
+
+const COLOR_MAPPING: Record<string, string> = {
+  purple: '#C8A2FF',
+  green: '#4DFF00B5',
+  red: '#FF0000B5',
+  yellow: '#FFC107',
+  blue: '#1976D2',
+  lightgray: '#FFFFFFB5'
+};
+
+const COLOR_NAMES = Object.keys(COLOR_MAPPING);
+
+  const { mutate: placeBet, isPending: isBetting } = useWheelBet()
 
   const winnableAmount = betAmount * activeOdds
 
@@ -20,14 +43,16 @@ export default function StakeRingWheelGame() {
   const backgroundColor = '#1C1C1C'
   const segmentAngle = 360 / selectedSegments
   const oddsOptions = [2, 4, 6, 8]
-  const [segments, setSegments] = useState<number[]>([])
+  const [segments, setSegments] = useState<WheelSegment[]>([]);
 
   useEffect(() => {
-    const generatedSegments = Array.from({ length: selectedSegments }, () =>
-      Math.floor(Math.random() * 10) + 2
-    )
-    setSegments(generatedSegments)
-  }, [selectedSegments])
+  const generatedSegments = Array.from({ length: selectedSegments }, (_, i) => ({
+    value: Math.floor(Math.random() * 10) + 2,
+    color: COLOR_MAPPING[COLOR_NAMES[i % COLOR_NAMES.length]],
+    multiplier: 2 + (i % 4) * 2
+  }));
+  setSegments(generatedSegments);
+}, [selectedSegments]);
 
   const generateGradient = () => {
     const gradientParts = segments.map((_, i) => {
@@ -40,34 +65,85 @@ export default function StakeRingWheelGame() {
   }
 
   const handleSpin = () => {
-    if (isSpinning) return
-    const randomIndex = Math.floor(Math.random() * segments.length)
-    const resultMultiplier = segments[randomIndex]
-    const extraSpins = 6
-    const targetRotation =
-      wheelRotation + extraSpins * 360 + randomIndex * segmentAngle + segmentAngle / 2
+  if (isSpinning || selectedColorIndex === null) return;
 
-    setIsSpinning(true)
-    setWheelRotation(targetRotation)
+  setIsSpinning(true);
+  setShowResult(false);
 
-    setTimeout(() => {
-      setIsSpinning(false)
-      const winAmount = betAmount * resultMultiplier
-      setResultText(`🎉 Wheel landed on ${resultMultiplier}x! You won ${winAmount.toFixed(6)} BTC`)
-      setShowResult(true)
-    }, 4500)
+  placeBet(
+  {
+    betAmount,
+    selectedColorIndex,
+    segments: segments.map(s => ({
+      color: Object.keys(COLOR_MAPPING).find(k => COLOR_MAPPING[k] === s.color) || 'lightgray',
+      multiplier: s.multiplier
+    }))
+  },
+  {
+    onSuccess: (data) => {
+      const resultColor = data.data.resultColor;
+
+      const resultIndex = segments.findIndex(
+        seg => Object.keys(COLOR_MAPPING).find(key => COLOR_MAPPING[key] === seg.color) === resultColor
+      );
+
+      if (resultIndex === -1) {
+        console.error('Could not find matching segment for color:', resultColor);
+        setIsSpinning(false);
+        setResultText('Invalid result from server');
+        setShowResult(true);
+        return;
+      }
+
+      const extraSpins = 6;
+      const targetRotation =
+        wheelRotation + extraSpins * 360 + resultIndex * segmentAngle + segmentAngle / 2;
+
+      setWheelRotation(targetRotation);
+
+      setTimeout(() => {
+        setIsSpinning(false);
+        const winAmount = betAmount * data.data.multiplier;
+        setResultText(
+          data.data.payout > 0
+            ? `🎉 Wheel landed on ${resultColor}! You won ${winAmount.toFixed(6)} BTC`
+            : `❌ Wheel landed on ${resultColor}, better luck next time!`
+        );
+        setShowResult(true);
+      }, 4500);
+    },
+    onError: (error: any) => {
+      console.error('Bet Error:', error);
+      setIsSpinning(false);
+      setResultText(error.message);
+      setShowResult(true);
+    }
   }
+);
+
+      
+      
+ 
+};
 
   return (
     <div className="px-4 py-6">
-      {/* Wheel Section */}
       <div className="bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 justify-between items-center lg:items-start p-6">
-        {/* Segment Colors + Odds */}
-        <div className="flex lg:flex-col flex-wrap gap-2 justify-center">
+        
+        {/* Segment Colors - large screens only */}
+        <div className="hidden lg:flex lg:flex-col flex-wrap gap-2 justify-center">
           {segmentColors.map((color, idx) => (
             <div
               key={idx}
-              className="w-[60px] h-[50px] rounded-[10px] border border-white/10 flex flex-col"
+              className={`w-[60px] h-[50px] rounded-[10px] border ${
+                selectedColorIndex === idx 
+                  ? 'border-[#C8A2FF] border-2' 
+                  : 'border-white/10'
+              } flex flex-col cursor-pointer`}
+              onClick={() => {
+                setSelectedColorIndex(idx)
+                setActiveOdds(oddsOptions[idx % oddsOptions.length])
+              }}
             >
               <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
                 {oddsOptions[idx % oddsOptions.length]}x
@@ -77,8 +153,9 @@ export default function StakeRingWheelGame() {
           ))}
         </div>
 
-        {/* Wheel */}
+        {/* Wheel + Odds */}
         <div className="flex flex-col justify-center items-center w-full max-w-[360px] relative">
+          {/* Wheel */}
           <div
             className="relative w-full aspect-square max-w-[340px] rounded-full flex items-center justify-center"
             style={{ backgroundColor }}
@@ -92,12 +169,12 @@ export default function StakeRingWheelGame() {
             />
             <div className="w-[70%] aspect-square rounded-full bg-[#1C1C1C] z-10" />
             <div className="absolute top-[-16px] left-1/2 -translate-x-1/2 z-20">
-              <div className="w-4 h-4 border-l-8 border-r-8 border-b-8 border-transparent border-b-yellow-400" />
+              <TfiLocationPin className="w-[30px] h-[25px] -mt-2 text-[#c8a2ff]" />
             </div>
           </div>
 
-          {/* Odds Buttons */}
-          <div className="flex gap-3 mt-6 flex-wrap justify-center">
+          {/* Odds - large screens only */}
+          <div className="hidden lg:flex gap-3 mt-6 flex-wrap justify-start self-start -ml-[100px]">
             {oddsOptions.map((odds) => (
               <button
                 key={odds}
@@ -112,75 +189,91 @@ export default function StakeRingWheelGame() {
               </button>
             ))}
           </div>
+
+          {/* Segment colors - visible only on small screens under the wheel */}
+          <div className="flex lg:hidden flex-wrap gap-2 justify-center mt-6">
+            {segmentColors.map((color, idx) => (
+              <div
+                key={idx}
+                className={`w-[60px] h-[50px] rounded-[10px] border ${
+                  selectedColorIndex === idx 
+                    ? 'border-[#C8A2FF] border-2' 
+                    : 'border-white/10'
+                } flex flex-col cursor-pointer`}
+                onClick={() => {
+                  setSelectedColorIndex(idx)
+                  setActiveOdds(oddsOptions[idx % oddsOptions.length])
+                }}
+              >
+                <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
+                  {oddsOptions[idx % oddsOptions.length]}x
+                </div>
+                <div style={{ backgroundColor: color, height: '20%' }} />
+                </div>
+            ))}
+          </div>
         </div>
 
         {/* Bet Panel */}
         <div className="w-full lg:w-[347px] bg-[#1C1C1C] rounded-[16px] border border-white/10 p-4 flex flex-col gap-4">
           {/* Amount */}
           <div>
-            <p className="text-sm text-gray-400">Bet Amount (BTC)</p>
-            <div className="flex items-center bg-[#1A1A1A] rounded-lg mt-2 px-3">
-              <Bitcoin className="w-5 h-5 text-yellow-400 mr-2" />
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(parseFloat(e.target.value))}
-                className="bg-transparent border-none text-white text-lg font-semibold w-full focus:outline-none py-2"
-                step="0.001"
-                min="0"
-              />
+            <p className="text-sm text-white/60">Bet Amount</p>
+            <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
+              <span className="text-sm text-white">{betAmount}</span>
+              <div className="flex items-center gap-2">
+                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                </div>
+                <div className="bg-black px-3 py-1 rounded-lg">
+                  <p className="text-white font-medium leading-none">2x</p>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Risk Level */}
           <div>
-            <p className="text-sm text-gray-400">Select Risk</p>
+            <p className="text-sm text-white/60">Risk</p>
             <select
               value={selectedRisk}
               onChange={(e) => setSelectedRisk(e.target.value)}
-              className="mt-2 bg-[#1A1A1A] text-white rounded-lg p-2 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-[12px] p-4 w-full"
             >
-              <option value="low">Low Risk</option>
-              <option value="medium">Medium Risk</option>
-              <option value="high">High Risk</option>
+              <option value="low">Low </option>
+              <option value="medium">Medium </option>
+              <option value="high">High </option>
             </select>
           </div>
 
           {/* Segment Selector */}
           <div>
-            <p className="text-sm text-gray-400">Select Segments</p>
+            <p className="text-sm text-white/60">Segments</p>
             <select
               value={selectedSegments}
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
-              className="mt-2 bg-[#1A1A1A] text-white rounded-lg p-2 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-lg p-4 w-full"
             >
               {Array.from({ length: 15 }, (_, i) => i + 6).map((num) => (
                 <option key={num} value={num}>
-                  {num} Segments
+                  {num} 
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Win Amount */}
-          <div>
-            <p className="text-sm text-gray-400 mt-2 mb-1">Amount to Win</p>
-            <div className="bg-[#1A1A1A] rounded-lg px-4 py-3">
-              <span className="text-xl font-semibold">
-                {winnableAmount.toFixed(6)} BTC
-              </span>
-            </div>
-          </div>
-
           {/* Spin Button */}
           <button
             onClick={handleSpin}
-            disabled={isSpinning}
+            disabled={isSpinning || isBetting || selectedColorIndex === null}
             className={`${
-              isSpinning ? 'opacity-50 cursor-not-allowed' : ''
-            } bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full py-3 mt-auto transition`}
+              isSpinning || isBetting || selectedColorIndex === null
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
+            } bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-3.5 mt-auto transition`}
           >
-            {isSpinning ? 'Spinning...' : 'Spin Wheel'}
+            {isSpinning || isBetting ? 'Processing...' : 
+             selectedColorIndex === null ? 'Select a color first' : 'Bet'}
           </button>
         </div>
       </div>
@@ -200,8 +293,8 @@ export default function StakeRingWheelGame() {
         </div>
       )}
 
-      {/* Live Wins */}
-      <div className="mt-8">
+      {/* Live Wins Section */}
+      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
         <LiveWinsSection />
       </div>
     </div>

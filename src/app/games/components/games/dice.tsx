@@ -2,109 +2,190 @@
 
 import { Bitcoin } from 'lucide-react'
 import DiceRoller from '../dice-roller'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import LiveWinsSection from '../../../../components/live-wins'
+import { useDiceBet } from '../../../../lib/hooks/useDice'
 
 export default function DiceGame() {
-  const [activeOdds, setActiveOdds] = useState(2)
+  const [activeOdds, setActiveOdds] = useState(60.57)
   const [betAmount, setBetAmount] = useState(0.025)
-  const oddsOptions = [2, 4, 6, 8]
+  const [target, setTarget] = useState(50)
+  const [betType, setBetType] = useState<'over' | 'under'>('over')
+  const [lastResult, setLastResult] = useState<any>(null)
+  const oddsOptions = [60.57, 30.57, 70.57, 60.70]
   const diceRef = useRef<any>(null)
+
+  const { mutate: placeDiceBet, isPending: isBetting } = useDiceBet()
 
   const winnableAmount = betAmount * activeOdds
 
   const handlePlaceBet = () => {
-    if (diceRef.current) {
-      diceRef.current.rollDice()
-    }
+  if (betAmount <= 0) {
+    alert('Please enter a valid bet amount')
+    return
   }
+
+  // Start the rolling animation
+  if (diceRef.current) {
+    diceRef.current.rollDice()
+  }
+
+  placeDiceBet(
+    { betAmount, target, betType },
+    {
+      onSuccess: (data) => {
+        console.log("🎲 Full API Response:", data); // Log full API response
+        setLastResult(data)
+        if (diceRef.current) {
+          // Animate to the actual roll value (0-99) and pass win status
+          diceRef.current.rollToValue(data.roll, data.isWin)
+        }
+      },
+      onError: (error) => {
+        console.error("🎲 Bet Error:", error); // Log error
+        alert(`Bet failed: ${error.message}`)
+        if (diceRef.current) {
+          diceRef.current.resetDice()
+        }
+      }
+    }
+  )
+}
+  
+
+ 
+ 
+  // Update UI when bet type changes
+  useEffect(() => {
+    if (diceRef.current) {
+      diceRef.current.resetDice()
+    }
+  }, [betType])
 
   return (
     <div className="p-4">
-      <div className="bg-[#212121] rounded-xl text-white flex flex-col lg:flex-row justify-between gap-6 p-4 min-h-[500px]">
+      <div className="bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 p-4 min-h-[400px]">
         {/* Left Section */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 flex flex-col gap-8">
           {/* Bet Settings */}
-          <div className="w-full flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px] p-4 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
-              <span className="text-sm text-gray-400">Multiplier</span>
+          <div className="w-full flex flex-wrap font-medium gap-4 bg-[#1c1c1c]">
+            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
+              <span className="text-sm text-white/60">Multiplier</span>
               <p className="mt-1 bg-[#212121] border border-white/10 rounded-lg px-3 py-2 text-lg font-semibold">
-                {activeOdds}x
+                {lastResult?.multiplier?.toFixed(5) || '2.65000'}
               </p>
             </div>
-            <div className="flex-1 min-w-[200px] p-4 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
-              <span className="text-sm text-gray-400">Bet Amount (BTC)</span>
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(parseFloat(e.target.value))}
-                className="mt-1 bg-[#212121] border border-white/10 rounded-lg px-3 py-2 text-lg font-semibold text-white w-full focus:outline-none"
-                step="0.001"
-                min="0"
-              />
+            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
+              <span className="text-sm text-white/60">Roll {betType === 'over' ? 'Over' : 'Under'}</span>
+              <div className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="99"
+                  value={target}
+                  onChange={(e) => setTarget(Number(e.target.value))}
+                  className="w-full bg-transparent text-lg font-semibold outline-none"
+                />
+              </div>
             </div>
-            <div className="flex-1 min-w-[200px] p-4 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
-              <span className="text-sm text-gray-400">Win Chance</span>
-              <p className="mt-1 bg-[#212121] border border-white/10 rounded-lg px-3 py-2 text-lg font-semibold">
-                65%
+            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
+              <span className="text-sm text-white/60">Win Chance</span>
+              <p className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2 text-lg font-semibold">
+                {betType === 'over' ? (100 - target).toFixed(2) : target.toFixed(2)}%
               </p>
             </div>
           </div>
 
           {/* Dice Animation */}
-          <div className="flex justify-center items-center mt-4">
+          <div className="flex-grow flex flex-col justify-center items-center mt-5">
             <DiceRoller ref={diceRef} />
+            {lastResult && (
+              <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? 'text-green-400' : 'text-red-400'}`}>
+                {lastResult.isWin ? 'You Won!' : 'You Lost'} (Roll: {lastResult.roll.toFixed(2)})
+              </div>
+            )}
           </div>
 
-          {/* Odds Buttons */}
-          <div className="flex flex-wrap gap-3 mt-6">
-            {oddsOptions.map((odds) => (
-              <button
-                key={odds}
-                className={`w-[72px] h-[32px] rounded-full px-4 py-1 text-sm font-medium transition ${
-                  activeOdds === odds
-                    ? 'bg-[#C8A2FF] text-black'
-                    : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
-                }`}
-                onClick={() => setActiveOdds(odds)}
-              >
-                {odds}x
-              </button>
-            ))}
+          {/* Bet Type Toggle */}
+          <div className="flex justify-center gap-4 mt-4">
+            <button
+              className={`px-6 py-2 rounded-full font-medium ${
+                betType === 'over'
+                  ? 'bg-[#C8A2FF] text-black'
+                  : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
+              }`}
+              onClick={() => setBetType('over')}
+            >
+              Roll Over
+            </button>
+            <button
+              className={`px-6 py-2 rounded-full font-medium ${
+                betType === 'under'
+                  ? 'bg-[#C8A2FF] text-black'
+                  : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
+              }`}
+              onClick={() => setBetType('under')}
+            >
+              Roll Under
+            </button>
           </div>
         </div>
 
         {/* Right Section (Bet Summary) */}
-        <div className="w-full lg:w-[375px] flex flex-col p-4 gap-4 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
-          {/* Bet Details */}
-          <div className="flex items-center justify-between bg-[#1A1A1A] rounded-lg p-4">
-            <div className="flex items-center gap-2">
-              <Bitcoin className="w-5 h-5 text-yellow-400" />
-              <span>{betAmount} BTC</span>
+        <div className="w-full lg:w-[375px] flex flex-col p-4 gap-8 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
+          {/* Bet Amount Input */}
+          <div>
+            <p className="text-sm text-white/60">Bet Amount</p>
+            <div className="flex items-center justify-between bg-[#212121] rounded-lg p-4 mt-1">
+              <input
+                type="number"
+                min="0.000001"
+                step="0.000001"
+                value={betAmount}
+                onChange={(e) => setBetAmount(Number(e.target.value))}
+                className="w-full bg-transparent outline-none text-white"
+              />
+              <div className="flex items-center gap-2">
+                <div className="bg-white rounded-[1000px] p-1">
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                </div>
+                <span className="text-sm">BTC</span>
+              </div>
             </div>
-            <span className="text-green-400 font-semibold">{activeOdds}x</span>
           </div>
 
           {/* Amount to Win */}
           <div>
-            <p className="text-sm text-gray-400">Amount to Win</p>
-            <div className="bg-[#1A1A1A] rounded-lg p-4 mt-1">
-              <span className="text-xl font-semibold">{winnableAmount.toFixed(6)} BTC</span>
+            <p className="text-sm text-white/60">Profit On Win</p>
+            <div className="bg-[#212121] rounded-lg p-4 mt-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-white">
+                  {(betAmount * (betType === 'over' ? (99 / (100 - target)) : (99 / target))).toFixed(6)} BTC
+                </span>
+                <div className="bg-white rounded-[1000px] p-1">
+                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Bet Button */}
           <button
             onClick={handlePlaceBet}
-            className="mt-auto bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full py-3 transition"
+            disabled={isBetting}
+            className={`mt-auto font-semibold rounded-[12px] py-3 transition ${
+              isBetting
+                ? 'bg-gray-500 cursor-not-allowed'
+                : 'bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black'
+            }`}
           >
-            Place Bet
+            {isBetting ? 'Processing...' : 'Place Bet'}
           </button>
         </div>
       </div>
 
       {/* Live Wins Section */}
-      <div className="mt-10">
+      <div className="mt-12 bg-[#212121] rounded-[20px] p-6">
         <LiveWinsSection />
       </div>
     </div>

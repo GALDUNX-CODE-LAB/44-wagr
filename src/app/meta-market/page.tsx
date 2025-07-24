@@ -12,20 +12,20 @@ export default function MarketPage() {
   const router = useRouter();
 
   return (
-    <div className="p-4 sm:p-6 text-white bg-black min-h-screen">
+    <div className="p-4 sm:p-6 text-white  min-h-screen">
       {/* Title & Subtext */}
-      <h1 className="text-2xl sm:text-3xl font-bold mb-1">Poly Market</h1>
-      <p className="text-sm text-gray-400 mb-6 max-w-xl">
+      <h1 className="text-[30px] font-medium mb-1">Poly Market</h1>
+      <p className="text-base font-normal text-white/70 mb-6 max-w-xl">
         Explore trending prediction markets. Bet on real-world events and see what others think.
       </p>
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-5 h-5" />
         <input
           type="text"
-          placeholder="Search markets..."
-          className="w-full pl-10 bg-[#1A1A1A] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none"
+          placeholder="Search"
+          className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3 text-white focus:outline-none"
         />
       </div>
 
@@ -55,23 +55,23 @@ export default function MarketPage() {
           <div
             key={market.id}
             onClick={() => router.push(`/meta-market/${market.id}`)}
-            className="cursor-pointer w-full bg-[#212121] rounded-[20px] border border-white/10 p-4 flex flex-col gap-3 hover:border-[#C8A2FF] transition"
+            className="cursor-pointer max-w-[365px] h-[232px] bg-[#212121]  rounded-[20px] border border-white/6 p-4 flex flex-col gap-3 transition"
           >
             {/* Image Placeholder */}
-            <div className="w-12 h-12 bg-gray-500 rounded-md" />
+            <div className="w-10 h-10 bg-white rounded-[10px] mt-2" />
 
             {/* Market Question */}
-            <h2 className="text-base sm:text-lg font-semibold">{market.question}</h2>
+            <h2 className="text-base mt-2 font-medium">{market.question}</h2>
 
             {/* Yes / No Buttons */}
-            <div className="flex gap-4 mt-1">
+            <div className="flex gap-4 mt-2">
               {["Yes", "No"].map((ans) => (
                 <div
                   key={ans}
-                  className={`flex-1 py-2 rounded-full text-sm font-semibold text-center border ${
+                  className={`flex-1 py-2 rounded-[10px] text-sm font-medium text-center  ${
                     ans === "Yes"
                       ? "bg-[#C8A2FF] text-black border-[#C8A2FF]"
-                      : "bg-[#1A1A1A] text-white border-white/10"
+                      : "bg-[#1c1c1c] text-white border-white/10"
                   }`}
                 >
                   {ans}
@@ -80,9 +80,9 @@ export default function MarketPage() {
             </div>
 
             {/* Market Stats */}
-            <div className="flex flex-wrap items-center justify-between text-sm text-gray-300 mt-2">
+            <div className="flex flex-wrap items-center justify-between text-sm font-medium mt-2">
               <div className="flex items-center gap-2">
-                <p>{market.volume} vol</p>
+                <p className=" text-sm text-white/65">{market.volume} vol</p>
                 <div
                   className={`flex items-center gap-1 ${
                     market.positive ? "text-green-500" : "text-red-500"

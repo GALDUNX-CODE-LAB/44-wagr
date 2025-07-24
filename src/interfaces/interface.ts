@@ -27,3 +27,37 @@ export interface WalletCoin {
   icon: string
 }
 
+export interface CoinflipBetPayload {
+  betAmount: number;
+  choice: 'Heads' | 'Tails' | 'heads' | 'tails';
+}
+
+export interface CoinflipBetResponse {
+  data: {
+    user: string;
+    betAmount: number;
+    choice: string;
+    result: 'Heads' | 'Tails' | 'heads' | 'tails';
+    isWin: boolean;
+    multiplier: number;
+    payout: number;
+    clientSeed: string;
+    nonce: number;
+    serverSeedHash: string;
+    _id: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
+  success: boolean;
+}
+
+interface AuthResponse {
+  accessToken: string
+  refreshToken?: string
+  user: {
+    walletAddress: string
+    balance: number
+  }
+}
+

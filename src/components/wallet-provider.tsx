@@ -1,32 +1,15 @@
+"use client";
 
-'use client';
-
-import '@rainbow-me/rainbowkit/styles.css';
-import {
-  getDefaultConfig,
-  RainbowKitProvider,
-  darkTheme
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mainnet, polygon, arbitrum } from 'wagmi/chains';
-
-const config = getDefaultConfig({
-  appName: 'My App',
-  projectId: 'YOUR_WALLETCONNECT_PROJECT_ID', // 🔑 Replace with your real one
-  chains: [mainnet, polygon, arbitrum],
-  ssr: true,
-});
-
-const queryClient = new QueryClient();
+import { config, queryClient } from "../lib/wallet-config";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: '#C8A2FF' })}>
-          {children}
-        </RainbowKitProvider>
+        <RainbowKitProvider>{children}</RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

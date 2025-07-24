@@ -13,7 +13,7 @@ export default function MarketDetailsPage() {
   if (!market) return notFound();
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
+    <div className="min-h-screen  text-white p-4">
       <MarketDetails market={market} />
     </div>
   );
