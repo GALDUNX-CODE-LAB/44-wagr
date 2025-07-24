@@ -1,23 +1,51 @@
+// wheel-api.ts
+export type DynamicSegment = {
+  color: string;
+  multiplier: number;
+};
+
 export const placeWheelBet = async ({
   betAmount,
-  segment,
+  selectedColorIndex,
+  segments,
 }: {
   betAmount: number;
-  segment: number; // 0-11 for 12 segments
+  selectedColorIndex: number;
+  segments: DynamicSegment[];
 }) => {
   const token = localStorage.getItem('access-token');
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_WHEEL_ENDPOINT}`,
-    {
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/spin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ betAmount, segment }),
+      body: JSON.stringify({
+        stake: betAmount,
+        chosenColor: getColorNameFromIndex(selectedColorIndex, segments),
+        segments,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || `HTTP error! status: ${res.status}`);
     }
-  );
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Wheel bet failed');
-  return data.data;
+
+    return data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw new Error('Bet placement failed. Please try again.');
+  }
+};
+
+const getColorNameFromIndex = (
+  index: number,
+  segments: DynamicSegment[]
+): string => {
+  const segment = segments[index];
+  return segment ? segment.color : 'lightgray'; // fallback
 };

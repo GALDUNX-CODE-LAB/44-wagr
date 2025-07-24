@@ -4,24 +4,27 @@ import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import LiveWinsSection from '../../components/live-wins'
-import { useEffect } from 'react';
-import { devLogin } from '../../lib/api/auth'
+import { useEffect, useState } from 'react'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useAccount, useSignMessage, useDisconnect } from 'wagmi'
+import type { SignableMessage } from 'viem'
 
 export default function HomePage() {
-
-  
-useEffect(() => {
-  devLogin('0xf8d4c25d15823ea9d37f1b3e4ee566abf1d24e4c')
-    .then(({ user }) => {
-      console.log('Logged in:', user);
-    })
-    .catch((err) => {
-      console.error('Login failed:', err.message);
-    });
-}, []);
-
-
   const router = useRouter()
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  const [authToken, setAuthToken] = useState<string | null>(null)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+
+  const { signMessageAsync } = useSignMessage({
+    mutation: {
+      onError: (error) => {
+        setAuthError(error.message)
+        handleAuthFailure()
+      },
+    }
+  })
 
   const availableGames = [
     { name: 'Crash', players: 1248, image: '/assets/icon.svg' },
@@ -33,46 +36,178 @@ useEffect(() => {
   const trendingGames = [
     { name: 'Roulette Royale', players: 1248 },
     { name: 'Blackjack Pro', players: 1248 },
-    { name: 'Slots Mania', players: 1248 },
+       { name: 'Slots Mania', players: 1248 },
     { name: 'Poker Stars', players: 1248 },
     { name: 'Baccarat Elite', players: 1248 },
     { name: 'Craps Champion', players: 1248 },
     { name: 'Texas Holdem', players: 1248 },
     { name: 'Dice Master', players: 1248 },
     { name: 'Virtual Sports', players: 1248 },
-    { name: 'Wheel of Fortune', players: 1248 },
-    { name: 'Craps Champion', players: 1248 },
-    { name: 'Texas Holdem', players: 1248 },
-    { name: 'Dice Master', players: 1248 },
-    { name: 'Virtual Sports', players: 1248 },
-    { name: 'Wheel of Fortune', players: 1248 },
-     { name: 'Dice Master', players: 1248 },
-    { name: 'Virtual Sports', players: 1248 },
     { name: 'Wheel of Fortune', players: 1248 }
   ]
 
   const cardData = [
     'What is Peejayy all about?',
-    'How does peejayy standout from others?',
+      'How does peejayy standout from others?',
     'What is the possibility we won\'t have dash?',
     'Is Peejayy staying longer?',
     'How secure is Peejayy?',
     'What support do we get?'
   ]
 
-  return (
-    <div className="p-4 sm:p-6 text-white max-w-screen-xl mx-auto ">
-      <div className=' w-full h-[223px] bg-[#212121] rounded-[20px] border border-white/6'>
+  const handleAuthFailure = () => {
+    disconnect()
+    localStorage.removeItem('access-token')
+    setAuthToken(null)
+  }
 
+ const authenticateUser = async () => {
+  if (!address) {
+    console.error('No wallet address available');
+    setAuthError('Wallet not connected');
+    return;
+  }
+
+  setIsAuthenticating(true);
+  setAuthError(null);
+
+  try {
+    console.log('[Auth] Starting authentication for:', address);
+
+    // 1. Verify API URL
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!API_URL) throw new Error('API URL not configured');
+    console.log('[Auth] Using API URL:', API_URL);
+
+    // 2. Request nonce
+    console.log('[Auth] Requesting nonce...');
+    const nonceResponse = await fetch(`${API_URL}/auth/nonce`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ walletAddress: address })
+    });
+
+    if (!nonceResponse.ok) {
+      const error = await nonceResponse.json();
+      console.error('[Auth] Nonce request failed:', error);
+      throw new Error(error.error || 'Failed to get nonce');
+    }
+
+    const { message: signingMessage, nonce } = await nonceResponse.json();
+    console.log('[Auth] Received nonce:', nonce, 'Message:', signingMessage);
+
+    // 3. Sign message
+    console.log('[Auth] Requesting signature...');
+    const signature = await signMessageAsync({
+      account: address,
+      message: signingMessage,
+    });
+    console.log('[Auth] Signature received:', signature);
+
+    // 4. Verify signature
+    console.log('[Auth] Verifying signature...');
+    const verifyResponse = await fetch(`${API_URL}/auth/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        walletAddress: address.toLowerCase(),
+        signature
+      }),
+    });
+
+    if (!verifyResponse.ok) {
+      const error = await verifyResponse.json();
+      console.error('[Auth] Verification failed:', {
+        status: verifyResponse.status,
+        error,
+        sentData: {
+          walletAddress: address.toLowerCase(),
+          message: signingMessage
+        }
+      });
+      throw new Error(error.error || 'Verification failed');
+    }
+
+    // 5. Store tokens
+    const { accessToken, refreshToken } = await verifyResponse.json();
+    console.log('[Auth] Authentication successful');
+    
+    localStorage.setItem('access-token', accessToken);
+    localStorage.setItem('refresh-token', refreshToken);
+    setAuthToken(accessToken);
+
+  } catch (error) {
+    console.error('[Auth] Full error context:', {
+      error,
+      address,
+      timestamp: new Date().toISOString()
+    });
+
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Authentication failed. Please try again.';
+    
+    setAuthError(errorMessage);
+    handleAuthFailure();
+
+    // Special handling for common errors
+    if (errorMessage.includes('Signature mismatch')) {
+      setAuthError('Wallet verification failed. Please reconnect your wallet.');
+    }
+  } finally {
+    setIsAuthenticating(false);
+  }
+};
+
+  useEffect(() => {
+    const token = localStorage.getItem('access-token')
+    if (token) {
+      setAuthToken(token)
+    } else if (isConnected && address) {
+      authenticateUser()
+    }
+  }, [isConnected, address])
+
+  const handleGameClick = (gameName: string) => {
+    if (!authToken) {
+      setAuthError('Please authenticate your wallet to play')
+      return
+    }
+    router.push(`/games/${gameName.toLowerCase()}`)
+  }
+
+  return (
+    <div className="p-4 sm:p-6 text-white max-w-screen-xl mx-auto">
+      {/* Auth Header */}
+      <div className="flex justify-end mb-6">
+        <div className="flex items-center gap-3">
+          {authToken ? (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm">Verified</span>
+            </div>
+          ) : authError ? (
+            <div className="text-sm text-red-400 px-3 py-1 bg-red-500/10 rounded-full">
+              {authError}
+            </div>
+          ) : null}
+          
+        </div>
       </div>
+
+      {/* Hero Banner */}
+      <div className='w-full h-[223px] bg-[#212121] rounded-[20px] border border-white/6 mb-8'>
+        {/* Hero content */}
+      </div>
+
       {/* Available Games */}
       <section className="mb-8">
-        <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1 mt-6">Available Games</h1>
+        <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1">Available Games</h1>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {availableGames.map((game, index) => (
             <div
               key={index}
-              onClick={() => router.push(`/games/${game.name.toLowerCase()}`)}
+              onClick={() => handleGameClick(game.name)}
               className="cursor-pointer w-full h-[80px] rounded-[20px] border border-white/10 bg-[#212121] flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
             >
               <Image
@@ -97,34 +232,35 @@ useEffect(() => {
       </section>
 
       {/* Trending Games */}
-      <section className="mb-10 bg-[#212121] border border-[#ffffff]/6 rounded-[15px] p-5 ">
-        <div className="flex items-center gap-2 mb-5 ml-1 ">
+      <section className="mb-10 bg-[#212121] border border-[#ffffff]/6 rounded-[15px] p-5">
+        <div className="flex items-center gap-2 mb-5 ml-1">
           <Image src="/assets/casino.svg" alt="casino logo" width={24} height={24} />
-          <h2 className="text-[18px] font-medium ">Trending Games</h2>
+          <h2 className="text-[18px] font-medium">Trending Games</h2>
         </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 xl:grid-cols-6 gap-4">
-  {trendingGames.map((game, index) => (
-    <div key={index} className="flex flex-col items-start">
-      <div className="w-full max-w-[166px] h-[205px] p-3 bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
-        <div className="absolute top-2 left-2 w-[30px] h-[30px] bg-[#C8A2FF] rounded-full flex items-center justify-center">
-          <ArrowUpRight className="w-4 h-4 text-black" />
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {trendingGames.slice(0, 12).map((game, index) => (
+            <div key={index} className="flex flex-col items-start">
+              <div className="w-full h-[180px] p-3 bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
+                <div className="absolute top-2 left-2 w-6 h-6 bg-[#C8A2FF] rounded-full flex items-center justify-center">
+                  <ArrowUpRight className="w-3 h-3 text-black" />
+                </div>
+              </div>
+              <h3 className="font-medium mt-3 text-left text-sm text-white">{game.name}</h3>
+              <div className="flex items-center mt-1">
+                <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
+                <span className="text-xs text-white/60">
+                  {game.players.toLocaleString()} Playing
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
 
-      <h3 className="font-medium mt-3 text-left text-[13px] text-[#2c2c2c]">{game.name}</h3>
-      <div className="flex items-center mt-1">
-        <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
-        <span className="text-xs text-[#2c2c2c]">{game.players.toLocaleString()}<span className=' text-[#ffffff]/60'> Playing</span></span>
-      </div>
-    </div>
-  ))}
-</div>
-
-      
-
-    <div className=' mt-10'>
-      <LiveWinsSection />
-    </div>
+        <div className='mt-10'>
+          <LiveWinsSection />
+        </div>
+      </section>
 
       {/* FAQs */}
       <section className="mt-20 flex flex-col md:flex-row gap-10">
@@ -136,7 +272,7 @@ useEffect(() => {
           <p className="text-gray-400 text-base mb-6 max-w-md">
             Lorem ipsum dolor sit amet consectetur. Ac iaculis in nullam etiam. At non cursus
           </p>
-          <button className="w-fit px-4 py-2 rounded-full bg-[#C8A2FF] text-white text-sm font-medium hover:bg-gray-700 transition">
+          <button className="w-fit px-4 py-2 rounded-full bg-[#C8A2FF] text-white text-sm font-medium hover:bg-[#D5B3FF] transition">
             Start Free Trial
           </button>
         </div>
@@ -152,7 +288,6 @@ useEffect(() => {
             </div>
           ))}
         </div>
-      </section>
       </section>
     </div>
   )

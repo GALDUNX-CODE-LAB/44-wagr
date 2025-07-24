@@ -51,3 +51,13 @@ export interface CoinflipBetResponse {
   };
   success: boolean;
 }
+
+interface AuthResponse {
+  accessToken: string
+  refreshToken?: string
+  user: {
+    walletAddress: string
+    balance: number
+  }
+}
+
