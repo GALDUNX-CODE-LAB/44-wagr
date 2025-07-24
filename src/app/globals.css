@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "poppins";
+  src: url("../../public/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
 
 :root {
   --background: #ffffff;
@@ -23,5 +29,14 @@
 body {
   background: #1c1c1c;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "poppins", sans-serif !important;
+}
+
+[data-testid="rk-connect-button"] {
+  /* everything inside the modal */
+  color: black !important;
+  background: #c8a2ff !important;
+  font-size: 12px !important;
+  border-radius: 30px !important;
+  font-weight: 400 !important;
 }

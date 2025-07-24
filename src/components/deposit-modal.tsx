@@ -1,9 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import QRCode from 'react-qr-code';
-import { ChevronDown, X, Copy, Check } from 'lucide-react';
-
+import { useEffect, useState, useCallback } from "react";
+import QRCode from "react-qr-code";
+import { ChevronDown, X, Copy, Check } from "lucide-react";
 
 interface DepositModalProps {
   coin: {
@@ -15,8 +14,8 @@ interface DepositModalProps {
 }
 
 export default function DepositModal({ coin, onClose }: DepositModalProps) {
-  const [wallet, setWallet] = useState('main');
-  const [address, setAddress] = useState('');
+  const [wallet, setWallet] = useState("main");
+  const [address, setAddress] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,12 +26,10 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
         setAddress(`bc1q${wallet}-${coin.symbol.toLowerCase()}-${Math.random().toString(36).substring(2, 10)}`);
         setIsLoading(false);
       }, 500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [coin, wallet]);
-
-  
 
   const handleWalletChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setWallet(e.target.value);
@@ -57,10 +54,7 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-1">Deposit Funds</h2>
           <div className="flex items-center text-sm text-white/80 gap-2">
-            <button 
-              onClick={onClose} 
-              className="hover:text-purple-400 transition-colors"
-            >
+            <button onClick={onClose} className="hover:text-purple-400 transition-colors">
               Back
             </button>
             <span className="text-white">/ Deposit {coin.name}</span>
@@ -69,7 +63,6 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
 
         {/* Wallet Selector */}
         <div className="mb-6 relative">
-          
           <div className="relative">
             <select
               id="wallet-select"
@@ -94,33 +87,24 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
               {isLoading ? (
                 <div className="w-[128px] h-[128px]  flex items-center justify-center bg-gray-200 animate-pulse" />
               ) : (
-                <QRCode 
-                  value={address} 
-                  size={128} 
-                  bgColor="#ffffff" 
-                  fgColor="#000000" 
-
-                />
+                <QRCode value={address} size={128} bgColor="#ffffff" fgColor="#000000" />
               )}
             </div>
           </div>
 
           {/* Instruction Box */}
           <div className=" bg-[#212121] border border-white/10 rounded-[20px] p-4">
-            <p className="text-white text-sm mb-4 leading-relaxed">
-              Scan the QR code or copy the address and send your desired amount. 
-              Send BTC to this address to receive the current USD value in PackDraw credit.
-              The minimum transfer value is $5. Transfers below $5 will not be credited 
-              to your account and will not be returned.
+            <h1 className="text-xl font-bold">Scan the QR code or copy the address and send your desired amount. </h1>
+            <p className="text-white/70 text-sm mb-4 leading-relaxed mt-5">
+              Send BTC to this address to receive the current USD value in PackDraw credit. The minimum transfer value
+              is $5. Transfers below $5 will not be credited to your account and will not be returned.
             </p>
           </div>
         </div>
 
         {/* Address Box - Updated to match wallet selector */}
         <div className="mb-6 relative">
-          <label className="block text-sm text-white/80 mb-2">
-            Your {coin.symbol.toUpperCase()} Address:
-          </label>
+          <label className="block text-sm text-white/80 mb-2">Your {coin.symbol.toUpperCase()} Address:</label>
           <div className="relative">
             <div className="w-full h-[40px] bg-[#212121] border border-white/10 text-white rounded-[10px] px-4 pr-8 flex items-center">
               {isLoading ? (
@@ -130,22 +114,20 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
               )}
             </div>
             <button
-              
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors"
               disabled={copied}
             >
-              {copied ? (
-                <Check className="w-4 h-4 text-green-400" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
+              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         {/* Additional Notes */}
         <div className="text-xs text-white/60">
-          <p>Cryptocurrency deposits are generally credited after 3 confirmations. Please allow up to 30 minutes for funds to appear in your account. In most cases, funds will appear within 5 minutes.</p>
+          <p>
+            Cryptocurrency deposits are generally credited after 3 confirmations. Please allow up to 30 minutes for
+            funds to appear in your account. In most cases, funds will appear within 5 minutes.
+          </p>
         </div>
       </div>
     </div>
