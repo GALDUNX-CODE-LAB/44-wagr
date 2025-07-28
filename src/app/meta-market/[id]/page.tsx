@@ -1,20 +1,26 @@
-"use client";
+// app/market/[id]/page.tsx
+'use client';
 
 import { notFound, useParams } from "next/navigation";
-import { marketData } from "../../../lib/dummy-data";
-import { Market } from "../../../interfaces/interface";
+import { useQuery } from "@tanstack/react-query";
 import MarketDetails from "../components/market-details";
+import { fetchMarketById } from "../../../lib/api/markets-api";
 
 export default function MarketDetailsPage() {
   const params = useParams();
-  const marketId = Number(params?.id);
-  const market: Market | undefined = marketData.find((m) => m.id === marketId);
+  const marketId = params?.id as string;
 
-  if (!market) return notFound();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['market', marketId],
+    queryFn: () => fetchMarketById(marketId),
+  });
 
-  return (
-    <div className="min-h-screen  text-white p-4">
-      <MarketDetails market={market} />
-    </div>
-  );
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!data) return notFound();
+
+  // Debug log to verify the data structure
+  console.log('Page received market data:', data);
+
+  return <MarketDetails market={data} />;
 }

@@ -52,7 +52,7 @@ export interface CoinflipBetResponse {
   success: boolean;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
   accessToken: string
   refreshToken?: string
   user: {
@@ -61,3 +61,33 @@ interface AuthResponse {
   }
 }
 
+
+export interface Market {
+  _id: string;
+  question: string;
+  b: number;
+  qYes: number;
+  qNo: number;
+  feePercent: number;
+  isResolved: boolean;
+  result?: 'YES' | 'NO';
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+
+    plays?: Array<{
+    user: string;
+    time: string;
+    choice: 'Yes' | 'No';
+  }>;
+}
+
+export interface MarketsResponse {
+  success: boolean;
+  markets: Market[];
+}
+
+export interface MarketResponse {
+  success: boolean;
+  market: Market;
+}
