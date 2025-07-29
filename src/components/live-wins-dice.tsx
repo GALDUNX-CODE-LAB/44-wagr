@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Award } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchLiveWins } from "../lib/api";
+import { fetchDiceWins, fetchLiveWins } from "../lib/api";
+import { GameType } from "../interfaces/interface";
 
 interface Win {
   game: string;
@@ -15,7 +16,7 @@ interface Win {
   payout: string;
 }
 
-export default function LiveWinsSection() {
+export default function LiveDiceWins() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
@@ -24,8 +25,8 @@ export default function LiveWinsSection() {
   const gameCategories = ["Casino", "Sports", "Race", "Dice"];
   const [activeCategory, setActiveCategory] = useState(gameCategories[0]);
   const { data: liveWins = [] } = useQuery<Win[]>({
-    queryKey: ["live-wins"],
-    queryFn: fetchLiveWins,
+    queryKey: ["live-wins-dice"],
+    queryFn: fetchDiceWins,
   });
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function LiveWinsSection() {
       try {
         const msg = JSON.parse(event.data);
         console.log(msg);
-        if (msg.event === "liveWin") {
+        if (msg.event === "liveWin" && msg.data.game === GameType.Dice) {
           const win: Win = {
             game: msg.data.game,
             user: msg.data.user,
@@ -53,7 +54,7 @@ export default function LiveWinsSection() {
             multiplier: String(msg.data.multiplier),
             payout: String(msg.data.payout),
           };
-          queryClient.setQueryData<Win[]>(["live-wins"], (old = []) => {
+          queryClient.setQueryData<Win[]>(["live-wins-dice"], (old = []) => {
             return [win, ...old].slice(0, 10);
           });
         }
