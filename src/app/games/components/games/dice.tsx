@@ -1,66 +1,64 @@
-'use client'
+"use client";
 
-import { Bitcoin } from 'lucide-react'
-import DiceRoller from '../dice-roller'
-import { useState, useRef, useEffect } from 'react'
-import LiveWinsSection from '../../../../components/live-wins'
-import { useDiceBet } from '../../../../lib/hooks/useDice'
+import { Bitcoin } from "lucide-react";
+import DiceRoller from "../dice-roller";
+import { useState, useRef, useEffect } from "react";
+import LiveWinsSection from "../../../../components/live-wins";
+import { useDiceBet } from "../../../../lib/hooks/useDice";
+import LiveDiceWins from "../../../../components/live-wins-dice";
 
 export default function DiceGame() {
-  const [activeOdds, setActiveOdds] = useState(60.57)
-  const [betAmount, setBetAmount] = useState(0.025)
-  const [target, setTarget] = useState(50)
-  const [betType, setBetType] = useState<'over' | 'under'>('over')
-  const [lastResult, setLastResult] = useState<any>(null)
-  const oddsOptions = [60.57, 30.57, 70.57, 60.70]
-  const diceRef = useRef<any>(null)
+  const [activeOdds, setActiveOdds] = useState(60.57);
+  const [betAmount, setBetAmount] = useState(0.025);
+  const [target, setTarget] = useState(50);
+  const [betType, setBetType] = useState<"over" | "under">("over");
+  const [lastResult, setLastResult] = useState<any>(null);
+  const oddsOptions = [60.57, 30.57, 70.57, 60.7];
+  const diceRef = useRef<any>(null);
 
-  const { mutate: placeDiceBet, isPending: isBetting } = useDiceBet()
+  const { mutate: placeDiceBet, isPending: isBetting } = useDiceBet();
 
-  const winnableAmount = betAmount * activeOdds
+  const winnableAmount = betAmount * activeOdds;
 
   const handlePlaceBet = () => {
-  if (betAmount <= 0) {
-    alert('Please enter a valid bet amount')
-    return
-  }
-
-  // Start the rolling animation
-  if (diceRef.current) {
-    diceRef.current.rollDice()
-  }
-
-  placeDiceBet(
-    { betAmount, target, betType },
-    {
-      onSuccess: (data) => {
-        console.log("🎲 Full API Response:", data); // Log full API response
-        setLastResult(data)
-        if (diceRef.current) {
-          // Animate to the actual roll value (0-99) and pass win status
-          diceRef.current.rollToValue(data.roll, data.isWin)
-        }
-      },
-      onError: (error) => {
-        console.error("🎲 Bet Error:", error); // Log error
-        alert(`Bet failed: ${error.message}`)
-        if (diceRef.current) {
-          diceRef.current.resetDice()
-        }
-      }
+    if (betAmount <= 0) {
+      alert("Please enter a valid bet amount");
+      return;
     }
-  )
-}
-  
 
- 
- 
+    // Start the rolling animation
+    if (diceRef.current) {
+      diceRef.current.rollDice();
+    }
+
+    placeDiceBet(
+      { betAmount, target, betType },
+      {
+        onSuccess: (data) => {
+          console.log("🎲 Full API Response:", data); // Log full API response
+          setLastResult(data);
+          if (diceRef.current) {
+            // Animate to the actual roll value (0-99) and pass win status
+            diceRef.current.rollToValue(data.roll, data.isWin);
+          }
+        },
+        onError: (error) => {
+          console.error("🎲 Bet Error:", error); // Log error
+          alert(`Bet failed: ${error.message}`);
+          if (diceRef.current) {
+            diceRef.current.resetDice();
+          }
+        },
+      }
+    );
+  };
+
   // Update UI when bet type changes
   useEffect(() => {
     if (diceRef.current) {
-      diceRef.current.resetDice()
+      diceRef.current.resetDice();
     }
-  }, [betType])
+  }, [betType]);
 
   return (
     <div className="p-4">
@@ -72,11 +70,11 @@ export default function DiceGame() {
             <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
               <span className="text-sm text-white/60">Multiplier</span>
               <p className="mt-1 bg-[#212121] border border-white/10 rounded-lg px-3 py-2 text-lg font-semibold">
-                {lastResult?.multiplier?.toFixed(5) || '2.65000'}
+                {lastResult?.multiplier?.toFixed(5) || "2.65000"}
               </p>
             </div>
             <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
-              <span className="text-sm text-white/60">Roll {betType === 'over' ? 'Over' : 'Under'}</span>
+              <span className="text-sm text-white/60">Roll {betType === "over" ? "Over" : "Under"}</span>
               <div className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2">
                 <input
                   type="number"
@@ -91,7 +89,7 @@ export default function DiceGame() {
             <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
               <span className="text-sm text-white/60">Win Chance</span>
               <p className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2 text-lg font-semibold">
-                {betType === 'over' ? (100 - target).toFixed(2) : target.toFixed(2)}%
+                {betType === "over" ? (100 - target).toFixed(2) : target.toFixed(2)}%
               </p>
             </div>
           </div>
@@ -100,8 +98,8 @@ export default function DiceGame() {
           <div className="flex-grow flex flex-col justify-center items-center mt-5">
             <DiceRoller ref={diceRef} />
             {lastResult && (
-              <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? 'text-green-400' : 'text-red-400'}`}>
-                {lastResult.isWin ? 'You Won!' : 'You Lost'} (Roll: {lastResult.roll.toFixed(2)})
+              <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? "text-green-400" : "text-red-400"}`}>
+                {lastResult.isWin ? "You Won!" : "You Lost"} (Roll: {lastResult.roll.toFixed(2)})
               </div>
             )}
           </div>
@@ -110,21 +108,21 @@ export default function DiceGame() {
           <div className="flex justify-center gap-4 mt-4">
             <button
               className={`px-6 py-2 rounded-full font-medium ${
-                betType === 'over'
-                  ? 'bg-[#C8A2FF] text-black'
-                  : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
+                betType === "over"
+                  ? "bg-[#C8A2FF] text-black"
+                  : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
               }`}
-              onClick={() => setBetType('over')}
+              onClick={() => setBetType("over")}
             >
               Roll Over
             </button>
             <button
               className={`px-6 py-2 rounded-full font-medium ${
-                betType === 'under'
-                  ? 'bg-[#C8A2FF] text-black'
-                  : 'bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]'
+                betType === "under"
+                  ? "bg-[#C8A2FF] text-black"
+                  : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
               }`}
-              onClick={() => setBetType('under')}
+              onClick={() => setBetType("under")}
             >
               Roll Under
             </button>
@@ -160,7 +158,7 @@ export default function DiceGame() {
             <div className="bg-[#212121] rounded-lg p-4 mt-1">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-white">
-                  {(betAmount * (betType === 'over' ? (99 / (100 - target)) : (99 / target))).toFixed(6)} BTC
+                  {(betAmount * (betType === "over" ? 99 / (100 - target) : 99 / target)).toFixed(6)} BTC
                 </span>
                 <div className="bg-white rounded-[1000px] p-1">
                   <Bitcoin className="w-4 h-4 text-yellow-400" />
@@ -174,20 +172,18 @@ export default function DiceGame() {
             onClick={handlePlaceBet}
             disabled={isBetting}
             className={`mt-auto font-semibold rounded-[12px] py-3 transition ${
-              isBetting
-                ? 'bg-gray-500 cursor-not-allowed'
-                : 'bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black'
+              isBetting ? "bg-gray-500 cursor-not-allowed" : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
             }`}
           >
-            {isBetting ? 'Processing...' : 'Place Bet'}
+            {isBetting ? "Processing..." : "Place Bet"}
           </button>
         </div>
       </div>
 
       {/* Live Wins Section */}
       <div className="mt-12 bg-[#212121] rounded-[20px] p-6">
-        <LiveWinsSection />
+        <LiveDiceWins />
       </div>
     </div>
-  )
+  );
 }

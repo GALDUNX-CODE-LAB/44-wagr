@@ -1,3 +1,5 @@
+import { number } from "framer-motion";
+
 export interface Comment {
   name: string;
   avatar: string;
@@ -20,16 +22,15 @@ export interface Market {
   trend: TrendPoint[];
 }
 
-
 export interface WalletCoin {
-  name: string
-  symbol: string
-  icon: string
+  name: string;
+  symbol: string;
+  icon: string;
 }
 
 export interface CoinflipBetPayload {
   betAmount: number;
-  choice: 'Heads' | 'Tails' | 'heads' | 'tails';
+  choice: "Heads" | "Tails" | "heads" | "tails";
 }
 
 export interface CoinflipBetResponse {
@@ -37,7 +38,7 @@ export interface CoinflipBetResponse {
     user: string;
     betAmount: number;
     choice: string;
-    result: 'Heads' | 'Tails' | 'heads' | 'tails';
+    result: "Heads" | "Tails" | "heads" | "tails";
     isWin: boolean;
     multiplier: number;
     payout: number;
@@ -53,14 +54,13 @@ export interface CoinflipBetResponse {
 }
 
 export interface AuthResponse {
-  accessToken: string
-  refreshToken?: string
+  accessToken: string;
+  refreshToken?: string;
   user: {
-    walletAddress: string
-    balance: number
-  }
+    walletAddress: string;
+    balance: number;
+  };
 }
-
 
 export interface Market {
   _id: string;
@@ -70,15 +70,15 @@ export interface Market {
   qNo: number;
   feePercent: number;
   isResolved: boolean;
-  result?: 'YES' | 'NO';
+  result?: "YES" | "NO";
   createdAt: string;
   updatedAt: string;
   __v: number;
 
-    plays?: Array<{
+  plays?: Array<{
     user: string;
     time: string;
-    choice: 'Yes' | 'No';
+    choice: "Yes" | "No";
   }>;
 }
 
@@ -90,4 +90,15 @@ export interface MarketsResponse {
 export interface MarketResponse {
   success: boolean;
   market: Market;
+}
+
+export enum GameType {
+  Coinflip = "Coinflip",
+  Dice = "Dice",
+  Crash = "Crash",
+}
+
+export interface CrashBetPayload {
+  stake: number;
+  autoCashout: number;
 }

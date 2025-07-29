@@ -5,6 +5,7 @@ import { useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { useMutation } from "@tanstack/react-query";
 import { placeCoinflipBet } from "../../../../lib/api/coin-api";
+import LiveCoinWins from "../../../../components/live-wins-coin";
 
 export default function CoinTossGame() {
   const [betAmount, setBetAmount] = useState(0);
@@ -228,7 +229,7 @@ export default function CoinTossGame() {
       )}
 
       <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
-        <LiveWinsSection />
+        <LiveCoinWins />
       </div>
     </div>
   );
