@@ -1,221 +1,233 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Dices, ArrowRightLeft, RefreshCcw, HelpCircle, Rocket, Star } from "lucide-react";
-import { TbGraph } from "react-icons/tb";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  Gamepad2,
+  ArrowRightLeft,
+  RefreshCcw,
+  Rocket,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { TbCards, TbGraph } from "react-icons/tb";
+import { RxDashboard } from "react-icons/rx";
+import { RiNftLine } from "react-icons/ri";
+import { Dices } from "lucide-react";
 
-const categories = ["All", "Dice", "Meta Market", "Crash", "Flip", "Wheel"];
+export default function Sidebar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [activeItem, setActiveItem] = useState("Home page");
+  const [gamesOpen, setGamesOpen] = useState(false);
+  const [mobileGamesOpen, setMobileGamesOpen] = useState(false);
 
-const betHistory = [
-  {
-    id: 1,
-    type: "Dice",
-    icon: <Dices className="w-4 h-4 text-white" />,
-    amount: "0.025",
-    outcome: "win",
-    meta: {
-      Multiplier: "2.00x",
-      "Roll Over": "49.50",
-      "Win Chance": "50%",
+  useEffect(() => {
+    if (pathname.startsWith("/games")) {
+      setActiveItem("Games");
+      setGamesOpen(true);
+    } else {
+      setGamesOpen(false);
+    }
+
+    if (pathname.startsWith("/games")) setActiveItem("Games");
+    else if (pathname.startsWith("/bets")) setActiveItem("My Bets");
+    else if (pathname.startsWith("/nft-lottery")) setActiveItem("Nft Lottery");
+    else if (pathname.startsWith("/meta-market")) setActiveItem("Meta Market");
+    else setActiveItem("Home page");
+  }, [pathname]);
+
+  const gamesList = [
+    {
+      name: "Crash",
+      icon: <Rocket className="w-4 h-4 text-white rotate-[320deg]" />,
+      href: "/games/crash",
     },
-  },
-  {
-    id: 2,
-    type: "Meta Market",
-    icon: <TbGraph className="w-4 h-4 text-white" />,
-    amount: "0.05",
-    outcome: "lose",
-    meta: {
-      Volume: "0.40",
-      Comments: "12",
-      Answers: "Yes",
+    {
+      name: "Dice",
+      icon: <Dices className="w-4 h-4 text-white" />,
+      href: "/games/dice",
     },
-  },
-  {
-    id: 3,
-    type: "Crash",
-    icon: <Rocket className="w-4 h-4 text-white rotate-320" />,
-    amount: "0.1",
-    outcome: "win",
-    meta: {
-      "Cashout At": "2.4x",
-      "Bet Amount": "0.1 BTC",
-      "Crash At": "2.7x",
+    {
+      name: "Coin",
+      icon: <ArrowRightLeft className="w-4 h-4 text-white" />,
+      href: "/games/coin",
     },
-  },
-  {
-    id: 4,
-    type: "Flip",
-    icon: <ArrowRightLeft className="w-4 h-4 text-white" />,
-    amount: "0.012",
-    outcome: "lose",
-    meta: {
-      Multiplier: "1.90x",
-      Result: "Heads",
-      Picked: "Tails",
+    {
+      name: "Wheel",
+      icon: <RefreshCcw className="w-4 h-4 text-white" />,
+      href: "/games/wheel",
     },
-  },
-  {
-    id: 5,
-    type: "Wheel",
-    icon: <RefreshCcw className="w-4 h-4 text-white" />,
-    amount: "0.075",
-    outcome: "win",
-    meta: {
-      "Bet Amount": "0.075 BTC",
-      Segments: "18",
-      Color: "Purple",
+  ];
+
+  const navItems = [
+    {
+      href: "/home",
+      icon: <RxDashboard className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
+      key: "Home page",
     },
-  },
-];
+    {
+      href: "/games",
+      icon: <Gamepad2 className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
+      key: "Games",
+      hasDropdown: true,
+    },
+    {
+      href: "/bets",
+      icon: <TbCards className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
+      key: "My Bets",
+    },
+    {
+      href: "/nft-lottery",
+      icon: <RiNftLine className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
+      key: "Nft Lottery",
+    },
+    {
+      href: "/meta-market",
+      icon: <TbGraph className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
+      key: "Meta Market",
+    },
+  ];
 
-export default function BetHistoryPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredBets = betHistory.filter((b) => {
-    const matchesCategory = activeCategory === "All" || b.type === activeCategory;
-    const matchesSearch =
-      b.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      Object.values(b.meta).join(" ").toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesSearch;
-  });
-
-  const colorMap: Record<string, string> = {
-    Purple: "#C8A2FF",
-    Red: "#EF4444",
-    Green: "#22C55E",
-    Yellow: "#FACC15",
-  };
-
-  const colorOddsMap: Record<string, string> = {
-    Purple: "1.3x",
-    Red: "1.5x",
-    Green: "2.0x",
-    Yellow: "1.8x",
+  const handleGameSelect = (gameHref) => {
+    router.push(gameHref);
+    setMobileGamesOpen(false);
   };
 
   return (
-    <div className="p-4 sm:p-6 text-white min-h-screen">
-      {/* Title & Subtext */}
-      <h1 className="text-[30px] font-medium mb-1">Bet History</h1>
-      <p className="text-base font-normal text-white/70 mb-6 max-w-xl">
-        View your past bets across all games and platforms.
-      </p>
-
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white w-5 h-5" />
-        <input
-          type="text"
-          placeholder="Search bets"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 bg-[#212121] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none"
-        />
-      </div>
-
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-4 sm:gap-6 mb-6">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`text-sm font-medium relative pb-1 transition-colors ${
-              activeCategory === cat ? "text-[#C8A2FF]" : "text-white/70 hover:text-white"
-            }`}
-          >
-            {cat}
-            {activeCategory === cat && (
-              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C8A2FF] rounded-full" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Bet Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredBets.map((bet) => {
-          const isWin = bet.outcome === "win";
-          const cardBg = isWin ? "bg-green-400/10" : "bg-red-400/10";
-          const badgeColor = isWin ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400";
-          const amountColor = isWin ? "text-green-400" : "text-red-400";
-
-          return (
-            <div
-              key={bet.id}
-              className={`w-full h-[186px] ${cardBg} border border-white/10 rounded-[20px] p-4 flex flex-col justify-between`}
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center text-base gap-2 text-white/60 font-medium">
-                  {bet.icon}
-                  {bet.type}
-                </div>
-                <div className={`text-xs px-3 py-1 rounded-full font-semibold ${badgeColor}`}>
-                  {isWin ? "Win" : "Lose"}
-                </div>
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block fixed h-full w-[245px] border-r border-white/10 bg-[#212121]">
+        <div className="flex flex-col px-6 gap-1 pt-25">
+          {navItems.map((item) =>
+            item.hasDropdown ? (
+              <div key={item.key}>
+                <SidebarItem
+                  label={item.key}
+                  icon={item.icon}
+                  active={activeItem === item.key}
+                  hasDropdown={true}
+                  isOpen={gamesOpen}
+                  onClick={() => setGamesOpen((prev) => !prev)}
+                />
+                {gamesOpen && (
+                  <div className="pl-8 flex flex-col gap-1 mt-2">
+                    {gamesList.map((game) => (
+                      <button
+                        key={game.name}
+                        onClick={() => handleGameSelect(game.href)}
+                        className={`flex items-center gap-3 text-sm rounded px-3 py-2 transition-all ${
+                          pathname === game.href
+                            ? "bg-[#C8A2FF] text-black"
+                            : "text-white/70 hover:bg-white/10"
+                        }`}
+                      >
+                        {game.icon}
+                        {game.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+            ) : (
+              <SidebarItem
+                key={item.key}
+                label={item.key}
+                icon={item.icon}
+                active={activeItem === item.key}
+                onClick={() => router.push(item.href)}
+              />
+            )
+          )}
+        </div>
+      </div>
 
-              {/* Amount or Question */}
-              {bet.type === "Meta Market" ? (
-                <div className="text-white text-base font-medium mt-2">Will World War3 begin in year 2025?</div>
-              ) : (
-                <div className={`text-[20px] font-medium mt-2 ${amountColor}`}>
-                  {isWin ? "+" : "-"} {bet.amount} BTC
+      {/* Mobile Bottom Nav */}
+      <nav className="rounded-t-[10px] fixed bottom-0 max-w-full mx-auto px-4 backdrop-blur-sm p-5 flex justify-around items-center left-0 right-0 z-50 lg:hidden border-[#FFFFFF0F] bg-[#212121] h-[120px]">
+        {navItems.map((item) =>
+          item.hasDropdown ? (
+            <div key="Games" className="relative">
+              <button
+                onClick={() => setMobileGamesOpen((prev) => !prev)}
+                className={`flex flex-col items-center justify-center transition ${
+                  pathname.startsWith("/games") ? "text-[#C8A2FF]" : "text-white/60"
+                }`}
+              >
+                {item.icon}
+                <span className="text-xs">Games</span>
+              </button>
+              {mobileGamesOpen && (
+                <div className="absolute bottom-[80px] left-[-50px] w-40 bg-[#2e2e2e] rounded-md shadow-lg border border-white/10 py-2 z-50">
+                  {gamesList.map((game) => (
+                    <button
+                      key={game.name}
+                      onClick={() => handleGameSelect(game.href)}
+                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 hover:bg-[#3a3a3a] transition-colors ${
+                        pathname === game.href
+                          ? "bg-[#C8A2FF] text-black"
+                          : "text-white"
+                      }`}
+                    >
+                      {game.icon}
+                      {game.name}
+                    </button>
+                  ))}
                 </div>
               )}
-
-              {/* Metadata */}
-              <div className="flex gap-3 mt-4">
-                {Object.entries(bet.meta).map(([label, value]) => (
-                  <div key={label} className="flex flex-col items-start flex-1 min-w-[80px]">
-                    <span className="text-[12px] text-white/60 mb-1">{label}</span>
-                    <div className="w-full bg-[#1C1C1C] rounded-md p-2 text-center text-sm font-semibold">
-                      {(() => {
-                        const isMetaMarket = bet.type === "Meta Market";
-                        const isWheelColor = bet.type === "Wheel" && label === "Color";
-
-                        if (value === "Heads" || value === "Tails") {
-                          return (
-                            <div className="flex items-center justify-center gap-2">
-                              <span>{value}</span>
-                              {value === "Heads" ? (
-                                <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
-                                  <div className="w-2.5 h-2.5 rounded-full bg-black" />
-                                </div>
-                              ) : (
-                                <div className="w-4 h-4 rounded-full bg-[#C8A2FF] flex items-center justify-center">
-                                  <Star className="w-2.5 h-2.5 text-black fill-black" />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        } else if (isMetaMarket) {
-                          return <span className="text-sm text-white font-semibold">{value}</span>;
-                        } else if (isWheelColor) {
-                          return (
-                            <div className="flex items-center gap-2 justify-center">
-                              <div
-                                className="w-4 h-4 rounded-full"
-                                style={{ backgroundColor: colorMap[value as string] || "#ccc" }}
-                              />
-                              <span>{colorOddsMap[value as string] || "1.0x"}</span>
-                            </div>
-                          );
-                        } else {
-                          return <span className="text-xs">{value}</span>;
-                        }
-                      })()}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
-          );
-        })}
+          ) : (
+            <button
+              key={item.key}
+              onClick={() => router.push(item.href)}
+              className={`flex flex-col items-center justify-center transition ${
+                pathname.startsWith(item.href) ? "text-[#C8A2FF]" : "text-white/60"
+              }`}
+            >
+              {item.icon}
+              <span className="text-xs">{item.key.split(" ")[0]}</span>
+            </button>
+          )
+        )}
+      </nav>
+    </>
+  );
+}
+
+function SidebarItem({
+  label,
+  icon,
+  active,
+  onClick,
+  hasDropdown = false,
+  isOpen = false,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+  hasDropdown?: boolean;
+  isOpen?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all ${
+        active ? "w-[175px] h-[36px] bg-[#C8A2FF] !text-black" : "text-white/70 hover:bg-white/10"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        {icon}
+        <span className="text-sm font-medium">{label}</span>
       </div>
-    </div>
+      {hasDropdown && (
+        <div className="flex items-center">
+          {isOpen ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </div>
+      )}
+    </button>
   );
 }
