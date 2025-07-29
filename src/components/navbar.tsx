@@ -9,6 +9,8 @@ import TransactionsModal from "./transactions-modal";
 import PointsModal from "./points-modal";
 import AffiliateModal from "./affiliate-modal";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { logout } from "../lib/api/auth";
+import { useDisconnect } from 'wagmi'; 
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,6 +19,8 @@ export default function Navbar() {
   const [transactionsModalOpen, setTransactionsModalOpen] = useState(false);
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
+  const { disconnect } = useDisconnect();
+
 
   return (
     <>
@@ -107,7 +111,8 @@ export default function Navbar() {
                   <Lock className="w-4 h-4" />
                   Reset Password
                 </div>
-                <div className="flex items-center gap-2 text-red-500 hover:text-red-600 cursor-pointer">
+                <div className="flex items-center gap-2 text-red-500 hover:text-red-600 cursor-pointer " onClick={() => logout(disconnect)}
+>
                   <LogOut className="w-4 h-4" />
                   Logout
                 </div>
@@ -191,7 +196,8 @@ export default function Navbar() {
                       <Settings className="w-4 h-4" />
                       Affiliate
                     </div>
-                    <div className="flex items-center gap-2 mt-2 text-red-500 hover:text-red-600 cursor-pointer">
+                    <div className="flex items-center gap-2 mt-2 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => logout(disconnect)}
+>
                       <LogOut className="w-4 h-4" />
                       Logout
                     </div>

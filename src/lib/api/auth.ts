@@ -1,5 +1,4 @@
-// utils/auth.ts
-// utils/auth.ts
+
 export const requestNonce = async (walletAddress: string) => {
   try {
     const response = await fetch(
@@ -51,4 +50,15 @@ export const verifySignature = async (walletAddress: string, signature: string) 
     throw new Error(errorData.message || 'Failed to verify signature');
   }
   return await response.json();
+};
+
+
+export const logout = (disconnect: () => void) => {
+  try {
+    localStorage.removeItem('access-token');
+    disconnect(); // Disconnect wallet
+    window.location.href = '/'; // Redirect to homepage
+  } catch (err) {
+    console.error('Error during logout:', err);
+  }
 };
