@@ -87,6 +87,7 @@ export interface MarketsResponse {
   markets: Market[];
 }
 
+
 export interface MarketResponse {
   success: boolean;
   market: Market;
@@ -101,4 +102,19 @@ export enum GameType {
 export interface CrashBetPayload {
   stake: number;
   autoCashout: number;
+}
+
+export interface CoinflipBetHistory {
+  _id: string;
+  user: string;
+  game: "coinflip";
+  amount: number;
+  selectedSide: "heads" | "tails";
+  result: {
+    win: boolean;
+    payout: number;
+    rolledSide: "heads" | "tails";
+  };
+  createdAt: string;
+  updatedAt: string;
 }

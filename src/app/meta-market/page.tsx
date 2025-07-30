@@ -150,7 +150,7 @@ function MarketStats({ market }) {
       </div>
       <div className="flex items-center gap-1 text-white/70">
         <MessageCircle className="w-4 h-4" />
-        <span>0</span>
+        <span>{market.commentCount}</span>
       </div>
     </div>
   );
