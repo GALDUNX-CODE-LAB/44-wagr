@@ -22,5 +22,5 @@ export default function MarketDetailsPage() {
   // Debug log to verify the data structure
   console.log('Page received market data:', data);
 
-  return <MarketDetails market={data} />;
+ return <MarketDetails market={data.market} commentCount={data.commentCount} />;
 }

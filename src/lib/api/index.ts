@@ -102,3 +102,23 @@ export const fetchMetaMarketGameHistory = async (page = 1) => {
 };
 
 
+export const likeComment = async (commentId: string) => {
+  const response = await apiHandler(`/meta-market/comment/${commentId}/like`, {
+    method: "POST",
+  })
+  return response
+}
+
+export const fetchCommentLikes = async (commentId: string) => {
+  const response = await apiHandler(`/meta-market/comment/${commentId}/likes`, {
+    method: "GET",
+  })
+  return response
+} 
+
+export const fetchReferralStats = async () => {
+  const response = await apiHandler("/referral/stats", {
+    method: "GET",
+  });
+  return response;
+};

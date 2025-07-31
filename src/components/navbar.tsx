@@ -8,6 +8,7 @@ import WalletModal from "./wallet-modal";
 import TransactionsModal from "./transactions-modal";
 import PointsModal from "./points-modal";
 import AffiliateModal from "./affiliate-modal";
+import LoginModal from "./login-modal";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { logout } from "../lib/api/auth";
 import { useDisconnect } from 'wagmi'; 
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [transactionsModalOpen, setTransactionsModalOpen] = useState(false);
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const { disconnect } = useDisconnect();
 
 
@@ -77,6 +79,14 @@ export default function Navbar() {
                 <Wallet className="w-4 h-4" />
               </button>
 
+              <button
+                className="flex items-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
+                onClick={() => setLoginModalOpen(true)}
+              >
+                <Flag className="w-5 h-5" />
+                <span>Login</span>
+              </button>
+                
               {/* Connect Button
               <ConnectButton /> */}
 
@@ -160,6 +170,13 @@ export default function Navbar() {
               <Wallet className="w-4 h-4" />
             </button>
 
+            <button
+                className="flex items-center gap-2 px-3 bg-[#c8a2ff] whitespace-nowrap text-xs  py-2 rounded-full border border-white/20 text-black"
+                onClick={() => setLoginModalOpen(true)}
+              >
+                <span>Login</span>
+              </button>
+
             {/* Connect Wallet */}
             <ConnectButton />
 
@@ -214,6 +231,7 @@ export default function Navbar() {
       <TransactionsModal open={transactionsModalOpen} onClose={() => setTransactionsModalOpen(false)} />
       <PointsModal open={pointsModalOpen} onClose={() => setPointsModalOpen(false)} />
       <AffiliateModal open={affiliateModalOpen} onClose={() => setAffiliateModalOpen(false)} />
+      <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </>
   );
 }

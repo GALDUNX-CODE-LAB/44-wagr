@@ -5,7 +5,11 @@ import { useState, useEffect } from "react"
 import type { Market } from "../../../interfaces/interface"
 import LivePlays from "../../../components/live-plays"
 import { usePlaceBet } from "../../../lib/hooks/useMarkets"
-import { fetchComments, addMetaMarketComment } from "../../../lib/api" // Assuming these are correctly imported
+import {
+  fetchComments,
+  addMetaMarketComment,
+  likeComment, // Added: Import likeComment
+} from "../../../lib/api" // Assuming these are correctly imported
 
 interface Comment {
   _id: string
@@ -28,6 +32,7 @@ interface Pagination {
 
 interface MarketDetailsProps {
   market: Market
+  commentCount?: number
 }
 
 export default function MarketDetails({ market }: MarketDetailsProps) {
@@ -45,6 +50,7 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
     page: 1,
     pages: 1,
   })
+  const [likingCommentId, setLikingCommentId] = useState<string | null>(null) // Added: State to track which comment is being liked
 
   // Bet placement hook
   const { mutate: placeBet, isPending: isPlacingBet, error: betError } = usePlaceBet()
@@ -60,35 +66,28 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
     createdAt: market.createdAt || new Date().toISOString(),
     plays: market.plays || [],
   }
-
   // Calculate probabilities
   const totalShares = marketData.qYes + marketData.qNo
   const yesProbability = totalShares > 0 ? (marketData.qYes / totalShares) * 100 : 50
   const noProbability = 100 - yesProbability
-
   // Generate sample data points for the graph (you can replace this with real historical data)
   const generateGraphData = () => {
     const points = 20
     const yesData = []
     const noData = []
-
     for (let i = 0; i <= points; i++) {
       const x = (i / points) * 100
       // Generate some realistic fluctuation around the current probabilities
       const yesVariation = Math.sin(i * 0.3) * 10 + (Math.random() - 0.5) * 15
       const noVariation = Math.cos(i * 0.4) * 8 + (Math.random() - 0.5) * 12
-
       const yesY = Math.max(10, Math.min(90, yesProbability + yesVariation))
       const noY = Math.max(10, Math.min(90, noProbability + noVariation))
-
       yesData.push({ x, y: 100 - yesY }) // Invert Y for SVG coordinates
       noData.push({ x, y: 100 - noY })
     }
-
     return { yesData, noData }
   }
   const { yesData, noData } = generateGraphData()
-
   // Convert data points to SVG path
   const createPath = (data: { x: number; y: number }[]) => {
     return data.reduce((path, point, index) => {
@@ -96,23 +95,31 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
       return `${path} ${command} ${point.x} ${point.y}`
     }, "")
   }
-
   // Load comments
   useEffect(() => {
     const loadComments = async () => {
       try {
+        console.log("📥 Loading comments...")
+        console.log("➡️ Market ID:", market?._id)
+        console.log("➡️ Current page:", pagination.page)
+        if (!market?._id) {
+          console.warn("⛔ Skipping comment fetch: market._id is undefined")
+          return
+        }
         setLoadingComments(true)
         setError(null)
         const response = await fetchComments(market._id, pagination.page)
-
+        console.log("✅ Comment response:", response)
         if (response?.success && response.data) {
-          setComments(response.data) // Corrected: access comments via response.data
-          setPagination(response.pagination) // Corrected: access pagination directly
+          setComments(response.data)
+          setPagination(response.pagination)
+          console.log("🗂️ Loaded comments:", response.data.length)
+          console.log("🔢 Updated pagination:", response.pagination)
         } else {
           throw new Error(response?.message || "Failed to load comments")
         }
       } catch (err) {
-        console.error("Failed to load comments:", err)
+        console.error("❌ Failed to load comments:", err)
         setError(err instanceof Error ? err.message : "Failed to load comments")
         setComments([])
       } finally {
@@ -120,16 +127,13 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
       }
     }
     loadComments()
-  }, [market._id, pagination.page])
-
+  }, [market?._id, pagination.page])
   // Handlers
   const handleAmountChange = (value: number) => {
     setBetAmount(Math.max(1, Math.min(10000, value)))
   }
-
   const handlePlaceBet = () => {
     if (!selectedOption || marketData.isResolved) return
-
     placeBet(
       {
         marketId: market._id,
@@ -147,21 +151,18 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
       },
     )
   }
-
   const handleSubmitComment = async () => {
     if (!commentInput.trim() || isSubmittingComment) return
-
     setIsSubmittingComment(true)
     setError(null)
-
     try {
       const response = await addMetaMarketComment(market._id, commentInput.trim())
-
       if (response?.success && response.data) {
         setComments((prev) => [
           {
             ...response.data,
             user: { _id: response.data.user }, // Ensure user is an object with _id
+            likes: 0, // Initialize likes for new comments
           },
           ...prev,
         ])
@@ -177,10 +178,30 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
     }
   }
 
+  // Added: Handler for liking a comment
+  const handleLikeComment = async (commentId: string) => {
+    if (likingCommentId === commentId) return // Prevent multiple clicks on the same comment
+    setLikingCommentId(commentId)
+    try {
+      const response = await likeComment(commentId)
+      if (response?.success) {
+        setComments((prevComments) =>
+          prevComments.map((c) => (c._id === commentId ? { ...c, likes: (c.likes || 0) + 1 } : c)),
+        )
+      } else {
+        console.error("Failed to like comment:", response?.message)
+        // Optionally, display an error message to the user
+      }
+    } catch (err) {
+      console.error("Error liking comment:", err)
+    } finally {
+      setLikingCommentId(null)
+    }
+  }
+
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }))
   }
-
   // Calculate potential payout
   const calculatePayout = (option: "Yes" | "No") => {
     if (option === "Yes") {
@@ -189,14 +210,12 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
       return marketData.qNo > 0 ? (betAmount / (marketData.qNo / totalShares)).toFixed(2) : betAmount.toFixed(2)
     }
   }
-
   // Format date
   const marketDate = new Date(marketData.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   })
-
   return (
     <div className="p-4 sm:p-6 text-white min-h-screen flex flex-col gap-10">
       {/* Top Section */}
@@ -207,13 +226,11 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
             <div className="w-[60px] h-[60px] bg-white rounded-[10px]" />
             {marketData.question}
           </h1>
-
           <div className="flex flex-wrap gap-4 text-white/20 text-sm">
             <p>{marketData.b.toLocaleString()} vol</p>
             <p>{marketDate}</p>
             {marketData.isResolved && <p className="text-green-500">Resolved: {marketData.result}</p>}
           </div>
-
           <div className="flex gap-4 mt-2">
             <div className="flex items-center text-xs text-white/65 gap-2">
               <span className="w-3 h-3 bg-[#C8A2FF] rounded-full" /> YES {yesProbability.toFixed(1)}%
@@ -236,7 +253,6 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
                 </div>
               ))}
             </div>
-
             {/* SVG Graph */}
             <svg
               className="absolute inset-0 w-full h-full"
@@ -367,7 +383,6 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
             <Award className="text-[#c8a2ff]" />
             <h2 className="text-xl font-bold text-white">Comments</h2>
           </div>
-
           <div className="relative mb-4">
             <input
               type="text"
@@ -446,7 +461,12 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
                       </div>
                       <p className="text-white/65 text-sm mt-1">{comment.comment}</p>
                       <div className="flex items-center gap-4 mt-2">
-                        <button className="flex items-center gap-1 text-white/40 hover:text-[#C8A2FF]">
+                        <button
+                          onClick={() => handleLikeComment(comment._id)}
+                          disabled={likingCommentId === comment._id}
+                          className="flex items-center gap-1 text-white/40 hover:text-[#C8A2FF] disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label={`Like this comment. Current likes: ${comment.likes || 0}`}
+                        >
                           <Heart size={14} />
                           <span className="text-xs">{comment.likes || 0}</span>
                         </button>

@@ -62,3 +62,44 @@ export const logout = (disconnect: () => void) => {
     console.error('Error during logout:', err);
   }
 };
+
+export const googleLogin = async (code: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/callback?code=${code}`,
+      {
+        method: 'GET',
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Google login failed:', {
+        status: response.status,
+        errorData,
+      });
+      throw new Error(errorData.message || 'Google login failed');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in googleLogin:', error);
+    throw new Error(
+      error instanceof Error ? error.message : 'Google login error'
+    );
+  }
+};
+
+export const handleGoogleRedirect = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google`);
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url; // Redirect to Google OAuth
+    } else {
+      console.error("Google URL not returned from backend:", data);
+    }
+  } catch (err) {
+    console.error("Error during Google redirect:", err);
+  }
+};
