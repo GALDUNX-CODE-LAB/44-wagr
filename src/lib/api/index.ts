@@ -122,3 +122,11 @@ export const fetchReferralStats = async () => {
   });
   return response;
 };
+
+export const fetchUserTransactions = async () => {
+  const response = await apiHandler("/transactions/user/transactions", {
+    method: "GET",
+  });
+  return response;
+};
+
