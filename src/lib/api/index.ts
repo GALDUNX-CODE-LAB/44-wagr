@@ -21,8 +21,13 @@ export const fetchCrashWins = async () => {
   return response;
 };
 
+export const fetchWheelsWins = async () => {
+  const response = await apiHandler("/live-wins/wheels", { method: "GET" });
+  return response;
+};
+
 export const placeCrashBet = async (payload: CrashBetPayload) => {
-  const response = await apiHandler("/live-wins/crash", { method: "POST", data: payload });
+  const response = await apiHandler("/crash/bet", { method: "POST", data: payload });
   return response;
 };
 
