@@ -1,3 +1,4 @@
+// lib/api/auth.ts
 
 export const requestNonce = async (walletAddress: string) => {
   try {
@@ -13,7 +14,6 @@ export const requestNonce = async (walletAddress: string) => {
     );
 
     if (!response.ok) {
-      // Try to get error details from response
       const errorData = await response.json().catch(() => ({}));
       console.error('Nonce request failed:', {
         status: response.status,
@@ -45,19 +45,39 @@ export const verifySignature = async (walletAddress: string, signature: string) 
       body: JSON.stringify({ walletAddress, signature }),
     }
   );
+  
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || 'Failed to verify signature');
   }
+  
   return await response.json();
 };
 
+// Utility functions for token management with event dispatch
+export const setAuthTokens = (accessToken: string, refreshToken?: string) => {
+  localStorage.setItem('access-token', accessToken);
+  if (refreshToken) {
+    localStorage.setItem('refresh-token', refreshToken);
+  }
+  // Notify useAuth hook immediately
+  window.dispatchEvent(new Event('auth-change'));
+};
 
-export const logout = (disconnect: () => void) => {
+export const clearAuthTokens = () => {
+  localStorage.removeItem('access-token');
+  localStorage.removeItem('refresh-token');
+  // Notify useAuth hook immediately
+  window.dispatchEvent(new Event('auth-change'));
+};
+
+export const logout = (disconnect?: () => void) => {
   try {
-    localStorage.removeItem('access-token');
-    disconnect(); // Disconnect wallet
-    window.location.href = '/'; // Redirect to homepage
+    clearAuthTokens();
+    if (disconnect) {
+      disconnect();
+    }
+    window.location.href = '/';
   } catch (err) {
     console.error('Error during logout:', err);
   }
@@ -65,41 +85,108 @@ export const logout = (disconnect: () => void) => {
 
 export const googleLogin = async (code: string) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/callback?code=${code}`,
-      {
-        method: 'GET',
-      }
-    );
+    const encodedCode = encodeURIComponent(code);
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const url = `${baseUrl}/auth/google/callback?code=${encodedCode}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Google login failed:', {
-        status: response.status,
-        errorData,
-      });
-      throw new Error(errorData.message || 'Google login failed');
+      const errorText = await response.text();
+      throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Handle the response and set tokens
+    if (data.access_token || data.accessToken) {
+      const accessToken = data.access_token || data.accessToken;
+      const refreshToken = data.refresh_token || data.refreshToken;
+      
+      // Use the utility function to set tokens and dispatch event
+      setAuthTokens(accessToken, refreshToken);
+      
+      return data;
+    }
+    
+    // Check nested data object
+    if (data.data) {
+      const accessToken = data.data.access_token || data.data.accessToken;
+      const refreshToken = data.data.refresh_token || data.data.refreshToken;
+      
+      if (accessToken) {
+        setAuthTokens(accessToken, refreshToken);
+        return data.data;
+      }
+    }
+    
+    throw new Error('No access token received from server');
+    
   } catch (error) {
-    console.error('Error in googleLogin:', error);
+    console.error('Google login error:', error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Network error: Cannot connect to ${process.env.NEXT_PUBLIC_API_BASE_URL}`);
+    }
     throw new Error(
-      error instanceof Error ? error.message : 'Google login error'
+      error instanceof Error ? error.message : 'Google login failed'
     );
   }
 };
 
 export const handleGoogleRedirect = async () => {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google`);
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url; // Redirect to Google OAuth
-    } else {
-      console.error("Google URL not returned from backend:", data);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error('Failed to initiate Google authentication');
     }
-  } catch (err) {
-    console.error("Error during Google redirect:", err);
+
+    const data = await response.json();
+    
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error('Invalid response from authentication server');
+    }
+  } catch (error) {
+    console.error("Google redirect error:", error);
+    throw error;
+  }
+};
+
+export const extractCodeFromCallback = (callbackUrl: string): string | null => {
+  try {
+    const url = new URL(callbackUrl);
+    return url.searchParams.get('code');
+  } catch (error) {
+    console.error('Error parsing callback URL:', error);
+    return null;
+  }
+};
+
+export const handleOAuthCallback = async (callbackUrl: string) => {
+  try {
+    const code = extractCodeFromCallback(callbackUrl);
+    
+    if (!code) {
+      throw new Error('No authorization code found in callback URL');
+    }
+
+    const result = await googleLogin(code);
+    return result;
+  } catch (error) {
+    console.error('OAuth callback handling failed:', error);
+    throw error;
   }
 };
