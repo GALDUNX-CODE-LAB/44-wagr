@@ -36,7 +36,7 @@ export default function Navbar() {
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <RiMenu4Line className="w-6 h-6" />}
             </button>
-            <ConnectButton />
+            {/* <ConnectButton /> */}
           </div>
 
           {/* ✅ Mobile Menu Content */}
@@ -178,7 +178,7 @@ export default function Navbar() {
               </button>
 
             {/* Connect Wallet */}
-            <ConnectButton />
+            {/* <ConnectButton /> */}
 
             {/* Notification */}
             <button className="w-10 h-10 flex items-center justify-center rounded-full border border-white/20 text-white/40">
