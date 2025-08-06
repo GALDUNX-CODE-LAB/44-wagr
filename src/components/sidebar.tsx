@@ -2,18 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  Gamepad2,
-  ArrowRightLeft,
-  RefreshCcw,
-  Rocket,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Gamepad2, ArrowRightLeft, RefreshCcw, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 import { TbCards, TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
 import { RiNftLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
+import Image from "next/image";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -98,7 +92,10 @@ export default function Sidebar() {
     <>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block fixed h-full w-[245px] border-r border-white/10 bg-[#212121]">
-        <div className="flex flex-col px-6 gap-1 pt-25">
+        <div className="flex justify-center  py-3 mt-4 border-b border-white/20">
+          <Image src={"/assets/44.png"} alt="44-wager" width={150} height={100} />
+        </div>
+        <div className="flex flex-col px-6 gap-1 pt-20">
           {navItems.map((item) =>
             item.hasDropdown ? (
               <div key={item.key}>
@@ -117,9 +114,7 @@ export default function Sidebar() {
                         key={game.name}
                         onClick={() => handleGameSelect(game.href)}
                         className={`flex items-center gap-3 text-sm rounded px-3 py-2 transition-all ${
-                          pathname === game.href
-                            ? "bg-[#C8A2FF] text-black"
-                            : "text-white/70 hover:bg-white/10"
+                          pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white/70 hover:bg-white/10"
                         }`}
                       >
                         {game.icon}
@@ -163,10 +158,7 @@ export default function Sidebar() {
               {mobileGamesOpen && (
                 <>
                   {/* Backdrop to close dropdown when clicking outside */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setMobileGamesOpen(false)}
-                  />
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileGamesOpen(false)} />
                   <div className="absolute bottom-[80px] left-[-50px] w-40 bg-[#2e2e2e] rounded-md shadow-lg border border-white/10 py-2 z-50">
                     {gamesList.map((game) => (
                       <button
@@ -177,9 +169,7 @@ export default function Sidebar() {
                           handleGameSelect(game.href);
                         }}
                         className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 hover:bg-[#3a3a3a] transition-colors ${
-                          pathname === game.href
-                            ? "bg-[#C8A2FF] text-black"
-                            : "text-white"
+                          pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white"
                         }`}
                       >
                         {game.icon}
@@ -236,11 +226,7 @@ function SidebarItem({
       </div>
       {hasDropdown && (
         <div className="flex items-center">
-          {isOpen ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
+          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       )}
     </button>
