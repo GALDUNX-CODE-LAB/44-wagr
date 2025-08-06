@@ -40,3 +40,12 @@ body {
   border-radius: 30px !important;
   font-weight: 400 !important;
 }
+
+.swiper-pagination-bullet {
+  background: red !important;
+  transform: translateY(10px);
+  border-radius: 0px !important;
+  width: 16px !important;
+  height: 4px !important;
+  margin-top: 500px !important;
+}

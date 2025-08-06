@@ -6,6 +6,7 @@ import Image from "next/image";
 import LiveWinsSection from "../../components/live-wins";
 import { useAuth } from "../../lib/hooks/useAuth";
 import { useAccount } from "wagmi";
+import { ContinuePlaying } from "./continue-playing";
 
 export default function HomePage() {
   const router = useRouter();
@@ -72,9 +73,13 @@ export default function HomePage() {
         {/* Hero content */}
       </div>
 
+      <div className="wrap w-[100vw] overflow-hidden mb-10 bg-[#212121] pb-8  lg:w-[calc(100vw-345px)]">
+        <ContinuePlaying />
+      </div>
+
       {/* Available Games */}
       <section className="mb-8">
-        <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1">Available Games</h1>
+        <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1">44wagr Originals</h1>
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
           {availableGames.map((game, index) => (
             <div
@@ -92,7 +97,7 @@ export default function HomePage() {
               <img
                 src={game.image}
                 alt={game.name}
-                className="object-contain hidden md:block absolute left-0 top-0 bottom-0 opacity-10 "
+                className="object-contain md:block absolute left-0 top-0 bottom-0 opacity-10 "
               />
               <img
                 src={"/assets/blurs/game-blur-mb.png"}
@@ -118,7 +123,13 @@ export default function HomePage() {
               {/* Mobile view  */}
               <h3 className="font-medium text-white/70 text-sm md:hidden ">{game.name}</h3>
               <div className="flex items-end justify-between h-[80px] md:hidden">
-                <Image src={game.image} alt={game.name} width={80} height={80} className="object-cover relative z-10" />
+                <Image
+                  src={game.image}
+                  alt={game.name}
+                  width={80}
+                  height={80}
+                  className="object-cover relative rounded-lg z-10"
+                />
 
                 <div className="flex items-center mt-1 mb-3">
                   <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
@@ -151,7 +162,7 @@ export default function HomePage() {
                     // width={70}
                     // height={70}
                     fill
-                    className="object-cover hidden md:block rounded-lg"
+                    className="object-cover rounded-lg"
                   />
                 </div>
               </div>
