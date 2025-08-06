@@ -13,23 +13,23 @@ export default function HomePage() {
   const { address, isConnected } = useAccount();
 
   const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/icon.svg" },
-    { name: "Dice", players: 892, image: "/assets/icon.svg" },
-    { name: "Coin", players: 1532, image: "/assets/icon.svg" },
-    { name: "Wheel", players: 721, image: "/assets/icon.svg" },
+    { name: "Crash", players: 1248, image: "/assets/games/crash.png" },
+    { name: "Dice", players: 892, image: "/assets/games/dice.png" },
+    { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png" },
+    { name: "Wheel", players: 721, image: "/assets/games/wheels.png" },
   ];
 
   const trendingGames = [
-    { name: "Roulette Royale", players: 1248 },
-    { name: "Blackjack Pro", players: 1248 },
-    { name: "Slots Mania", players: 1248 },
-    { name: "Poker Stars", players: 1248 },
-    { name: "Baccarat Elite", players: 1248 },
-    { name: "Craps Champion", players: 1248 },
-    { name: "Texas Holdem", players: 1248 },
-    { name: "Dice Master", players: 1248 },
-    { name: "Virtual Sports", players: 1248 },
-    { name: "Wheel of Fortune", players: 1248 },
+    { name: "Roulette Royale", players: 1248, image: "/assets/games/crash.png" },
+    { name: "Blackjack Pro", players: 1248, image: "/assets/games/coin-flip.png" },
+    { name: "Slots Mania", players: 1248, image: "/assets/games/Dice.png" },
+    { name: "Poker Stars", players: 1248, image: "/assets/games/glass-bridge.png" },
+    { name: "Baccarat Elite", players: 1248, image: "/assets/games/mine.png" },
+    { name: "Craps Champion", players: 1248, image: "/assets/games/Plinko.png" },
+    { name: "Texas Holdem", players: 1248, image: "/assets/games/pump.png" },
+    { name: "Dice Master", players: 1248, image: "/assets/games/red-light.png" },
+    { name: "Virtual Sports", players: 1248, image: "/assets/games/rock.png" },
+    { name: "Wheel of Fortune", players: 1248, image: "/assets/games/wheels.png" },
   ];
 
   const cardData = [
@@ -80,13 +80,19 @@ export default function HomePage() {
             <div
               key={index}
               onClick={() => handleGameClick(game.name)}
-              className="cursor-pointer w-full h-[130px] md:h-[80px] overflow-clip relative rounded-[20px] border border-white/10 bg-[#212121] md:flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
+              className="cursor-pointer w-full  overflow-clip relative rounded-[20px] border border-white/10 bg-[#212121] md:flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
             >
               {/* Blurs */}
               <img
                 src={"/assets/blurs/game-blur.png"}
                 alt={game.name}
                 className="object-contain hidden md:block absolute left-0 top-0 bottom-0 "
+              />
+
+              <img
+                src={game.image}
+                alt={game.name}
+                className="object-contain hidden md:block absolute left-0 top-0 bottom-0 opacity-10 "
               />
               <img
                 src={"/assets/blurs/game-blur-mb.png"}
@@ -99,9 +105,9 @@ export default function HomePage() {
                 alt={game.name}
                 width={70}
                 height={70}
-                className="object-cover relative z-10 hidden md:block"
+                className="object-cover relative z-10 hidden md:block rounded-lg"
               />
-              <div className="flex-col items-end hidden md:flex">
+              <div className="flex-col items-end hidden md:flex relative z-10">
                 <h3 className="font-medium text-white/70 text-sm">{game.name}</h3>
                 <div className="flex items-center mt-1">
                   <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
@@ -134,9 +140,19 @@ export default function HomePage() {
         <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 gap-y-10">
           {trendingGames.map((game, index) => (
             <div key={index} className="flex flex-col items-start">
-              <div className="w-full h-[180px] p-3 bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
-                <div className="absolute top-2 left-2 w-6 h-6 bg-[#C8A2FF] rounded-full flex items-center justify-center">
+              <div className="w-full h-[180px] overflow-hidden bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">
+                <div className="absolute z-10 top-2 left-2 w-6 h-6 bg-[#C8A2FF] rounded-full flex items-center justify-center">
                   <ArrowUpRight className="w-3 h-3 text-black" />
+                </div>
+                <div className="relative h-full">
+                  <Image
+                    src={game.image}
+                    alt={game.name}
+                    // width={70}
+                    // height={70}
+                    fill
+                    className="object-cover hidden md:block rounded-lg"
+                  />
                 </div>
               </div>
               <h3 className="font-medium mt-3 text-left text-sm text-white/70">{game.name}</h3>

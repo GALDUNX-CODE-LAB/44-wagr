@@ -8,7 +8,10 @@ import WalletModal from "./wallet-modal";
 import TransactionsModal from "./transactions-modal";
 import PointsModal from "./points-modal";
 import AffiliateModal from "./affiliate-modal";
+import LoginModal from "./login-modal";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { logout } from "../lib/api/auth";
+import { useDisconnect } from 'wagmi'; 
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,6 +20,9 @@ export default function Navbar() {
   const [transactionsModalOpen, setTransactionsModalOpen] = useState(false);
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { disconnect } = useDisconnect();
+
 
   return (
     <>
@@ -30,7 +36,7 @@ export default function Navbar() {
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <RiMenu4Line className="w-6 h-6" />}
             </button>
-            <ConnectButton />
+            {/* <ConnectButton /> */}
           </div>
 
           {/* ✅ Mobile Menu Content */}
@@ -73,6 +79,14 @@ export default function Navbar() {
                 <Wallet className="w-4 h-4" />
               </button>
 
+              <button
+                className="flex items-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
+                onClick={() => setLoginModalOpen(true)}
+              >
+                <Flag className="w-5 h-5" />
+                <span>Login</span>
+              </button>
+                
               {/* Connect Button
               <ConnectButton /> */}
 
@@ -107,7 +121,8 @@ export default function Navbar() {
                   <Lock className="w-4 h-4" />
                   Reset Password
                 </div>
-                <div className="flex items-center gap-2 text-red-500 hover:text-red-600 cursor-pointer">
+                <div className="flex items-center gap-2 text-red-500 hover:text-red-600 cursor-pointer " onClick={() => logout(disconnect)}
+>
                   <LogOut className="w-4 h-4" />
                   Logout
                 </div>
@@ -155,8 +170,15 @@ export default function Navbar() {
               <Wallet className="w-4 h-4" />
             </button>
 
+            <button
+                className="flex items-center gap-2 px-3 bg-[#c8a2ff] whitespace-nowrap text-xs  py-2 rounded-full border border-white/20 text-black"
+                onClick={() => setLoginModalOpen(true)}
+              >
+                <span>Login</span>
+              </button>
+
             {/* Connect Wallet */}
-            <ConnectButton />
+            {/* <ConnectButton /> */}
 
             {/* Notification */}
             <button className="w-10 h-10 flex items-center justify-center rounded-full border border-white/20 text-white/40">
@@ -191,7 +213,8 @@ export default function Navbar() {
                       <Settings className="w-4 h-4" />
                       Affiliate
                     </div>
-                    <div className="flex items-center gap-2 mt-2 text-red-500 hover:text-red-600 cursor-pointer">
+                    <div className="flex items-center gap-2 mt-2 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => logout(disconnect)}
+>
                       <LogOut className="w-4 h-4" />
                       Logout
                     </div>
@@ -208,6 +231,7 @@ export default function Navbar() {
       <TransactionsModal open={transactionsModalOpen} onClose={() => setTransactionsModalOpen(false)} />
       <PointsModal open={pointsModalOpen} onClose={() => setPointsModalOpen(false)} />
       <AffiliateModal open={affiliateModalOpen} onClose={() => setAffiliateModalOpen(false)} />
+      <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </>
   );
 }

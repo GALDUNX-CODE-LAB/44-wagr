@@ -1,19 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { fetchUserTransactions } from "../lib/api";
 
 interface TransactionsModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const tabs = ["Deposit", "Withdrawal"];
+interface Transaction {
+  _id: string;
+  userId: string;
+  type: "Deposit" | "Withdrawal";
+  amount: number;
+  status: string;
+  date: string;
+}
+
+const tabs: Array<"Deposit" | "Withdrawal"> = ["Deposit", "Withdrawal"];
 
 export default function TransactionsModal({ open, onClose }: TransactionsModalProps) {
-  const [activeTab, setActiveTab] = useState("Deposit");
+  const [activeTab, setActiveTab] = useState<"Deposit" | "Withdrawal">("Deposit");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const loadTransactions = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchUserTransactions();
+        if (response?.data) {
+          setTransactions(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch transactions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTransactions();
+  }, [open]);
 
   if (!open) return null;
+
+  const filtered = transactions.filter((tx) => tx.type === activeTab);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
@@ -55,22 +89,45 @@ export default function TransactionsModal({ open, onClose }: TransactionsModalPr
                   <th className="py-2 px-4 text-left text-xs text-white/60">Transaction Hash</th>
                   <th className="py-2 px-4 text-right text-xs text-white/60">Amount</th>
                 </tr>
-              </thead>{" "}
-              <br />
+              </thead>
               <tbody>
-                {[1, 2, 3].map((row, idx) => (
-                  <tr key={row} className={idx % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"}>
-                    <td className="py-6 px-4 text-sm whitespace-nowrap">2025-07-13</td>
-                    <td className="py-6 px-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                        Successful
-                      </div>
-                    </td>
-                    <td className="py-6 px-4 text-sm font-mono truncate">0xABCDEF1234567890abcdef</td>
-                    <td className="py-6 px-4 text-sm whitespace-nowrap text-right">0.25 BTC</td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-white/50">Loading...</td>
                   </tr>
-                ))}
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-white/50">
+                      No {activeTab.toLowerCase()} transactions found.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((tx, idx) => (
+                    <tr key={tx._id} className={idx % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"}>
+                      <td className="py-6 px-4 text-sm whitespace-nowrap">
+                        {new Date(tx.date).toLocaleDateString()}
+                      </td>
+                      <td className="py-6 px-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              tx.status === "Successful"
+                                ? "bg-green-400"
+                                : tx.status === "Pending"
+                                ? "bg-yellow-400"
+                                : "bg-red-400"
+                            }`}
+                          ></span>
+                          {tx.status}
+                        </div>
+                      </td>
+                      <td className="py-6 px-4 text-sm font-mono truncate">—</td>
+                      <td className="py-6 px-4 text-sm whitespace-nowrap text-right">
+                        {tx.amount}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

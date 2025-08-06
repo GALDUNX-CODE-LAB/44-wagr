@@ -1,3 +1,5 @@
+import { number } from "framer-motion";
+
 export interface Comment {
   name: string;
   avatar: string;
@@ -20,16 +22,15 @@ export interface Market {
   trend: TrendPoint[];
 }
 
-
 export interface WalletCoin {
-  name: string
-  symbol: string
-  icon: string
+  name: string;
+  symbol: string;
+  icon: string;
 }
 
 export interface CoinflipBetPayload {
   betAmount: number;
-  choice: 'Heads' | 'Tails' | 'heads' | 'tails';
+  choice: "Heads" | "Tails" | "heads" | "tails";
 }
 
 export interface CoinflipBetResponse {
@@ -37,7 +38,7 @@ export interface CoinflipBetResponse {
     user: string;
     betAmount: number;
     choice: string;
-    result: 'Heads' | 'Tails' | 'heads' | 'tails';
+    result: "Heads" | "Tails" | "heads" | "tails";
     isWin: boolean;
     multiplier: number;
     payout: number;
@@ -52,12 +53,69 @@ export interface CoinflipBetResponse {
   success: boolean;
 }
 
-interface AuthResponse {
-  accessToken: string
-  refreshToken?: string
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken?: string;
   user: {
-    walletAddress: string
-    balance: number
-  }
+    walletAddress: string;
+    balance: number;
+  };
 }
 
+export interface Market {
+  _id: string;
+  question: string;
+  b: number;
+  qYes: number;
+  qNo: number;
+  feePercent: number;
+  isResolved: boolean;
+  result?: "YES" | "NO";
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+
+  plays?: Array<{
+    user: string;
+    time: string;
+    choice: "Yes" | "No";
+  }>;
+}
+
+export interface MarketsResponse {
+  success: boolean;
+  markets: Market[];
+}
+
+
+export interface MarketResponse {
+  success: boolean;
+  market: Market;
+}
+
+export enum GameType {
+  Coinflip = "Coinflip",
+  Dice = "Dice",
+  Crash = "Crash",
+  Wheels = "Wheels",
+}
+
+export interface CrashBetPayload {
+  stake: number;
+  autoCashout: number;
+}
+
+export interface CoinflipBetHistory {
+  _id: string;
+  user: string;
+  game: "coinflip";
+  amount: number;
+  selectedSide: "heads" | "tails";
+  result: {
+    win: boolean;
+    payout: number;
+    rolledSide: "heads" | "tails";
+  };
+  createdAt: string;
+  updatedAt: string;
+}

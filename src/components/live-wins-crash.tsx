@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Award } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchLiveWins } from "../lib/api";
+import { fetchCrashWins, fetchLiveWins } from "../lib/api";
+import { GameType } from "../interfaces/interface";
 
 interface Win {
   game: string;
@@ -15,17 +16,22 @@ interface Win {
   payout: string;
 }
 
-export default function LiveWinsSection() {
+interface LiveCrashProp {
+  roundId: string | null;
+  multiplier: number;
+  betEnd: boolean;
+}
+
+export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashProp) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
-  // const [liveWins , setLiveWins ] = useState(second)
 
-  const gameCategories = ["Casino", "Sports", "Race", "Dice"];
+  const gameCategories = ["Crash"];
   const [activeCategory, setActiveCategory] = useState(gameCategories[0]);
   const { data: liveWins = [] } = useQuery<Win[]>({
-    queryKey: ["live-wins"],
-    queryFn: fetchLiveWins,
+    queryKey: ["live-wins-crash"],
+    queryFn: fetchCrashWins,
   });
 
   useEffect(() => {
@@ -44,7 +50,7 @@ export default function LiveWinsSection() {
       try {
         const msg = JSON.parse(event.data);
         console.log(msg);
-        if (msg.event === "liveWin") {
+        if (msg.event === "liveWin" && msg.data.game === GameType.Crash) {
           const win: Win = {
             game: msg.data.game,
             user: msg.data.user,
@@ -53,7 +59,7 @@ export default function LiveWinsSection() {
             multiplier: String(msg.data.multiplier),
             payout: String(msg.data.payout),
           };
-          queryClient.setQueryData<Win[]>(["live-wins"], (old = []) => {
+          queryClient.setQueryData<Win[]>(["live-wins-crash"], (old = []) => {
             return [win, ...old].slice(0, 10);
           });
         }
@@ -72,7 +78,7 @@ export default function LiveWinsSection() {
   }, [queryClient]);
 
   return (
-    <section className="mb-20 w-full">
+    <section className=" w-full">
       <div className="flex items-start gap-2 mb-4">
         <Award className="text-[#c8a2ff]" />
         <h2 className="text-xl font-bold text-white">Live Wins</h2>
@@ -96,14 +102,11 @@ export default function LiveWinsSection() {
         ))}
       </div>
 
-      <div className="w-full rounded-lg overflow-x-auto  h-[30vh] overflow-auto">
+      <div className="w-full rounded-lg overflow-x-auto  h-[40vh] overflow-auto">
         <table className="min-w-full table-auto">
           <thead className="bg-[#212121]">
             <tr className="text-[#ffffff]/60 text-[12px]">
-              <th className="whitespace-nowrap px-5 py-3 text-left">Game</th>
               <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Time</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Bet Amount</th>
               <th className="whitespace-nowrap px-5 py-3 text-left">Multiplier</th>
               <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
             </tr>
@@ -114,19 +117,15 @@ export default function LiveWinsSection() {
                 key={index}
                 className={`${index % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"} text-white text-[13px] font-medium`}
               >
-                <td className="whitespace-nowrap px-5 py-3">{win.game}</td>
                 <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">{win.user}</td>
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">{win.time}</td>
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
-                  <div className="flex items-center gap-1">
-                    <span>{win.bet}</span>
-                    <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                  </div>
-                </td>
                 <td className="whitespace-nowrap px-5 py-3">{win.multiplier}</td>
                 <td className="whitespace-nowrap px-5 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <span>{win.payout}</span>
+                  <div
+                    className={`flex items-center justify-end gap-1 ${
+                      multiplier > Number(win.multiplier) && !betEnd && "text-green-400"
+                    }`}
+                  >
+                    <span>{Number(win.payout).toFixed(3)}</span>
                     <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
                   </div>
                 </td>
