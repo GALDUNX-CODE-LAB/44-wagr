@@ -1,5 +1,5 @@
 // app/market/[id]/page.tsx
-'use client';
+"use client";
 
 import { notFound, useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -11,16 +11,16 @@ export default function MarketDetailsPage() {
   const marketId = params?.id as string;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['market', marketId],
+    queryKey: ["market", marketId],
     queryFn: () => fetchMarketById(marketId),
-  });
+  }) as any;
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!data) return notFound();
 
   // Debug log to verify the data structure
-  console.log('Page received market data:', data);
+  console.log("Page received market data:", data);
 
- return <MarketDetails market={data.market} commentCount={data.commentCount} />;
+  return <MarketDetails market={data?.market} commentCount={data?.commentCount} />;
 }

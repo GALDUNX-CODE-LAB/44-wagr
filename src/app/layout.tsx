@@ -6,6 +6,7 @@ import Navbar from "../components/navbar";
 import { WalletProvider } from "../components/wallet-provider";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
+import { Suspense } from "react";
 
 const inter = Inter({
   weight: ["500"],
@@ -36,21 +37,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-[#1c1c1c]">
       <body className={`text-[#ededed] font-inter min-h-screen`}>
-        <WalletProvider>
-          <div className="flex h-screen">
-            <div className="">
-              <Sidebar />
-            </div>
+        <Suspense>
+          <WalletProvider>
+            <div className="flex h-screen">
+              <div className="">
+                <Sidebar />
+              </div>
 
-            {/* Main content area */}
-            <div className="flex-1 flex flex-col lg:ml-[245px]">
-              <Navbar />
-              <main className="flex-1 p-4">
-                <div className="container mx-auto">{children}</div>
-              </main>
+              {/* Main content area */}
+              <div className="flex-1 flex flex-col lg:ml-[245px]">
+                <Navbar />
+                <main className="flex-1 p-4">
+                  <div className="container mx-auto">{children}</div>
+                </main>
+              </div>
             </div>
-          </div>
-        </WalletProvider>
+          </WalletProvider>
+        </Suspense>
       </body>
     </html>
   );
