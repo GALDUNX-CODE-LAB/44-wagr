@@ -11,6 +11,7 @@ import AffiliateModal from "./affiliate-modal";
 import LoginModal from "./login-modal";
 import { logout } from "../lib/api/auth";
 import { useDisconnect } from "wagmi";
+import { useAuth } from "../lib/api/useAuth";
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,32 +21,52 @@ export default function Navbar() {
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [balance, setBalance] = useState("0.0000");
 
-  // auth state derived from localStorage
-  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   const { disconnect } = useDisconnect();
+  const { isAuthenticated, isLoading, refreshAuthState, disconnect: authDisconnect } = useAuth();
 
-  const refreshAuth = useCallback(() => {
-    try {
-      const t = localStorage.getItem("access-token");
-      setIsAuthed(!!t);
-    } catch {
-      setIsAuthed(false);
+  // Fetch wallet balance when authenticated
+  const fetchBalance = useCallback(async () => {
+    if (!isAuthenticated) {
+      setBalance("0.0000");
+      return;
     }
-  }, []);
+
+    try {
+      // Replace with your actual balance endpoint
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const response = await fetch(`${API_BASE}/wallet/balance`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          // 'Authorization': `Bearer ${getCookie('access-token')}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Adjust based on your API response structure
+        setBalance(data.balance || data.usdtBalance || "0.0000");
+      } else {
+        console.error('Failed to fetch balance');
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      // Keep default balance on error
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    refreshAuth();
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "access-token") refreshAuth();
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [refreshAuth]);
+    fetchBalance();
+  }, [fetchBalance]);
 
   const handleLogout = async () => {
     await logout(disconnect);
-    refreshAuth();
+    authDisconnect();
+    refreshAuthState();
+    setBalance("0.0000");
     setSidebarOpen(false);
     setUserDropdownOpen(false);
   };
@@ -99,7 +120,7 @@ export default function Navbar() {
           {sidebarOpen && (
             <div className="sm:hidden mt-4 bg-[#1C1C1C] border border-white/15 rounded-lg p-4 text-white space-y-4">
               {/* If auth state still resolving, show a quick placeholder */}
-              {isAuthed === null ? (
+              {isLoading ? (
                 <div className="animate-pulse space-y-3">
                   <div className="h-9 bg-white/10 rounded" />
                   <div className="h-9 bg-white/10 rounded" />
@@ -125,14 +146,14 @@ export default function Navbar() {
                       <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
                         <Image width={20} height={20} src="/assets/usdt.png" alt="USDT" />
                       </div>
-                      <span>0.0867</span>
+                      <span>{balance}</span>
                     </div>
                     <div className="w-px h-5 bg-white/20 mx-2" />
                     <Wallet className="w-4 h-4" />
                   </button>
 
                   {/* Auth-dependent actions */}
-                  {isAuthed ? (
+                  {isAuthenticated ? (
                     <>
                       <div className="grid grid-cols-2 gap-3">
                         <button
@@ -203,13 +224,13 @@ export default function Navbar() {
                 <div className="relative rounded-full w-6 h-6 flex items-center justify-center">
                   <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
                 </div>
-                <span>0.0867</span>
+                <span>{balance}</span>
               </div>
               <div className="w-px h-5 bg-white/20 mx-2" />
               <Wallet className="w-4 h-4" />
             </button>
 
-            {isAuthed ? (
+            {isAuthenticated ? (
               <>
                 <button
                   onClick={openLogin}

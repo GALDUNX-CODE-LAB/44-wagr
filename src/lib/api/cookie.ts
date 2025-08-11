@@ -1,16 +1,17 @@
 import Cookies from "js-cookie";
 
-// setting cookies
 export const setCookie = (name: string, value: any, EX: number = 1) => {
-  Cookies.set(name, value, { expires: EX });
+  console.log(`Setting cookie: ${name}`, { value, expires: EX, path: '/', secure: process.env.NODE_ENV === 'production' });
+  Cookies.set(name, value, { expires: EX, sameSite: 'Lax', secure: process.env.NODE_ENV === 'production', path: '/' });
 };
 
-export const getCookie = (name: string) => {
-  if (name) return Cookies.get(name);
-  return Cookies.get();
+export const getCookie = (name: string): string | undefined => {
+  const value = Cookies.get(name);
+  console.log(`Getting cookie: ${name}`, { value });
+  return value;
 };
 
 export const removeCookie = (name: string) => {
-  if (name) return Cookies.remove(name);
-  return Cookies.remove("");
+  console.log(`Removing cookie: ${name}`);
+  Cookies.remove(name, { sameSite: 'Lax', secure: process.env.NODE_ENV === 'production', path: '/' });
 };

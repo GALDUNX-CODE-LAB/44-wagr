@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import LiveWinsSection from "../../components/live-wins";
-import { useAuth } from "../../lib/hooks/useAuth";
+import { useAuth } from "../../lib/api/useAuth";
 import { useAccount } from "wagmi";
 import { useEffect } from "react";
 import { ContinuePlaying } from "./continue-playing";
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated, error: authError, isLoading } = useAuth();
+  const { isAuthenticated, error: authError, isLoading, refreshAuthState } = useAuth();
   const { address, isConnected } = useAccount();
 
   const availableGames = [
@@ -52,45 +52,38 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const url = window.location.href;
-    const getUrl = new URL(url);
-    const code = getUrl.searchParams.get("code");
-
-    if (code) {
-      // handlGoogleCallback(code);
-    }
-  }, []);
+    console.log('Refreshing auth state on mount');
+    refreshAuthState();
+  }, [refreshAuthState]);
 
   return (
     <div className="p-4 sm:p-6 text-white container mx-auto">
-      {/* Auth Status Header */}
       <div className="flex justify-end mb-6">
         <div className="flex items-center gap-3">
-          {isAuthenticated ? (
+          {isLoading ? (
+            <div className="text-sm px-3 py-1 bg-yellow-500/10 rounded-full text-yellow-400">Authenticating...</div>
+          ) : isAuthenticated ? (
             <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 rounded-full">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span className="text-sm">Verified</span>
             </div>
           ) : authError ? (
             <div className="text-sm text-red-400 px-3 py-1 bg-red-500/10 rounded-full">{authError}</div>
-          ) : isLoading ? (
-            <div className="text-sm px-3 py-1 bg-yellow-500/10 rounded-full text-yellow-400">Authenticating...</div>
-          ) : null}
+          ) : (
+            <div className="text-sm px-3 py-1 bg-gray-500/10 rounded-full">Not Authenticated</div>
+          )}
         </div>
       </div>
 
-      {/* Hero Banner */}
       <div className="w-[full] h-[223px] bg-[#212121] rounded-[20px] overflow-hidden relative border border-white/6 mb-8">
-        {/* Hero content */}
         <Image src={"/assets/banners/banner-lg.jpg"} fill className="object-cover hidden lg:block" alt="banner" />
         <Image src={"/assets/banners/banner-mb.jpg"} fill className="object-cover lg:hidden" alt="banner" />
       </div>
 
-      <div className="wrap max-w-full overflow-hidden mb-10 bg-[#212121] pb-8  lg:max-w-[calc(100vw-345px)]">
-        {/* <ContinuePlaying /> */}
+      <div className="wrap w-full overflow-hidden mb-10 bg-[#212121] pb-8 lg:ml-auto">
+        <ContinuePlaying />
       </div>
 
-      {/* Available Games */}
       <section className="mb-8">
         <h1 className="text-2xl font-normal text-[18px] text-white/50 mb-6 ml-1">44wagr Originals</h1>
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -98,26 +91,23 @@ export default function HomePage() {
             <div
               key={index}
               onClick={() => handleGameClick(game.name)}
-              className="cursor-pointer w-full  overflow-clip relative rounded-[20px] border border-white/10 bg-[#212121] md:flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
+              className="cursor-pointer w-full overflow-clip relative rounded-[20px] border border-white/10 bg-[#212121] md:flex items-center justify-between px-4 py-3 hover:bg-[#2a2a2a] transition"
             >
-              {/* Blurs */}
               <img
                 src={"/assets/blurs/game-blur.png"}
                 alt={game.name}
-                className="object-contain hidden md:block absolute left-0 top-0 bottom-0 "
+                className="object-contain hidden md:block absolute left-0 top-0 bottom-0"
               />
-
               <img
                 src={game.image}
                 alt={game.name}
-                className="object-contain md:block absolute left-0 top-0 bottom-0 opacity-10 "
+                className="object-contain md:block absolute left-0 top-0 bottom-0 opacity-10"
               />
               <img
                 src={"/assets/blurs/game-blur-mb.png"}
                 alt={game.name}
-                className="object-contain  mb:hidden block  absolute left-0 top-0 bottom-0 "
+                className="object-contain mb:hidden block absolute left-0 top-0 bottom-0"
               />
-
               <Image
                 src={game.image}
                 alt={game.name}
@@ -132,9 +122,7 @@ export default function HomePage() {
                   <span className="text-xs text-white text-[12px]">{game.players.toLocaleString()}</span>
                 </div>
               </div>
-
-              {/* Mobile view  */}
-              <h3 className="font-medium text-white/70 text-sm md:hidden ">{game.name}</h3>
+              <h3 className="font-medium text-white/70 text-sm md:hidden">{game.name}</h3>
               <div className="flex items-end justify-between h-[80px] md:hidden">
                 <Image
                   src={game.image}
@@ -143,7 +131,6 @@ export default function HomePage() {
                   height={80}
                   className="object-cover relative rounded-lg z-10"
                 />
-
                 <div className="flex items-center mt-1 mb-3">
                   <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
                   <span className="text-xs text-white text-[12px]">{game.players.toLocaleString()}</span>
@@ -154,13 +141,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trending Games */}
       <section className="mb-10 md:bg-[#212121] md:border border-[#ffffff]/6 rounded-[15px] md:p-5">
         <div className="flex items-center gap-2 mb-5 ml-1">
           <Image src="/assets/casino.svg" alt="casino logo" width={24} height={24} />
           <h2 className="text-[18px] font-medium">Trending Games</h2>
         </div>
-
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 gap-y-10">
           {trendingGames.map((game, index) => (
             <div key={index} className="flex flex-col items-start">
@@ -172,8 +157,6 @@ export default function HomePage() {
                   <Image
                     src={game.image}
                     alt={game.name}
-                    // width={70}
-                    // height={70}
                     fill
                     className="object-cover rounded-lg"
                   />
@@ -187,13 +170,11 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-
         <div className="mt-16">
           <LiveWinsSection />
         </div>
       </section>
 
-      {/* FAQs */}
       <section className="mt-20 flex flex-col md:flex-row gap-10">
         <div className="flex-1 flex flex-col justify-center">
           <div className="bg-[#C8A2FF] max-w-fit text-white font-medium px-3 py-1 rounded-[10px] text-sm mb-4">
@@ -207,7 +188,6 @@ export default function HomePage() {
             Start Free Trial
           </button>
         </div>
-
         <div className="flex-1 flex flex-col gap-4">
           {cardData.map((text, index) => (
             <div
