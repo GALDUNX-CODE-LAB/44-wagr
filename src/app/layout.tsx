@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter } from "next/font/google";
 import Sidebar from "../components/sidebar";
@@ -24,23 +24,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// ✅ Use viewport export (works better in App Router than manual <meta>)
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  // If you really want to stop Safari auto-zoom entirely, uncomment (accessibility tradeoff):
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Peejayy Gaming App",
   description: "Gaming platform built with Next.js",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="bg-[#1c1c1c]">
-      <body className={`text-[#ededed] font-inter min-h-screen`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} bg-[#1c1c1c] overflow-x-hidden`}
+    >
+      <body className="text-[#ededed] font-inter min-h-dvh min-w-dvw ">
         <Suspense>
           <WalletProvider>
-            <div className="flex h-screen">
-              <div className="">
+            {/* ✅ Use min-h-dvh to avoid iOS 100vh zoom/resize quirks */}
+            <div className="flex min-h-dvh">
+              <div>
                 <Sidebar />
               </div>
 

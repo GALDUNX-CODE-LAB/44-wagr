@@ -6,6 +6,7 @@ import Image from "next/image";
 import LiveWinsSection from "../../components/live-wins";
 import { useAuth } from "../../lib/hooks/useAuth";
 import { useAccount } from "wagmi";
+import { useEffect } from "react";
 import { ContinuePlaying } from "./continue-playing";
 
 export default function HomePage() {
@@ -50,6 +51,16 @@ export default function HomePage() {
     router.push(`/games/${gameName.toLowerCase()}`);
   };
 
+  useEffect(() => {
+    const url = window.location.href;
+    const getUrl = new URL(url);
+    const code = getUrl.searchParams.get("code");
+
+    if (code) {
+      // handlGoogleCallback(code);
+    }
+  }, []);
+
   return (
     <div className="p-4 sm:p-6 text-white container mx-auto">
       {/* Auth Status Header */}
@@ -69,12 +80,14 @@ export default function HomePage() {
       </div>
 
       {/* Hero Banner */}
-      <div className="w-full h-[223px] bg-[#212121] rounded-[20px] border border-white/6 mb-8">
+      <div className="w-[full] h-[223px] bg-[#212121] rounded-[20px] overflow-hidden relative border border-white/6 mb-8">
         {/* Hero content */}
+        <Image src={"/assets/banners/banner-lg.jpg"} fill className="object-cover hidden lg:block" alt="banner" />
+        <Image src={"/assets/banners/banner-mb.jpg"} fill className="object-cover lg:hidden" alt="banner" />
       </div>
 
-      <div className="wrap w-[100vw] overflow-hidden mb-10 bg-[#212121] pb-8  lg:w-[calc(100vw-345px)]">
-        <ContinuePlaying />
+      <div className="wrap max-w-full overflow-hidden mb-10 bg-[#212121] pb-8  lg:max-w-[calc(100vw-345px)]">
+        {/* <ContinuePlaying /> */}
       </div>
 
       {/* Available Games */}
@@ -148,7 +161,7 @@ export default function HomePage() {
           <h2 className="text-[18px] font-medium">Trending Games</h2>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 gap-y-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 gap-y-10">
           {trendingGames.map((game, index) => (
             <div key={index} className="flex flex-col items-start">
               <div className="w-full h-[180px] overflow-hidden bg-[#2c2c2c] border border-white/10 rounded-[16px] relative hover:bg-[#2a2a2a] transition">

@@ -1,7 +1,15 @@
 import axios, { AxiosRequestConfig } from "axios";
+import { getCookie } from "./api/cookie";
 
-const apiHandler = async <T = any>(endpoint: string, options: AxiosRequestConfig = {}): Promise<T> => {
-  const token = localStorage.getItem("access-token");
+interface AxiosOptions {
+  method?: string;
+  headers?: any;
+  body?: any | null;
+  [key: string]: any;
+}
+
+const apiHandler = async <T = any>(endpoint: string, options: AxiosOptions = {}): Promise<T> => {
+  const token = getCookie("access-token");
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
