@@ -7,6 +7,8 @@ import { TfiLocationPin } from "react-icons/tfi";
 import { useWheelBet } from "../../../../lib/hooks/useWheel";
 import { HARD_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
+import { placeWheelBet } from "../../../../lib/api/wheel-api";
+
 
 const COLOR_MAPPING = {
   purple: "#C8A2FF",
@@ -49,67 +51,79 @@ export default function StakeRingWheelGame() {
       .join(", ")})`;
   };
 
-  const handleSpin = () => {
-    if (isSpinning || !fixedSegments.length) return;
-    setIsSpinning(true);
-    setShowResult(false);
+const handleSpin = async () => {
+  if (isSpinning || !fixedSegments.length) return;
 
-    placeBet(
-      {
-        betAmount,
-        selectedColorIndex: 0,
-        // segments: fixedSegments as any,
-      },
-      {
-        onSuccess: (data) => {
-          const { resultColor, resultIndex } = data.data;
+  setIsSpinning(true);
+  setShowResult(false);
 
-          if (resultIndex < 0 || resultIndex >= fixedSegments.length) {
-            setIsSpinning(false);
-            setResultText(`Invalid result from server.`);
-            setShowResult(true);
-            return;
-          }
+  try {
+    // Randomly pick a color from wheel segments
+    const randomColor = fixedSegments[Math.floor(Math.random() * fixedSegments.length)].color;
 
-          const SEGMENT_COUNT = fixedSegments.length;
-          const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
+    // Send primitive values, not objects
+    const response = await placeWheelBet({
+      stake: betAmount, // ensure it's a number
+      chosenColor: randomColor,
+    });
 
-          // Calculate rotation to align target segment center with pointer
-          const segmentCenterInGradient = resultIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-          const segmentCenterInNormal = (segmentCenterInGradient + 90) % 360;
-          const rotationNeeded = (360 - segmentCenterInNormal) % 360;
+    if (!response?.success) {
+      throw new Error("Bet failed.");
+    }
 
-          const SPIN_COUNT = 5;
-          const currentBase = Math.floor(wheelRotation / 360) * 360;
-          const totalRotation = currentBase + SPIN_COUNT * 360 + rotationNeeded;
+    const { resultColor, multiplier } = response.data;
 
-          setWheelRotation(totalRotation);
-
-          setTimeout(() => {
-            setIsSpinning(false);
-            const multiplier = data.data.multiplier;
-            const winAmount = betAmount * multiplier;
-
-            setResultText(
-              multiplier > 0
-                ? `🎉 Landed on ${resultColor}! Won ${winAmount.toFixed(6)} BTC (${multiplier}x)`
-                : `❌ Landed on ${resultColor} - Better luck next time!`
-            );
-
-            // Update recent results with color and multiplier, limit to 5
-            setRecentResults((prev) => [{ multiplier: data.data.multiplier, color: resultColor }, ...prev.slice(0, 4)]);
-
-            setShowResult(true);
-          }, 4500);
-        },
-        onError: (error) => {
-          setIsSpinning(false);
-          setResultText(error.message);
-          setShowResult(true);
-        },
-      }
+    // Find result index from the wheel segments
+    const resultIndex = fixedSegments.findIndex(
+      (seg) => seg.color === resultColor
     );
-  };
+
+    if (resultIndex === -1) {
+      setIsSpinning(false);
+      setResultText("Invalid result from server.");
+      setShowResult(true);
+      return;
+    }
+
+    // Spin calculation
+    const SEGMENT_COUNT = fixedSegments.length;
+    const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
+    const segmentCenterInGradient =
+      resultIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+    const segmentCenterInNormal = (segmentCenterInGradient + 90) % 360;
+    const rotationNeeded = (360 - segmentCenterInNormal) % 360;
+
+    const SPIN_COUNT = 5;
+    const currentBase = Math.floor(wheelRotation / 360) * 360;
+    const totalRotation =
+      currentBase + SPIN_COUNT * 360 + rotationNeeded;
+
+    setWheelRotation(totalRotation);
+
+    setTimeout(() => {
+      setIsSpinning(false);
+
+      const winAmount = Number(betAmount) * multiplier;
+      setResultText(
+        multiplier > 0
+          ? `🎉 Landed on ${resultColor}! Won ${winAmount.toFixed(6)} BTC (${multiplier}x)`
+          : `❌ Landed on ${resultColor} - Better luck next time!`
+      );
+
+      setRecentResults((prev) => [
+        { multiplier, color: resultColor },
+        ...prev.slice(0, 4),
+      ]);
+
+      setShowResult(true);
+    }, 4500);
+  } catch (error: any) {
+    setIsSpinning(false);
+    setResultText(error.message || "Bet failed");
+    setShowResult(true);
+  }
+};
+
 
   return (
     <div className="px-4 py-6">

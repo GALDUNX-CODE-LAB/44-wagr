@@ -1,3 +1,5 @@
+import apiHandler from "../api-handler";
+
 export type DynamicSegment = {
   color: string;
   multiplier: number;
@@ -20,47 +22,29 @@ export const fetchSegments = async (): Promise<DynamicSegment[]> => {
   return HARD_CODED_SEGMENTS;
 };
 
-// ✅ Places a bet using hardcoded segments
-export const placeWheelBet = async ({
-  betAmount,
-  selectedColorIndex,
-  
-}: {
-  betAmount: number;
-  selectedColorIndex: number;
-}) => {
-  const token = localStorage.getItem('access-token');
+// ✅ FIXED: Backend expects 'betAmount', not 'stake'
+export const placeWheelBet = async ({ stake, chosenColor }: { stake: number; chosenColor: string }) => {
+  // ✅ IMPORTANT: Backend expects 'betAmount', not 'stake'
+  const payload = { 
+    betAmount: stake,  // ← Changed from 'stake' to 'betAmount' to match backend
+    chosenColor 
+  };
 
-  const segments = HARD_CODED_SEGMENTS;
-  const chosenColor = getColorNameFromIndex(selectedColorIndex, segments);
+  console.log("[placeWheelBet] Input parameters:", { stake, chosenColor });
+  console.log("[placeWheelBet] Payload being sent to backend:", payload);
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_WHEEL_BET_ENDPOINT}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          stake: betAmount,
-          chosenColor,
-          segments, // Send the same fixed segments to backend
-        }),
-      }
-    );
+    const response = await apiHandler("/spin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify(payload),
+    });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || `HTTP error! status: ${res.status}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    throw new Error('Bet placement failed. Please try again.');
+    console.log("[placeWheelBet] SUCCESS:", response);
+    return response;
+  } catch (error: any) {
+    console.error("[placeWheelBet] Error response:", error?.response?.data || error);
+    throw error;
   }
 };
 

@@ -135,3 +135,37 @@ export const fetchUserTransactions = async () => {
   return response;
 };
 
+export const placeCoinflipBet = async ({
+  betAmount,
+  choice,
+}: {
+  betAmount: number;
+  choice: 'heads' | 'tails';
+}) => {
+  const normalizedChoice = choice.toLowerCase();
+
+  const response = await apiHandler("/coinflip/bet", {
+    method: "POST",
+    data: { betAmount, choice: normalizedChoice },
+  });
+
+  return response;
+};
+
+export const placeDiceBet = async ({
+  betAmount,
+  target,
+  betType,
+}: {
+  betAmount: number;
+  target: number;
+  betType: 'over' | 'under';
+}) => {
+  const response = await apiHandler("/dice/bet", {
+    method: "POST",
+    data: { betAmount, target, betType },
+  });
+
+  return response;
+};
+

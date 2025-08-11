@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
-import { handleGoogleRedirect, googleLogin, setAuthTokens } from "../lib/api/auth";
+import { handleGoogleRedirect } from "../lib/api/auth";
 import { FcGoogle } from "react-icons/fc";
 import { useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { useAccount, useDisconnect } from "wagmi";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/api/useAuth";
 
 interface LoginModalProps {
@@ -25,54 +25,6 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   const { isConnected, address, status } = useAccount();
   const { disconnect } = useDisconnect();
   const { authenticate, isAuthenticated, isLoading: authLoading, error: authError, refreshAuthState } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Handle OAuth callback when component mounts
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const code = searchParams.get('code');
-      const error = searchParams.get('error');
-      
-      if (error) {
-        console.error('OAuth error:', error);
-        setError('Google login was cancelled or failed');
-        router.replace(window.location.pathname);
-        return;
-      }
-      
-      if (code) {
-        setIsGoogleLoading(true);
-        try {
-          const result = await googleLogin(code);
-          console.log('Google login result:', result);
-          
-          const accessToken = result.access_token || result.accessToken || result.token || (result.data ? result.data.access_token || result.data.accessToken || result.data.token : null);
-          const refreshToken = result.refresh_token || result.refreshToken || (result.data ? result.data.refresh_token || result.data.refreshToken : null);
-
-          if (!accessToken) {
-            console.error('No access token found in response:', result);
-            throw new Error('No access token received');
-          }
-
-          setAuthTokens(accessToken, refreshToken);
-          console.log('Google login successful, tokens set');
-          refreshAuthState();
-          router.replace(window.location.pathname);
-        } catch (error) {
-          console.error('Google login failed:', error);
-          setError(error instanceof Error ? error.message : 'Google login failed');
-          router.replace(window.location.pathname);
-        } finally {
-          setIsGoogleLoading(false);
-        }
-      }
-    };
-
-    if (open) {
-      handleOAuthCallback();
-    }
-  }, [searchParams, router, open, refreshAuthState]);
 
   // Close modal if user is authenticated
   useEffect(() => {
@@ -93,10 +45,16 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
     try {
       setError("");
       setIsGoogleLoading(true);
+      console.log('🚀 Starting Google login redirect...');
+      
+      // This will redirect to Google OAuth, which will then redirect to /callback
       await handleGoogleRedirect();
+      
+      // Note: This code won't execute because handleGoogleRedirect() redirects the page
+      
     } catch (error) {
-      console.error('Failed to initiate Google login:', error);
-      setError('Failed to start Google login');
+      console.error('❌ Failed to initiate Google login:', error);
+      setError(error instanceof Error ? error.message : 'Failed to start Google login');
       setIsGoogleLoading(false);
     }
   };
@@ -115,16 +73,16 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
       }
 
       if (!isConnected || status !== 'connected') {
-        console.log('Connecting to MetaMask', { isConnected, status });
+        console.log('🔗 Connecting to MetaMask', { isConnected, status });
         await connect({ connector: metamaskConnector });
       }
 
-      console.log('Initiating wallet authentication', { isConnected, address, status });
+      console.log('🔐 Initiating wallet authentication', { isConnected, address, status });
       await authenticate();
-      console.log('MetaMask login initiated');
+      console.log('✅ MetaMask login initiated');
       refreshAuthState();
     } catch (error) {
-      console.error('MetaMask login failed:', error);
+      console.error('❌ MetaMask login failed:', error);
       setError(error instanceof Error ? error.message : 'MetaMask login failed');
       if (isConnected) {
         disconnect();
@@ -153,7 +111,9 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
 
         {(isGoogleLoading || authLoading) && (
           <div className="mb-4 p-3 rounded-[10px] bg-blue-500/10 border border-blue-500/20">
-            <p className="text-blue-400 text-sm">Processing login...</p>
+            <p className="text-blue-400 text-sm">
+              {isGoogleLoading ? 'Redirecting to Google...' : 'Processing login...'}
+            </p>
           </div>
         )}
 
@@ -190,7 +150,7 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
           className="w-full flex items-center justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FcGoogle />
-          {isGoogleLoading ? 'Connecting to Google...' : 'Login with Google'}
+          {isGoogleLoading ? 'Redirecting to Google...' : 'Login with Google'}
         </button>
 
         <button
