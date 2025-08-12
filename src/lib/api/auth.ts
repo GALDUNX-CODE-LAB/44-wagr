@@ -63,8 +63,8 @@ export const verifySignature = async (walletAddress: string, signature: string) 
   return data;
 };
 
-export const setAuthTokens = (accessToken: string, refreshToken?: string) => {
-  console.log('Setting auth tokens:', { accessToken, refreshToken });
+export const setAuthTokens = (accessToken: string, refreshToken?: string, authMethod?: 'wallet' | 'token', address?: string) => {
+  console.log('Setting auth tokens:', { accessToken, refreshToken, authMethod, address });
   if (!accessToken) {
     console.error('No access token provided to setAuthTokens');
     return;
@@ -73,6 +73,12 @@ export const setAuthTokens = (accessToken: string, refreshToken?: string) => {
   if (refreshToken) {
     setCookie('refresh-token', refreshToken, 1);
   }
+  if (authMethod) {
+    setCookie('auth-method', authMethod, 1);
+  }
+  if (address && authMethod === 'wallet') {
+    setCookie('auth-address', address, 1);
+  }
   window.dispatchEvent(new Event('auth-change'));
 };
 
@@ -80,6 +86,8 @@ export const clearAuthTokens = () => {
   console.log('Clearing auth tokens');
   removeCookie('access-token');
   removeCookie('refresh-token');
+  removeCookie('auth-method');
+  removeCookie('auth-address');
   window.dispatchEvent(new Event('auth-change'));
 };
 

@@ -48,6 +48,8 @@ export const useAuth = () => {
     console.log('🔌 Disconnecting user');
     removeCookie('access-token');
     removeCookie('refresh-token');
+    removeCookie('auth-method'); // Clear auth method cookie
+    removeCookie('auth-address'); // Clear authenticated address cookie
     authAttemptRef.current = false;
     authenticatedAddressRef.current = null;
     setAuthState({
@@ -74,9 +76,50 @@ export const useAuth = () => {
     }
 
     console.log('Access token found, determining auth method...');
-    const authMethod: 'wallet' | 'token' = (isConnected && address) ? 'wallet' : 'token';
-    if (authMethod === 'wallet' && address) {
-      authenticatedAddressRef.current = address;
+    
+    // Get the stored auth method from cookies
+    const storedAuthMethod = getCookie('auth-method') as 'wallet' | 'token' | null;
+    const storedAddress = getCookie('auth-address');
+    
+    console.log('Stored auth method:', storedAuthMethod);
+    console.log('Stored address:', storedAddress);
+    console.log('Current wallet state:', { isConnected, address });
+
+    let authMethod: 'wallet' | 'token';
+    
+    if (storedAuthMethod === 'wallet') {
+      // If originally authenticated with wallet, keep it as wallet auth
+      authMethod = 'wallet';
+      if (storedAddress) {
+        authenticatedAddressRef.current = storedAddress;
+      }
+      
+      // If wallet was disconnected but we have wallet auth, we'll wait for reconnection
+      if (!isConnected || !address || address !== storedAddress) {
+        console.log('Wallet auth detected but wallet not connected or address mismatch, waiting for wallet connection...');
+        setAuthState((prev) => ({
+          ...prev,
+          isAuthenticated: true,
+          isLoading: false,
+          authMethod: 'wallet',
+          error: null,
+        }));
+        return { hasAuth: true, method: 'wallet' };
+      }
+    } else if (storedAuthMethod === 'token') {
+      // Google/OAuth authentication
+      authMethod = 'token';
+    } else {
+      // Fallback: determine by current wallet state (for backward compatibility)
+      authMethod = (isConnected && address) ? 'wallet' : 'token';
+      console.log('No stored auth method found, falling back to current state:', authMethod);
+      
+      // Store the determined method for future use
+      setCookie('auth-method', authMethod, 7);
+      if (authMethod === 'wallet' && address) {
+        setCookie('auth-address', address, 7);
+        authenticatedAddressRef.current = address;
+      }
     }
 
     // Optional: Validate token with backend (uncomment if endpoint exists)
@@ -121,8 +164,12 @@ export const useAuth = () => {
     }
 
     const token = getCookie('access-token');
-    if (token && authenticatedAddressRef.current === targetAddress) {
-      console.log('⏭️ Already authenticated for address:', targetAddress);
+    const storedAuthMethod = getCookie('auth-method');
+    const storedAddress = getCookie('auth-address');
+    
+    // Check if we already have valid wallet authentication for this address
+    if (token && storedAuthMethod === 'wallet' && storedAddress === targetAddress && authenticatedAddressRef.current === targetAddress) {
+      console.log('⏭️ Already authenticated for wallet address:', targetAddress);
       setAuthState((prev) => ({
         ...prev,
         isAuthenticated: true,
@@ -157,6 +204,11 @@ export const useAuth = () => {
       }
 
       setAuthTokens(accessToken, refreshToken);
+      
+      // Store auth method and address
+      setCookie('auth-method', 'wallet', 7);
+      setCookie('auth-address', targetAddress, 7);
+      
       authenticatedAddressRef.current = targetAddress;
       setAuthState({
         isAuthenticated: true,
@@ -213,8 +265,18 @@ export const useAuth = () => {
     }
 
     const token = getCookie('access-token');
-    if (token && authState.isAuthenticated && authenticatedAddressRef.current === address) {
-      console.log('⏭️ Already authenticated with valid token for address:', address);
+    const storedAuthMethod = getCookie('auth-method');
+    const storedAddress = getCookie('auth-address');
+
+    // If we have a token and stored wallet auth for this address, don't re-authenticate
+    if (token && storedAuthMethod === 'wallet' && storedAddress === address && authState.isAuthenticated && authenticatedAddressRef.current === address) {
+      console.log('⏭️ Already authenticated with valid wallet token for address:', address);
+      return;
+    }
+
+    // If we have token auth (Google), don't auto-authenticate wallet
+    if (token && storedAuthMethod === 'token' && authState.isAuthenticated) {
+      console.log('⏭️ Already authenticated with Google, not auto-authenticating wallet');
       return;
     }
 
@@ -229,21 +291,26 @@ export const useAuth = () => {
   }, [isConnected, address, status, authState.isAuthenticated, authenticateWallet]);
 
   useEffect(() => {
-    if (!hasInitializedRef.current || !authenticatedAddressRef.current || !address || authenticatedAddressRef.current === address) {
+    if (!hasInitializedRef.current || !authenticatedAddressRef.current || !address) {
       return;
     }
 
-    console.log('🔄 Address changed, clearing auth:', {
-      oldAddress: authenticatedAddressRef.current,
-      newAddress: address,
-    });
-    authenticatedAddressRef.current = null;
-    setAuthState((prev) => ({
-      ...prev,
-      isAuthenticated: false,
-      isLoading: true,
-      authMethod: null,
-    }));
+    const storedAddress = getCookie('auth-address');
+    
+    // Only clear auth if the address actually changed and we have wallet auth
+    if (storedAddress && storedAddress !== address && getCookie('auth-method') === 'wallet') {
+      console.log('🔄 Wallet address changed, clearing auth:', {
+        oldAddress: storedAddress,
+        newAddress: address,
+      });
+      authenticatedAddressRef.current = null;
+      setAuthState((prev) => ({
+        ...prev,
+        isAuthenticated: false,
+        isLoading: true,
+        authMethod: null,
+      }));
+    }
   }, [address]);
 
   useEffect(() => {
@@ -263,7 +330,10 @@ export const useAuth = () => {
 
     if (isConnected && address && status === 'connected') {
       const token = getCookie('access-token');
-      if (token && authenticatedAddressRef.current === address) {
+      const storedAuthMethod = getCookie('auth-method');
+      const storedAddress = getCookie('auth-address');
+      
+      if (token && storedAuthMethod === 'wallet' && storedAddress === address && authenticatedAddressRef.current === address) {
         console.log('⏭️ Already authenticated, skipping');
         setAuthState((prev) => ({
           ...prev,
