@@ -1,4 +1,4 @@
-import { CrashBetPayload } from "../../interfaces/interface";
+import { Market, CrashBetPayload } from "../../interfaces/interface";
 import apiHandler from "../api-handler";
 
 export const fetchLiveWins = async () => {
@@ -169,29 +169,37 @@ export const placeDiceBet = async ({
   return response;
 };
 
-
+// ✅ Fetch all markets
 export const fetchMarkets = async () => {
-  const response = await apiHandler("/meta-market", {
+  const data = await apiHandler<any>(process.env.NEXT_PUBLIC_META_MARKET_ENDPOINT || "", {
     method: "GET",
   });
-  return response;
+
+  // Normalize: if API returns array, wrap in { markets: [] }
+  return Array.isArray(data) ? { success: true, markets: data } : data;
 };
 
-export const fetchMarketById = async (id: string) => {
-  const response = await apiHandler(`/meta-market/${id}`, {
+// ✅ Fetch single market by ID
+export const fetchMarketById = async (id: string): Promise<Market> => {
+  const data = await apiHandler<{ market: Market }>(`/meta-market/${id}`, {
     method: "GET",
   });
-  return response;
+
+  if (!data.market) {
+    throw new Error("Market data not found in response");
+  }
+  return data.market;
 };
 
+// ✅ Place a market bet
 export const placeMarketBet = async (
   marketId: string,
-  side: 'YES' | 'NO',
+  side: "YES" | "NO",
   stake: number
 ) => {
-  const response = await apiHandler(`/meta-market/${marketId}/bet`, {
+  return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",
-    data: { side, stake },
+    body: JSON.stringify({ side, stake }),
   });
-  return response;
 };
+

@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Send, Heart, Award } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { Market } from "../../../interfaces/interface"
 import LivePlays from "../../../components/live-plays"
-import { usePlaceBet } from "../../../lib/hooks/useMarkets"
+import { placeMarketBet } from "../../../lib/api"
 import {
   fetchComments,
   addMetaMarketComment,
@@ -52,8 +52,8 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
   })
   const [likingCommentId, setLikingCommentId] = useState<string | null>(null) // Added: State to track which comment is being liked
 
-  // Bet placement hook
-  const { mutate: placeBet, isPending: isPlacingBet, error: betError } = usePlaceBet()
+  const [isPlacingBet, setIsPlacingBet] = useState(false)
+  const [betError, setBetError] = useState<Error | null>(null)
 
   // Market data with safe defaults
   const marketData = {
@@ -132,25 +132,31 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
   const handleAmountChange = (value: number) => {
     setBetAmount(Math.max(1, Math.min(10000, value)))
   }
-  const handlePlaceBet = () => {
-    if (!selectedOption || marketData.isResolved) return
-    placeBet(
-      {
-        marketId: market._id,
-        side: selectedOption.toUpperCase() as "YES" | "NO",
-        stake: betAmount,
-      },
-      {
-        onSuccess: () => {
-          setSelectedOption("")
-          setError(null)
-        },
-        onError: (error) => {
-          setError(error instanceof Error ? error.message : "Failed to place bet")
-        },
-      },
+ 
+  const handlePlaceBet = async () => {
+  if (!selectedOption || marketData.isResolved) return
+  
+  setIsPlacingBet(true)
+  setError(null)
+  setBetError(null)
+  
+  try {
+    await placeMarketBet(
+      market._id,
+      selectedOption.toUpperCase() as "YES" | "NO",
+      betAmount
     )
+    setSelectedOption("")
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error("Failed to place bet")
+    setBetError(error)
+    setError(error.message)
+  } finally {
+    setIsPlacingBet(false)
   }
+}
+ 
+
   const handleSubmitComment = async () => {
     if (!commentInput.trim() || isSubmittingComment) return
     setIsSubmittingComment(true)

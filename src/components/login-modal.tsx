@@ -27,7 +27,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
 
   useEffect(() => {
     if (isAuthenticated && !authLoading && !switchMode) {
-      console.log('User authenticated, closing modal');
+     
       onClose();
     }
   }, [isAuthenticated, authLoading, onClose, switchMode]);
@@ -35,7 +35,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
   if (!open) return null;
 
   const handleEmailLogin = () => {
-    console.log("Logging in with email:", email);
+   
     setError("Email login not implemented yet");
   };
 
@@ -43,7 +43,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
     try {
       setError("");
       setIsGoogleLoading(true);
-      console.log('🚀 Starting Google login redirect...');
+     
 
       if (switchMode && isAuthenticated) {
         await logout(wagmiDisconnect);
@@ -52,7 +52,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
 
       await handleGoogleRedirect();
     } catch (error) {
-      console.error('❌ Failed to initiate Google login:', error);
+    
       setError(error instanceof Error ? error.message : 'Failed to start Google login');
       setIsGoogleLoading(false);
     }
@@ -63,7 +63,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
       setError("");
 
       if (isAuthenticated && authMethod === 'wallet' && address && isConnected) {
-        console.log('⏭️ Already authenticated with MetaMask, skipping');
+      
         if (!switchMode) {
           onClose();
         }
@@ -75,27 +75,27 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
       );
 
       if (!metamaskConnector) {
-        console.error("MetaMask connector not found");
+      
         setError("MetaMask not found. Please install MetaMask extension.");
         return;
       }
 
       if (switchMode && isAuthenticated) {
-        console.log('🔄 Switch mode: logging out current session');
+      
         await logout(wagmiDisconnect);
         authDisconnect();
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       if (!isConnected) {
-        console.log('🔗 Connecting to MetaMask...');
+     
         await connect({ connector: metamaskConnector });
       }
 
-      console.log('✅ MetaMask connection initiated, triggering authentication...');
+     
       await authenticate();
     } catch (error) {
-      console.error('❌ MetaMask connection failed:', error);
+     
       setError(error instanceof Error ? error.message : 'MetaMask connection failed');
       if (isConnected) {
         wagmiDisconnect();
@@ -164,7 +164,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
             <button
               onClick={handleEmailLogin}
               disabled={isGoogleLoading || authLoading}
-              className="w-full bg-[#C8A2FF] hover:bg-[#b389ff] text-white font-medium py-2 rounded-[15px] transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#C8A2FF] hover:bg-[#b389ff] cursor-pointer text-white font-medium py-2 rounded-[15px] transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Login
             </button>
@@ -180,7 +180,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
         <button
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading || authLoading}
-          className={`w-full flex items-center justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
             switchMode && authMethod !== 'wallet' ? 'opacity-50' : ''
           }`}
         >
@@ -192,7 +192,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
         <button
           onClick={handleMetamaskLogin}
           disabled={isGoogleLoading || authLoading || isPending}
-          className={`w-full flex items-center justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
             switchMode && authMethod === 'wallet' ? 'opacity-50' : ''
           }`}
         >
@@ -211,7 +211,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
             
             <button
               onClick={handleLogoutAndClose}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[15px] border border-red-400/30 text-red-400 bg-red-400/10 hover:bg-red-400/20 transition"
+              className="w-full flex cursor-pointer items-center justify-center gap-2 px-3 py-2 rounded-[15px] border border-red-400/30 text-red-400 bg-red-400/10 hover:bg-red-400/20 transition"
             >
               Logout Completely
             </button>

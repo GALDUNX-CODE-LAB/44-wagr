@@ -83,7 +83,7 @@ export default function Navbar() {
   };
   const openLogin = () => {
     if (isAuthenticated) {
-      console.log("⏭️ Already authenticated, skipping login modal");
+     
       return;
     }
     setSwitchMode(false);
@@ -119,7 +119,7 @@ export default function Navbar() {
             </div>
             <button
               onClick={() => setSidebarOpen((v) => !v)}
-              className="w-10 h-10 rounded-md text-white hover:text-[#C8A2FF] transition"
+              className="w-10 h-10 rounded-md cursor-pointer text-white hover:text-[#C8A2FF] transition"
               aria-label="Toggle menu"
             >
               {sidebarOpen ? (
@@ -150,7 +150,7 @@ export default function Navbar() {
 
                   <button
                     onClick={openWallet}
-                    className="w-full h-10 rounded-full flex items-center justify-between text-white/90 text-sm px-4 border border-white/20 bg-[#1C1C1C]"
+                    className="w-full h-10 rounded-full cursor-pointer flex items-center justify-between text-white/90 text-sm px-4 border border-white/20 bg-[#1C1C1C]"
                   >
                     <div className="flex items-center gap-2">
                       <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
@@ -188,7 +188,7 @@ export default function Navbar() {
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={openTx}
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm"
+                          className="flex items-center cursor-pointer justify-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm"
                         >
                           <CreditCard className="w-4 h-4" />
                           Transactions
@@ -196,7 +196,7 @@ export default function Navbar() {
 
                         <button
                           onClick={openAffiliate}
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm"
+                          className="flex items-center cursor-pointer justify-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm"
                         >
                           <Settings className="w-4 h-4" />
                           Affiliate
@@ -204,13 +204,13 @@ export default function Navbar() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm">
+                        <button className="flex items-center justify-center cursor-pointer gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/5 text-sm">
                           <Bell className="w-4 h-4" />
                           Alerts
                         </button>
                         <button
                           onClick={openSwitchModal}
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-blue-400/30 text-blue-400 text-sm bg-blue-400/10"
+                          className="flex items-center cursor-pointer justify-center gap-2 px-3 py-2 rounded-full border border-blue-400/30 text-blue-400 text-sm bg-blue-400/10"
                         >
                           Switch
                         </button>
@@ -218,7 +218,7 @@ export default function Navbar() {
 
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-red-400/30 text-red-400 text-sm bg-red-400/10"
+                        className="w-full flex items-center cursor-pointer justify-center gap-2 px-3 py-2 rounded-full border border-red-400/30 text-red-400 text-sm bg-red-400/10"
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -226,7 +226,7 @@ export default function Navbar() {
                     </>
                   ) : (
                     <button
-                      className="flex items-center justify-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
+                      className="flex items-center cursor-pointer justify-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
                       onClick={openLogin}
                     >
                       <span>Login</span>
@@ -239,7 +239,7 @@ export default function Navbar() {
 
           <div className="hidden sm:flex items-center gap-3">
             <button
-              className="flex items-center gap-2 px-3 bg-[#fff] whitespace-nowrap text-xs py-2 rounded-full border border-white/20 text-black"
+              className="flex items-center cursor-pointer gap-2 px-3 bg-[#fff] whitespace-nowrap text-xs py-2 rounded-full border border-white/20 text-black"
               onClick={openPoints}
             >
               <Flag size={15} />
@@ -248,7 +248,7 @@ export default function Navbar() {
 
             <button
               onClick={openWallet}
-              className="w-[200px] h-10 rounded-full flex items-center justify-between text-white/90 text-sm px-4"
+              className="w-[200px] h-10 rounded-full cursor-pointer flex items-center justify-between text-white/90 text-sm px-4"
               style={{
                 background: "#1C1C1C",
                 border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -275,7 +275,7 @@ export default function Navbar() {
               <>
                 <button
                   onClick={openSwitchModal}
-                  className="flex items-center gap-2 px-3 bg-white/0 whitespace-nowrap text-xs py-2 rounded-full border border-transparent text-white/80 hover:text-white hover:border-white/20"
+                  className="flex items-center gap-2 cursor-pointer px-3 bg-white/0 whitespace-nowrap text-xs py-2 rounded-full border border-transparent text-white/80 hover:text-white hover:border-white/20"
                   title={`Switch from ${
                     authMethod === "wallet" ? "MetaMask" : "Google"
                   }`}
@@ -285,7 +285,7 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setUserDropdownOpen((v) => !v)}
-                    className="w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-white/30"
+                    className="w-10 h-10 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30"
                     aria-haspopup="menu"
                     aria-expanded={userDropdownOpen}
                   >
@@ -320,28 +320,28 @@ export default function Navbar() {
                           )}
                         </div>
                         <button
-                          className="flex items-center gap-2 hover:text-[#C8A2FF] transition"
+                          className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition"
                           onClick={() => {}}
                         >
                           <Lock className="w-4 h-4" />
                           Reset Password
                         </button>
                         <button
-                          className="flex items-center gap-2 hover:text-[#C8A2FF] transition"
+                          className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition"
                           onClick={openTx}
                         >
                           <CreditCard className="w-4 h-4" />
                           Transactions
                         </button>
                         <button
-                          className="flex items-center gap-2 hover:text-[#C8A2FF] transition"
+                          className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition"
                           onClick={openAffiliate}
                         >
                           <Settings className="w-4 h-4" />
                           Affiliate
                         </button>
                         <button
-                          className="flex items-center gap-2 mt-2 text-red-500 hover:text-red-600"
+                          className="flex items-center cursor-pointer gap-2 mt-2 text-red-500 hover:text-red-600"
                           onClick={handleLogout}
                         >
                           <LogOut className="w-4 h-4" />
@@ -354,7 +354,7 @@ export default function Navbar() {
               </>
             ) : (
               <button
-                className="flex items-center gap-2 px-3 bg-[#c8a2ff] whitespace-nowrap text-xs py-2 rounded-full border border-white/20 text-black"
+                className="flex items-center gap-2 cursor-pointer px-3 bg-[#c8a2ff] whitespace-nowrap text-xs py-2 rounded-full border border-white/20 text-black"
                 onClick={openLogin}
               >
                 <span>Login</span>

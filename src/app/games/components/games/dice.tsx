@@ -3,6 +3,7 @@
 import { Bitcoin } from "lucide-react";
 import DiceRoller from "../dice-roller";
 import { useState, useRef, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import LiveWinsSection from "../../../../components/live-wins";
 import LiveDiceWins from "../../../../components/live-wins-dice";
 import { placeDiceBet } from "../../../../lib/api";
@@ -17,7 +18,7 @@ export default function DiceGame() {
   const oddsOptions = [60.57, 30.57, 70.57, 60.7];
   const diceRef = useRef<any>(null);
 
-  
+    const queryClient = useQueryClient();
 
   const winnableAmount = betAmount * activeOdds;
 
@@ -56,6 +57,8 @@ if (diceRef.current) {
       diceRef.current.resetDice();
     }
   }
+
+  queryClient.invalidateQueries(); 
 };
 
 
