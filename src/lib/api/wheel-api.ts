@@ -48,11 +48,3 @@ export const placeWheelBet = async ({ stake, chosenColor }: { stake: number; cho
   }
 };
 
-// ✅ Utility: maps selected index to color
-const getColorNameFromIndex = (
-  index: number,
-  segments: DynamicSegment[]
-): string => {
-  const segment = segments[index];
-  return segment ? segment.color : 'lightgray'; // fallback
-};

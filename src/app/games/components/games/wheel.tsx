@@ -30,8 +30,9 @@ export default function StakeRingWheelGame() {
   const [selectedSegments, setSelectedSegments] = useState(HARD_CODED_SEGMENTS.length);
   const [recentResults, setRecentResults] = useState<Array<{ multiplier: number; color: string }>>([]);
   const [fixedSegments, setFixedSegments] = useState(HARD_CODED_SEGMENTS);
+   const [isBetting, setIsBetting] = useState(false);
 
-  const { mutate: placeBet, isPending: isBetting } = useWheelBet();
+  
 
   const segmentAngle = 360 / selectedSegments;
 

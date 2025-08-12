@@ -1,6 +1,5 @@
 import { setCookie, getCookie, removeCookie } from './cookie';
 
-// Authentication functions
 export const requestNonce = async (walletAddress: string) => {
   try {
     const response = await fetch(
@@ -84,15 +83,26 @@ export const clearAuthTokens = () => {
   window.dispatchEvent(new Event('auth-change'));
 };
 
-export const logout = (disconnect?: () => void) => {
+export const logout = (disconnect?: () => void, preventRedirect = false) => {
   try {
+    console.log('🔄 Starting logout process');
     clearAuthTokens();
     if (disconnect) {
+      console.log('🔌 Disconnecting wallet');
       disconnect();
     }
-    window.location.href = '/';
+    if (!preventRedirect) {
+      setTimeout(() => {
+        console.log('🏠 Redirecting to home page');
+        window.location.href = '/';
+      }, 100);
+    }
+    console.log('✅ Logout process completed');
   } catch (err) {
     console.error('Error during logout:', err);
+    if (!preventRedirect) {
+      window.location.href = '/';
+    }
   }
 };
 
@@ -121,7 +131,6 @@ export const googleLogin = async (code: string) => {
     const data = await response.json();
     console.log('Google login response:', data);
 
-    // Handle various response formats
     const accessToken = data.access_token || data.accessToken || data.token || (data.data ? data.data.access_token || data.data.accessToken || data.data.token : null);
     const refreshToken = data.refresh_token || data.refreshToken || (data.data ? data.data.refresh_token || data.data.refreshToken : null);
 
@@ -202,4 +211,15 @@ export const handleOAuthCallback = async (callbackUrl: string) => {
     console.error('OAuth callback handling failed:', error);
     throw error;
   }
+};
+
+export const isAuthenticated = (): boolean => {
+  const token = getCookie('access-token');
+  return !!token;
+};
+
+export const getAuthMethod = (isWalletConnected: boolean, walletAddress: string | undefined): 'wallet' | 'token' | null => {
+  const token = getCookie('access-token');
+  if (!token) return null;
+  return (isWalletConnected && walletAddress) ? 'wallet' : 'token';
 };

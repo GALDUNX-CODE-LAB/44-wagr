@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useRouter } from "next/navigation";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
@@ -6,12 +6,11 @@ import Image from "next/image";
 import LiveWinsSection from "../../components/live-wins";
 import { useAuth } from "../../lib/api/useAuth";
 import { useAccount } from "wagmi";
-import { useEffect } from "react";
 import { ContinuePlaying } from "./continue-playing";
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated, error: authError, isLoading, refreshAuthState } = useAuth();
+  const { isAuthenticated, error: authError, isLoading } = useAuth();
   const { address, isConnected } = useAccount();
 
   const availableGames = [
@@ -50,11 +49,6 @@ export default function HomePage() {
     }
     router.push(`/games/${gameName.toLowerCase()}`);
   };
-
-  useEffect(() => {
-    console.log('Refreshing auth state on mount');
-    refreshAuthState();
-  }, [refreshAuthState]);
 
   return (
     <div className="p-4 sm:p-6 text-white container mx-auto">
