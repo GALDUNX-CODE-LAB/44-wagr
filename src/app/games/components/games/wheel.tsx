@@ -4,7 +4,6 @@ import { Bitcoin } from "lucide-react";
 import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
-import { useWheelBet } from "../../../../lib/hooks/useWheel";
 import { HARD_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
 import { placeWheelBet } from "../../../../lib/api/wheel-api";

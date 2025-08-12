@@ -69,9 +69,9 @@ export const setAuthTokens = (accessToken: string, refreshToken?: string) => {
     console.error('No access token provided to setAuthTokens');
     return;
   }
-  setCookie('access-token', accessToken, 7);
+  setCookie('access-token', accessToken, 1);
   if (refreshToken) {
-    setCookie('refresh-token', refreshToken, 30);
+    setCookie('refresh-token', refreshToken, 1);
   }
   window.dispatchEvent(new Event('auth-change'));
 };
