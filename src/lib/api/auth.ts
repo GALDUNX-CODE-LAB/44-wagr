@@ -15,19 +15,11 @@ export const requestNonce = async (walletAddress: string) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Nonce request failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-      });
       throw new Error(errorData.message || 'Failed to fetch nonce');
     }
 
-    const data = await response.json();
-    console.log('Nonce response:', data);
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Network error in requestNonce:', error);
     throw new Error(
       error instanceof Error
         ? error.message
@@ -50,23 +42,14 @@ export const verifySignature = async (walletAddress: string, signature: string) 
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.error('Verify signature failed:', {
-      status: response.status,
-      statusText: response.statusText,
-      errorData,
-    });
     throw new Error(errorData.message || 'Failed to verify signature');
   }
 
-  const data = await response.json();
-  console.log('Verify signature response:', data);
-  return data;
+  return await response.json();
 };
 
 export const setAuthTokens = (accessToken: string, refreshToken?: string, authMethod?: 'wallet' | 'token', address?: string) => {
-  console.log('Setting auth tokens:', { accessToken, refreshToken, authMethod, address });
   if (!accessToken) {
-    console.error('No access token provided to setAuthTokens');
     return;
   }
   setCookie('access-token', accessToken, 1);
@@ -83,7 +66,6 @@ export const setAuthTokens = (accessToken: string, refreshToken?: string, authMe
 };
 
 export const clearAuthTokens = () => {
-  console.log('Clearing auth tokens');
   removeCookie('access-token');
   removeCookie('refresh-token');
   removeCookie('auth-method');
@@ -93,21 +75,16 @@ export const clearAuthTokens = () => {
 
 export const logout = (disconnect?: () => void, preventRedirect = false) => {
   try {
-    console.log('🔄 Starting logout process');
     clearAuthTokens();
     if (disconnect) {
-      console.log('🔌 Disconnecting wallet');
       disconnect();
     }
     if (!preventRedirect) {
       setTimeout(() => {
-        console.log('🏠 Redirecting to home page');
         window.location.href = '/';
       }, 100);
     }
-    console.log('✅ Logout process completed');
   } catch (err) {
-    console.error('Error during logout:', err);
     if (!preventRedirect) {
       window.location.href = '/';
     }
@@ -132,25 +109,20 @@ export const googleLogin = async (code: string) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Google login failed:', { status: response.status, statusText: response.statusText, errorText });
       throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Google login response:', data);
-
     const accessToken = data.access_token || data.accessToken || data.token || (data.data ? data.data.access_token || data.data.accessToken || data.data.token : null);
     const refreshToken = data.refresh_token || data.refreshToken || (data.data ? data.data.refresh_token || data.data.refreshToken : null);
 
     if (!accessToken) {
-      console.error('No access token found in response:', data);
       throw new Error('No access token received from server');
     }
 
     setAuthTokens(accessToken, refreshToken);
     return data;
   } catch (error) {
-    console.error('Google login error:', error);
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error(`Network error: Cannot connect to ${process.env.NEXT_PUBLIC_API_BASE_URL}`);
     }
@@ -175,24 +147,16 @@ export const handleGoogleRedirect = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Google redirect failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-      });
       throw new Error('Failed to initiate Google authentication');
     }
 
     const data = await response.json();
-    console.log('Google redirect response:', data);
-
     if (data.url) {
       window.location.href = data.url;
     } else {
       throw new Error('Invalid response from authentication server');
     }
   } catch (error) {
-    console.error("Google redirect error:", error);
     throw error;
   }
 };
@@ -202,7 +166,6 @@ export const extractCodeFromCallback = (callbackUrl: string): string | null => {
     const url = new URL(callbackUrl);
     return url.searchParams.get('code');
   } catch (error) {
-    console.error('Error parsing callback URL:', error);
     return null;
   }
 };
@@ -213,10 +176,8 @@ export const handleOAuthCallback = async (callbackUrl: string) => {
     if (!code) {
       throw new Error('No authorization code found in callback URL');
     }
-    const result = await googleLogin(code);
-    return result;
+    return await googleLogin(code);
   } catch (error) {
-    console.error('OAuth callback handling failed:', error);
     throw error;
   }
 };

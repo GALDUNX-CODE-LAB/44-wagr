@@ -1,43 +1,44 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchMarkets, fetchMarketById, placeMarketBet } from '../api/markets-api';
-import { Market } from '../../interfaces/interface';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { fetchMarkets, fetchMarketById, placeMarketBet } from "../api/markets-api";
+import { Market } from "../../interfaces/interface";
 
-// 1. Hook for fetching all markets (unchanged)
+// 1. Hook for fetching all markets
 export const useMarkets = () => {
   return useQuery({
-    queryKey: ['markets'],
+    queryKey: ["markets"],
     queryFn: fetchMarkets,
+    // Since fetchMarkets always returns { markets: [...] },
+    // we can safely select it here
     select: (data) => data.markets,
   });
 };
 
-// 2. Hook for fetching single market (unchanged)
+// 2. Hook for fetching a single market
 export const useMarket = (id: string) => {
   return useQuery({
-    queryKey: ['market', id],
+    queryKey: ["market", id],
     queryFn: () => fetchMarketById(id),
-    enabled: !!id,
+    enabled: !!id, // only fetch if id exists
   });
 };
 
-// 3. Simplified betting hook without QueryClient
+// 3. Hook for placing a market bet
 export const usePlaceBet = () => {
   return useMutation({
     mutationFn: ({
       marketId,
       side,
-      stake
+      stake,
     }: {
       marketId: string;
-      side: 'YES' | 'NO';
+      side: "YES" | "NO";
       stake: number;
     }) => placeMarketBet(marketId, side, stake),
-    
-    // Optional: Manually refetch data after success
-    onSuccess: (data, variables) => {
-      // You would need to pass queryClient from your component if you want to invalidate
-      console.log('Bet placed successfully!', data);
-      // In a real app, you might want to update the UI here
+    onSuccess: (data) => {
+      console.log("✅ Bet placed successfully!", data);
+      // Here you could invalidate queries like:
+      // queryClient.invalidateQueries(["markets"]);
+      // queryClient.invalidateQueries(["market", variables.marketId]);
     },
   });
 };

@@ -169,3 +169,29 @@ export const placeDiceBet = async ({
   return response;
 };
 
+
+export const fetchMarkets = async () => {
+  const response = await apiHandler("/meta-market", {
+    method: "GET",
+  });
+  return response;
+};
+
+export const fetchMarketById = async (id: string) => {
+  const response = await apiHandler(`/meta-market/${id}`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const placeMarketBet = async (
+  marketId: string,
+  side: 'YES' | 'NO',
+  stake: number
+) => {
+  const response = await apiHandler(`/meta-market/${marketId}/bet`, {
+    method: "POST",
+    data: { side, stake },
+  });
+  return response;
+};

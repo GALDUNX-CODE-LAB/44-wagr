@@ -33,7 +33,6 @@ export const useAuth = () => {
   const { signMessageAsync } = useSignMessage({
     mutation: {
       onError: (error) => {
-        console.error('❌ SignMessage error:', error);
         setAuthState((prev) => ({
           ...prev,
           error: error.message,
@@ -45,11 +44,10 @@ export const useAuth = () => {
   });
 
   const disconnect = useCallback(() => {
-    console.log('🔌 Disconnecting user');
     removeCookie('access-token');
     removeCookie('refresh-token');
-    removeCookie('auth-method'); // Clear auth method cookie
-    removeCookie('auth-address'); // Clear authenticated address cookie
+    removeCookie('auth-method');
+    removeCookie('auth-address');
     authAttemptRef.current = false;
     authenticatedAddressRef.current = null;
     setAuthState({
@@ -64,7 +62,6 @@ export const useAuth = () => {
   const checkExistingAuth = useCallback(async (): Promise<{ hasAuth: boolean; method: 'wallet' | 'token' | null }> => {
     const token = getCookie('access-token');
     if (!token) {
-      console.log('No access token found in cookies');
       setAuthState((prev) => ({
         ...prev,
         isAuthenticated: false,
@@ -75,28 +72,18 @@ export const useAuth = () => {
       return { hasAuth: false, method: null };
     }
 
-    console.log('Access token found, determining auth method...');
-    
-    // Get the stored auth method from cookies
     const storedAuthMethod = getCookie('auth-method') as 'wallet' | 'token' | null;
     const storedAddress = getCookie('auth-address');
-    
-    console.log('Stored auth method:', storedAuthMethod);
-    console.log('Stored address:', storedAddress);
-    console.log('Current wallet state:', { isConnected, address });
 
     let authMethod: 'wallet' | 'token';
     
     if (storedAuthMethod === 'wallet') {
-      // If originally authenticated with wallet, keep it as wallet auth
       authMethod = 'wallet';
       if (storedAddress) {
         authenticatedAddressRef.current = storedAddress;
       }
       
-      // If wallet was disconnected but we have wallet auth, we'll wait for reconnection
       if (!isConnected || !address || address !== storedAddress) {
-        console.log('Wallet auth detected but wallet not connected or address mismatch, waiting for wallet connection...');
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
@@ -107,39 +94,15 @@ export const useAuth = () => {
         return { hasAuth: true, method: 'wallet' };
       }
     } else if (storedAuthMethod === 'token') {
-      // Google/OAuth authentication
       authMethod = 'token';
     } else {
-      // Fallback: determine by current wallet state (for backward compatibility)
       authMethod = (isConnected && address) ? 'wallet' : 'token';
-      console.log('No stored auth method found, falling back to current state:', authMethod);
-      
-      // Store the determined method for future use
       setCookie('auth-method', authMethod, 7);
       if (authMethod === 'wallet' && address) {
         setCookie('auth-address', address, 7);
         authenticatedAddressRef.current = address;
       }
     }
-
-    // Optional: Validate token with backend (uncomment if endpoint exists)
-    /*
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        console.log('Token validation failed, clearing tokens');
-        disconnect();
-        return { hasAuth: false, method: null };
-      }
-    } catch (err) {
-      console.error('Token validation error:', err);
-      disconnect();
-      return { hasAuth: false, method: null };
-    }
-    */
 
     setAuthState((prev) => ({
       ...prev,
@@ -153,13 +116,7 @@ export const useAuth = () => {
   }, [isConnected, address, disconnect]);
 
   const authenticateWallet = useCallback(async (targetAddress: string) => {
-    if (authAttemptRef.current) {
-      console.log('⏭️ Authentication already in progress, skipping');
-      return;
-    }
-
-    if (!targetAddress) {
-      console.log('⏭️ No target address provided');
+    if (authAttemptRef.current || !targetAddress) {
       return;
     }
 
@@ -167,9 +124,7 @@ export const useAuth = () => {
     const storedAuthMethod = getCookie('auth-method');
     const storedAddress = getCookie('auth-address');
     
-    // Check if we already have valid wallet authentication for this address
     if (token && storedAuthMethod === 'wallet' && storedAddress === targetAddress && authenticatedAddressRef.current === targetAddress) {
-      console.log('⏭️ Already authenticated for wallet address:', targetAddress);
       setAuthState((prev) => ({
         ...prev,
         isAuthenticated: true,
@@ -181,7 +136,6 @@ export const useAuth = () => {
     }
 
     authAttemptRef.current = true;
-    console.log('🚀 Starting wallet authentication for:', targetAddress);
     setAuthState((prev) => ({
       ...prev,
       isLoading: true,
@@ -190,22 +144,17 @@ export const useAuth = () => {
 
     try {
       const { message } = await requestNonce(targetAddress);
-      console.log('✅ Nonce received, requesting signature');
       const signature = await signMessageAsync({
         account: targetAddress as `0x${string}`,
         message: message as SignableMessage,
       });
-      console.log('✅ Signature obtained, verifying with server');
       const { accessToken, refreshToken } = await verifySignature(targetAddress.toLowerCase(), signature);
-      console.log('✅ Wallet authentication successful');
 
       if (!accessToken) {
         throw new Error('No access token received from server');
       }
 
       setAuthTokens(accessToken, refreshToken);
-      
-      // Store auth method and address
       setCookie('auth-method', 'wallet', 7);
       setCookie('auth-address', targetAddress, 7);
       
@@ -218,7 +167,6 @@ export const useAuth = () => {
       });
       window.dispatchEvent(new Event('auth-change'));
     } catch (err) {
-      console.error('❌ Wallet authentication error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
       setAuthState((prev) => ({
         ...prev,
@@ -239,12 +187,9 @@ export const useAuth = () => {
     let isMounted = true;
 
     const initializeAuth = async () => {
-      console.log('🔄 Initializing auth state');
-      const authResult = await checkExistingAuth();
+      await checkExistingAuth();
       if (!isMounted) return;
-
       hasInitializedRef.current = true;
-      console.log('Initialization complete:', authResult);
     };
 
     initializeAuth();
@@ -255,12 +200,6 @@ export const useAuth = () => {
 
   useEffect(() => {
     if (!hasInitializedRef.current || status === 'connecting' || !isConnected || !address) {
-      console.log('⏭️ Skipping auth: not initialized, connecting, or no address', {
-        hasInitialized: hasInitializedRef.current,
-        status,
-        isConnected,
-        address,
-      });
       return;
     }
 
@@ -268,24 +207,19 @@ export const useAuth = () => {
     const storedAuthMethod = getCookie('auth-method');
     const storedAddress = getCookie('auth-address');
 
-    // If we have a token and stored wallet auth for this address, don't re-authenticate
     if (token && storedAuthMethod === 'wallet' && storedAddress === address && authState.isAuthenticated && authenticatedAddressRef.current === address) {
-      console.log('⏭️ Already authenticated with valid wallet token for address:', address);
       return;
     }
 
-    // If we have token auth (Google), don't auto-authenticate wallet
     if (token && storedAuthMethod === 'token' && authState.isAuthenticated) {
-      console.log('⏭️ Already authenticated with Google, not auto-authenticating wallet');
       return;
     }
 
     const timeoutId = setTimeout(() => {
       if (isConnected && address && status === 'connected' && !authAttemptRef.current) {
-        console.log('🔄 Starting wallet authentication after debounce:', { address });
         authenticateWallet(address);
       }
-    }, 1500); // Increased debounce time to 1.5 seconds
+    }, 1500);
 
     return () => clearTimeout(timeoutId);
   }, [isConnected, address, status, authState.isAuthenticated, authenticateWallet]);
@@ -297,12 +231,7 @@ export const useAuth = () => {
 
     const storedAddress = getCookie('auth-address');
     
-    // Only clear auth if the address actually changed and we have wallet auth
     if (storedAddress && storedAddress !== address && getCookie('auth-method') === 'wallet') {
-      console.log('🔄 Wallet address changed, clearing auth:', {
-        oldAddress: storedAddress,
-        newAddress: address,
-      });
       authenticatedAddressRef.current = null;
       setAuthState((prev) => ({
         ...prev,
@@ -315,7 +244,6 @@ export const useAuth = () => {
 
   useEffect(() => {
     const handleAuthChange = async () => {
-      console.log('Auth change event received');
       await checkExistingAuth();
     };
     window.addEventListener('auth-change', handleAuthChange);
@@ -324,7 +252,6 @@ export const useAuth = () => {
 
   const authenticate = useCallback(async () => {
     if (authAttemptRef.current) {
-      console.log('⏭️ Authentication already in progress, skipping');
       return;
     }
 
@@ -334,7 +261,6 @@ export const useAuth = () => {
       const storedAddress = getCookie('auth-address');
       
       if (token && storedAuthMethod === 'wallet' && storedAddress === address && authenticatedAddressRef.current === address) {
-        console.log('⏭️ Already authenticated, skipping');
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
@@ -355,12 +281,10 @@ export const useAuth = () => {
   }, [isConnected, address, status, authenticateWallet]);
 
   const refreshAuthState = useCallback(async () => {
-    console.log('Force refreshing auth state');
     await checkExistingAuth();
   }, [checkExistingAuth]);
 
   const refreshAuthTokens = useCallback(async (): Promise<AuthTokens | null> => {
-    console.log('Refresh tokens called but not implemented (backend has no refresh endpoint)');
     return null;
   }, []);
 
