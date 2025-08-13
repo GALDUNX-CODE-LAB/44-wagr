@@ -22,6 +22,7 @@ import LoginModal from "./login-modal";
 import { logout } from "../lib/api/auth";
 import { useDisconnect, useAccount, useBalance } from "wagmi";
 import { useAuth } from "../lib/api/useAuth";
+import { AccountSettingsModal } from "./account-settings";
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +33,7 @@ export default function Navbar() {
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [switchMode, setSwitchMode] = useState(false);
+  const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false)
 
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
@@ -81,6 +83,11 @@ export default function Navbar() {
     setSidebarOpen(false);
     setUserDropdownOpen(false);
   };
+  const openAccountSettings = () => {
+    setAccountSettingsModalOpen(true)
+     setSidebarOpen(false);
+    setUserDropdownOpen(false);
+  }
   const openLogin = () => {
     if (isAuthenticated) {
      
@@ -226,7 +233,7 @@ export default function Navbar() {
                     </>
                   ) : (
                     <button
-                      className="flex items-center cursor-pointer justify-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
+                      className="flex items-center  justify-center cursor-pointer bg-[#c8a2ff] gap-2 px-3 py-2 rounded-full border border-white/20 text-black text-sm w-full"
                       onClick={openLogin}
                     >
                       <span>Login</span>
@@ -321,10 +328,10 @@ export default function Navbar() {
                         </div>
                         <button
                           className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition"
-                          onClick={() => {}}
+                          onClick={openAccountSettings}
                         >
                           <Lock className="w-4 h-4" />
-                          Reset Password
+                          Account Settings
                         </button>
                         <button
                           className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition"
@@ -385,6 +392,7 @@ export default function Navbar() {
         onClose={handleLoginModalClose}
         switchMode={switchMode}
       />
+       <AccountSettingsModal open={accountSettingsModalOpen} onClose={() => setAccountSettingsModalOpen(false)} />
     </>
   );
 }
