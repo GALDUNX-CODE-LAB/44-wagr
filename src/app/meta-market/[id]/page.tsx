@@ -1,25 +1,41 @@
 // app/market/[id]/page.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import MarketDetails from "../components/market-details";
-import { fetchMarketById } from "../../../lib/api/markets-api";
+import { fetchMarketById } from "../../../lib/api";
 
 export default function MarketDetailsPage() {
   const params = useParams();
   const marketId = params?.id as string;
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["market", marketId],
-    queryFn: () => fetchMarketById(marketId),
-  }) as any;
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  useEffect(() => {
+    if (!marketId) return;
+
+    setLoading(true);
+    setError(null);
+
+    fetchMarketById(marketId)
+      .then((res) => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("❌ Error fetching market:", err);
+        setError(err.message || "Failed to load market");
+        setLoading(false);
+      });
+  }, [marketId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
   if (!data) return notFound();
 
-  // Debug log to verify the data structure
   console.log("Page received market data:", data);
 
   return <MarketDetails market={data?.market} commentCount={data?.commentCount} />;

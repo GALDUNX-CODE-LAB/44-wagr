@@ -1,121 +1,112 @@
-"use client";
+'use client'
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
-import { handleGoogleRedirect, googleLogin } from "../lib/api/auth";
+import { handleGoogleRedirect, logout } from "../lib/api/auth";
 import { FcGoogle } from "react-icons/fc";
-import { useConnect } from "wagmi";
-import { injected } from "wagmi/connectors";
-import { useAccount } from "wagmi";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useConnect, useAccount, useDisconnect } from "wagmi";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../lib/api/useAuth";
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
+  switchMode?: boolean;
 }
 
-export default function LoginModal({ open, onClose }: LoginModalProps) {
+export default function LoginModal({ open, onClose, switchMode = false }: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  
+
   const { connect, connectors, isPending } = useConnect();
-  const { isConnected } = useAccount();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { isConnected, address, status } = useAccount();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { authenticate, isAuthenticated, isLoading: authLoading, error: authError, refreshAuthState, disconnect: authDisconnect, authMethod } = useAuth();
 
-  // Handle OAuth callback when component mounts
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const code = searchParams.get('code');
-      const error = searchParams.get('error');
-      
-      if (error) {
-        console.error('OAuth error:', error);
-        setError('Google login was cancelled or failed');
-        // Clean up URL
-        router.replace(window.location.pathname);
-        return;
-      }
-      
-      if (code) {
-        setIsGoogleLoading(true);
-        try {
-          const result = await googleLogin(code);
-          
-          // Store the access token
-          if (result.access_token || result.token) {
-            localStorage.setItem("access-token", result.access_token || result.token);
-            
-            // Store additional user info if needed
-            if (result.user) {
-              localStorage.setItem("user", JSON.stringify(result.user));
-            }
-            
-            console.log('Google login successful:', result);
-            
-            // Clean up URL and close modal
-            router.replace(window.location.pathname);
-            onClose();
-          } else {
-            throw new Error('No access token received');
-          }
-        } catch (error) {
-          console.error('Google login failed:', error);
-          setError(error instanceof Error ? error.message : 'Google login failed');
-          // Clean up URL
-          router.replace(window.location.pathname);
-        } finally {
-          setIsGoogleLoading(false);
-        }
-      }
-    };
-
-    if (open) {
-      handleOAuthCallback();
-    }
-  }, [searchParams, router, onClose, open]);
-
-  // Close modal if user is already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("access-token");
-
-    if (token || isConnected) {
+    if (isAuthenticated && !authLoading && !switchMode) {
+     
       onClose();
     }
-  }, [isConnected, onClose]);
+  }, [isAuthenticated, authLoading, onClose, switchMode]);
 
   if (!open) return null;
 
   const handleEmailLogin = () => {
-    console.log("Logging in with email:", email);
-    // Future implementation
+   
+    setError("Email login not implemented yet");
   };
 
   const handleGoogleLogin = async () => {
     try {
       setError("");
       setIsGoogleLoading(true);
+     
+
+      if (switchMode && isAuthenticated) {
+        await logout(wagmiDisconnect);
+        authDisconnect();
+      }
+
       await handleGoogleRedirect();
     } catch (error) {
-      console.error('Failed to initiate Google login:', error);
-      setError('Failed to start Google login');
+    
+      setError(error instanceof Error ? error.message : 'Failed to start Google login');
       setIsGoogleLoading(false);
     }
   };
 
-  const handleMetamaskLogin = () => {
-    const metamaskConnector = connectors.find(
-      (connector) => connector.name.toLowerCase().includes("meta")
-    );
+  const handleMetamaskLogin = async () => {
+    try {
+      setError("");
 
-    if (metamaskConnector) {
-      connect({ connector: metamaskConnector });
-    } else {
-      console.error("MetaMask connector not found");
-      setError("MetaMask not found. Please install MetaMask extension.");
+      if (isAuthenticated && authMethod === 'wallet' && address && isConnected) {
+      
+        if (!switchMode) {
+          onClose();
+        }
+        return;
+      }
+
+      const metamaskConnector = connectors.find(
+        (connector) => connector.name.toLowerCase().includes("meta")
+      );
+
+      if (!metamaskConnector) {
+      
+        setError("MetaMask not found. Please install MetaMask extension.");
+        return;
+      }
+
+      if (switchMode && isAuthenticated) {
+      
+        await logout(wagmiDisconnect);
+        authDisconnect();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (!isConnected) {
+     
+        await connect({ connector: metamaskConnector });
+      }
+
+     
+      await authenticate();
+    } catch (error) {
+     
+      setError(error instanceof Error ? error.message : 'MetaMask connection failed');
+      if (isConnected) {
+        wagmiDisconnect();
+      }
     }
+  };
+
+  const handleLogoutAndClose = async () => {
+    await logout(wagmiDisconnect);
+    authDisconnect();
+    onClose();
   };
 
   return (
@@ -124,76 +115,108 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
         <button 
           onClick={onClose} 
           className="absolute top-4 right-4 text-white hover:text-red-500"
-          disabled={isGoogleLoading}
+          disabled={isGoogleLoading || authLoading}
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Title */}
-        <h2 className="text-xl font-bold text-white mb-6">Login!</h2>
+        <h2 className="text-xl font-bold text-white mb-6">
+          {switchMode ? "Switch Account" : "Login!"}
+        </h2>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 rounded-[10px] bg-red-500/10 border border-red-500/20">
-            <p className="text-red-400 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isGoogleLoading && (
+        {switchMode && isAuthenticated && (
           <div className="mb-4 p-3 rounded-[10px] bg-blue-500/10 border border-blue-500/20">
-            <p className="text-blue-400 text-sm">Processing Google login...</p>
+            <p className="text-blue-400 text-sm">
+              Currently logged in with: {authMethod === 'wallet' ? 'MetaMask' : 'Google'}
+            </p>
           </div>
         )}
 
-        {/* Email Input */}
-        <div className="mb-4">
-          <label htmlFor="email" className="text-sm text-white mb-2 block">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@example.com"
-            className="w-full px-4 py-2 rounded-[15px] border border-white/20 bg-[#212121] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#C8A2FF]"
-            disabled={isGoogleLoading}
-          />
-        </div>
+        {(error || authError) && (
+          <div className="mb-4 p-3 rounded-[10px] bg-red-500/10 border border-red-500/20">
+            <p className="text-red-400 text-sm">{error || authError}</p>
+          </div>
+        )}
 
-        {/* Login Button */}
-        <button
-          onClick={handleEmailLogin}
-          disabled={isGoogleLoading}
-          className="w-full bg-[#C8A2FF] hover:bg-[#b389ff] text-white font-medium py-2 rounded-[15px] transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Login
-        </button>
+        {(isGoogleLoading || authLoading) && (
+          <div className="mb-4 p-3 rounded-[10px] bg-blue-500/10 border border-blue-500/20">
+            <p className="text-blue-400 text-sm">
+              {isGoogleLoading ? 'Redirecting to Google...' : 'Processing login...'}
+            </p>
+          </div>
+        )}
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-white/50 text-sm">Or</span>
-          <div className="flex-1 h-px bg-white/10" />
-        </div>
+        {!switchMode && (
+          <>
+            <div className="mb-4">
+              <label htmlFor="email" className="text-sm text-white mb-2 block">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@example.com"
+                className="w-full px-4 py-2 rounded-[15px] border border-white/20 bg-[#212121] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#C8A2FF]"
+                disabled={isGoogleLoading || authLoading}
+              />
+            </div>
 
-        {/* Google Login */}
+            <button
+              onClick={handleEmailLogin}
+              disabled={isGoogleLoading || authLoading}
+              className="w-full bg-[#C8A2FF] hover:bg-[#b389ff] cursor-pointer text-white font-medium py-2 rounded-[15px] transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Login
+            </button>
+
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-white/50 text-sm">Or</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+          </>
+        )}
+
         <button
           onClick={handleGoogleLogin}
-          disabled={isGoogleLoading}
-          className="w-full flex items-center justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isGoogleLoading || authLoading}
+          className={`w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+            switchMode && authMethod !== 'wallet' ? 'opacity-50' : ''
+          }`}
         >
           <FcGoogle />
-          {isGoogleLoading ? 'Connecting to Google...' : 'Login with Google'}
+          {isGoogleLoading ? 'Redirecting to Google...' : 
+           switchMode ? 'Switch to Google' : 'Login with Google'}
         </button>
 
         <button
           onClick={handleMetamaskLogin}
-          disabled={isGoogleLoading || isPending}
-          className="w-full flex items-center justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isGoogleLoading || authLoading || isPending}
+          className={`w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+            switchMode && authMethod === 'wallet' ? 'opacity-50' : ''
+          }`}
         >
           <Image src="/assets/metamask.svg" alt="MetaMask" width={16} height={16} />
-          {isPending ? 'Connecting...' : 'Login with MetaMask'}
+          {isPending || authLoading ? 'Connecting...' : 
+           switchMode ? 'Switch to MetaMask' : 'Login with MetaMask'}
         </button>
+
+        {switchMode && (
+          <>
+            <div className="flex items-center gap-4 my-4">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-white/50 text-sm">Or</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+            
+            <button
+              onClick={handleLogoutAndClose}
+              className="w-full flex cursor-pointer items-center justify-center gap-2 px-3 py-2 rounded-[15px] border border-red-400/30 text-red-400 bg-red-400/10 hover:bg-red-400/20 transition"
+            >
+              Logout Completely
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

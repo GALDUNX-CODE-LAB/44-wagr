@@ -1,4 +1,4 @@
-import { CrashBetPayload } from "../../interfaces/interface";
+import { Market, CrashBetPayload } from "../../interfaces/interface";
 import apiHandler from "../api-handler";
 
 export const fetchLiveWins = async () => {
@@ -32,10 +32,9 @@ export const placeCrashBet = async (payload: CrashBetPayload) => {
 };
 
 export const addMetaMarketComment = async (marketId: string, comment: string) => {
-  const response = await apiHandler(`/meta-market/${marketId}/comment`, { 
-    method: "POST", 
-    data: { comment } 
-    
+  const response = await apiHandler(`/meta-market/${marketId}/comment`, {
+    method: "POST",
+    data: { comment },
   });
   return response;
 };
@@ -48,17 +47,15 @@ export const fetchComments = async (marketId: string, page = 1, limit = 10) => {
   return response;
 };
 
-
-
 export const claimDailyStreak = async () => {
-  const response = await apiHandler('/streak/claim', {
+  const response = await apiHandler("/streak/claim", {
     method: "POST",
   });
   return response;
 };
 
 export const fetchUserPoints = async () => {
-  const response = await apiHandler('/user/points', {
+  const response = await apiHandler("/user/points", {
     method: "GET",
   });
   return response;
@@ -106,20 +103,19 @@ export const fetchMetaMarketGameHistory = async (page = 1) => {
   return response;
 };
 
-
 export const likeComment = async (commentId: string) => {
   const response = await apiHandler(`/meta-market/comment/${commentId}/like`, {
     method: "POST",
-  })
-  return response
-}
+  });
+  return response;
+};
 
 export const fetchCommentLikes = async (commentId: string) => {
   const response = await apiHandler(`/meta-market/comment/${commentId}/likes`, {
     method: "GET",
-  })
-  return response
-} 
+  });
+  return response;
+};
 
 export const fetchReferralStats = async () => {
   const response = await apiHandler("/referral/stats", {
@@ -135,3 +131,67 @@ export const fetchUserTransactions = async () => {
   return response;
 };
 
+export const placeCoinflipBet = async ({ betAmount, choice }: { betAmount: number; choice: "heads" | "tails" }) => {
+  const normalizedChoice = choice.toLowerCase();
+
+  const response = await apiHandler("/coinflip/bet", {
+    method: "POST",
+    data: { betAmount, choice: normalizedChoice },
+  });
+
+  return response;
+};
+
+export const placeDiceBet = async ({
+  betAmount,
+  target,
+  betType,
+}: {
+  betAmount: number;
+  target: number;
+  betType: "over" | "under";
+}) => {
+  const response = await apiHandler("/dice/bet", {
+    method: "POST",
+    data: { betAmount, target, betType },
+  });
+
+  return response;
+};
+
+// ✅ Fetch all markets
+export const fetchMarkets = async () => {
+  const data = await apiHandler<any>(process.env.NEXT_PUBLIC_META_MARKET_ENDPOINT || "", {
+    method: "GET",
+  });
+
+  // Normalize: if API returns array, wrap in { markets: [] }
+  return Array.isArray(data) ? { success: true, markets: data } : data;
+};
+
+// ✅ Fetch single market by ID
+export const fetchMarketById = async (id: string): Promise<Market> => {
+  const data = await apiHandler<{ market: Market }>(`/meta-market/${id}`, {
+    method: "GET",
+  });
+
+  if (!data.market) {
+    throw new Error("Market data not found in response");
+  }
+  return data.market;
+};
+
+// ✅ Place a market bet
+export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
+  return await apiHandler(`/meta-market/${marketId}/bet`, {
+    method: "POST",
+    body: JSON.stringify({ side, stake }),
+  });
+};
+
+export const getUserWallets = async () => {
+  const response = await apiHandler("/user/my-wallets", {
+    method: "GET",
+  });
+  return response?.wallets;
+};

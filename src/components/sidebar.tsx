@@ -92,10 +92,10 @@ export default function Sidebar() {
     <>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block fixed h-full w-[245px] border-r border-white/10 bg-[#212121]">
-        <div className="flex justify-center  py-3 mt-4 border-b border-white/20">
+        <div className="flex justify-center  py-2 mt-4 border-b border-white/20">
           <Image src={"/assets/44.png"} alt="44-wager" width={150} height={100} />
         </div>
-        <div className="flex flex-col px-6 gap-1 pt-20">
+        <div className="flex flex-col  px-6 gap-1 pt-20">
           {navItems.map((item) =>
             item.hasDropdown ? (
               <div key={item.key}>
@@ -108,7 +108,7 @@ export default function Sidebar() {
                   onClick={() => setGamesOpen((prev) => !prev)}
                 />
                 {gamesOpen && (
-                  <div className="pl-8 flex flex-col gap-1 mt-2">
+                  <div className="pl-8 flex  flex-col gap-1 mt-2">
                     {gamesList.map((game) => (
                       <button
                         key={game.name}

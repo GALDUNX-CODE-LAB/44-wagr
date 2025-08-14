@@ -3,9 +3,10 @@
 import { Bitcoin } from "lucide-react";
 import DiceRoller from "../dice-roller";
 import { useState, useRef, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import LiveWinsSection from "../../../../components/live-wins";
-import { useDiceBet } from "../../../../lib/hooks/useDice";
 import LiveDiceWins from "../../../../components/live-wins-dice";
+import { placeDiceBet } from "../../../../lib/api";
 
 export default function DiceGame() {
   const [activeOdds, setActiveOdds] = useState(60.57);
@@ -13,15 +14,16 @@ export default function DiceGame() {
   const [target, setTarget] = useState(50);
   const [betType, setBetType] = useState<"over" | "under">("over");
   const [lastResult, setLastResult] = useState<any>(null);
+  const [isBetting, setIsBetting] = useState(false);
   const oddsOptions = [60.57, 30.57, 70.57, 60.7];
   const diceRef = useRef<any>(null);
 
-  const { mutate: placeDiceBet, isPending: isBetting } = useDiceBet();
+  const queryClient = useQueryClient();
 
   const winnableAmount = betAmount * activeOdds;
 
-  const handlePlaceBet = () => {
-    if (betAmount <= 0) {
+  const handlePlaceBet = async () => {
+    if (betAmount < 0) {
       alert("Please enter a valid bet amount");
       return;
     }
@@ -31,26 +33,31 @@ export default function DiceGame() {
       diceRef.current.rollDice();
     }
 
-    placeDiceBet(
-      { betAmount, target, betType },
-      {
-        onSuccess: (data) => {
-          console.log("🎲 Full API Response:", data); // Log full API response
-          setLastResult(data);
-          if (diceRef.current) {
-            // Animate to the actual roll value (0-99) and pass win status
-            diceRef.current.rollToValue(data.roll, data.isWin);
-          }
-        },
-        onError: (error) => {
-          console.error("🎲 Bet Error:", error); // Log error
-          alert(`Bet failed: ${error.message}`);
-          if (diceRef.current) {
-            diceRef.current.resetDice();
-          }
-        },
+    try {
+      const response = await placeDiceBet({ betAmount, target, betType });
+      console.log("🎲 Full API Response:", response);
+
+      // Extract inner data object
+      const data = response.data;
+
+      setLastResult(data);
+
+      if (diceRef.current) {
+        diceRef.current.rollToValue(data.roll, data.isWin);
       }
-    );
+      if (diceRef.current) {
+        diceRef.current.rollToValue(data.roll, data.isWin);
+      }
+    } catch (error: any) {
+      console.error("🎲 Bet Error:", error);
+      alert(`Bet failed: ${error.message || error}`);
+
+      if (diceRef.current) {
+        diceRef.current.resetDice();
+      }
+    }
+
+    queryClient.invalidateQueries();
   };
 
   // Update UI when bet type changes

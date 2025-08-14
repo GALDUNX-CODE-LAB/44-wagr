@@ -3,8 +3,8 @@
 import { Bitcoin, Star } from "lucide-react";
 import { useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
-import { useMutation } from "@tanstack/react-query";
-import { placeCoinflipBet } from "../../../../lib/api/coin-api";
+import { useQueryClient } from "@tanstack/react-query";
+import { placeCoinflipBet } from "../../../../lib/api";
 import LiveCoinWins from "../../../../components/live-wins-coin";
 
 export default function CoinTossGame() {
@@ -20,14 +20,37 @@ export default function CoinTossGame() {
   const oddsOptions = [2, 4, 6, 8];
   const winnableAmount = betAmount * activeOdds;
 
-  const mutation = useMutation({
-    mutationFn: placeCoinflipBet,
-    onMutate: () => {
-      setIsFlipping(true);
-      setShowResult(false);
-    },
-    onSuccess: (response) => {
-      console.log("🔁 Full Server Response:", response); // 🔍 Log full server response
+  const queryClient = useQueryClient();
+
+  const handleRandomPick = () => {
+    const sides = ["Heads", "Tails"];
+    const randomSide = sides[Math.floor(Math.random() * sides.length)];
+    setSelectedSide(randomSide as "heads" | "tails");
+  };
+
+  const handlePlaceBet = async () => {
+    if (!selectedSide) {
+      setResultText("Please select a side before betting!");
+      setShowResult(true);
+      return;
+    }
+
+    if (betAmount < 0) {
+      setResultText("Bet amount must be greater than 0");
+      setShowResult(true);
+      return;
+    }
+
+    setIsFlipping(true);
+    setShowResult(false);
+
+    try {
+      const response = await placeCoinflipBet({
+        betAmount,
+        choice: selectedSide,
+      });
+
+      console.log("🔁 Full Server Response:", response);
 
       const data = response.data || response;
 
@@ -54,39 +77,13 @@ export default function CoinTossGame() {
         );
         setShowResult(true);
       }, 2000);
-    },
 
-    onError: (error: any) => {
+      queryClient.invalidateQueries();
+    } catch (error: any) {
       setIsFlipping(false);
-      setResultText(error.response?.data?.message || error.message || "Something went wrong");
+      setResultText(error.message || "Something went wrong");
       setShowResult(true);
-    },
-  });
-
-  const handleRandomPick = () => {
-    const sides = ["Heads", "Tails"];
-    const randomSide = sides[Math.floor(Math.random() * sides.length)];
-    setSelectedSide(randomSide as "heads" | "tails");
-  };
-
-  const handlePlaceBet = () => {
-    if (!selectedSide) {
-      setResultText("Please select a side before betting!");
-      setShowResult(true);
-      return;
     }
-
-    if (betAmount <= 0) {
-      setResultText("Bet amount must be greater than 0");
-      setShowResult(true);
-      return;
-    }
-
-    mutation.mutate({
-      betAmount: betAmount,
-      choice: selectedSide,
-      // odds: activeOdds
-    });
   };
 
   return (

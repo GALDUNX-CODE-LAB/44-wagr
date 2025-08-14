@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { googleLogin } from "../../lib/api/auth";
+import { googleLogin, setAuthTokens } from "../../lib/api/auth";
 
 export default function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -14,7 +14,6 @@ export default function AuthCallback() {
     const handleCallback = async () => {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
-      const state = searchParams.get('state');
 
       // Handle OAuth errors
       if (error) {
@@ -40,43 +39,40 @@ export default function AuthCallback() {
       }
 
       try {
-        // Exchange code for tokens
+        console.log('🔄 Processing Google login with code:', code);
+        
+        // Exchange code for tokens using the existing googleLogin function
         const result = await googleLogin(code);
         
-        console.log('🎯 Processing login result:', result);
+        console.log('🎯 Google login result:', result);
         
-        // Check for various token field names
-        const token = result.access_token || 
-                     result.token || 
-                     result.accessToken || 
-                     result.jwt || 
-                     result.authToken;
+        // The googleLogin function already calls setAuthTokens internally,
+        // so we just need to verify the tokens were set
+        const storedToken = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('access-token='))
+          ?.split('=')[1];
         
-        if (token) {
-          // Store tokens
-          localStorage.setItem("access-token", token);
-          console.log('💾 Token stored successfully');
-          
-          // Store user info if available
-          if (result.user || result.profile || result.userInfo) {
-            const userInfo = result.user || result.profile || result.userInfo;
-            localStorage.setItem("user", JSON.stringify(userInfo));
-            console.log('👤 User info stored:', userInfo);
-          }
+        if (storedToken) {
+          console.log('✅ Tokens stored successfully in cookies');
           
           setStatus('success');
           setMessage('Login successful! Redirecting...');
           
-          // Redirect to dashboard or home
+          // Trigger auth state update
+          window.dispatchEvent(new Event('auth-change'));
+          
+          // Redirect to home page
           setTimeout(() => {
-            router.push('/'); // Redirect to home page
+            router.push('/');
           }, 2000);
         } else {
-          console.error('❌ No token found in result:', result);
-          throw new Error(`No access token received from server. Response: ${JSON.stringify(result)}`);
+          console.error('❌ No token found in cookies after login');
+          throw new Error('Authentication failed - no tokens stored');
         }
+        
       } catch (error) {
-        console.error('Login failed:', error);
+        console.error('❌ Google login failed:', error);
         setStatus('error');
         setMessage(error instanceof Error ? error.message : 'Login failed');
         
@@ -114,7 +110,7 @@ export default function AuthCallback() {
             <>
               <div className="text-red-500 text-5xl mb-4">✗</div>
               <h2 className="text-xl font-bold text-white mb-2">Login Failed</h2>
-              <p className="text-red-400">{message}</p>
+              <p className="text-red-400 text-sm">{message}</p>
               <p className="text-white/50 text-sm mt-2">Redirecting to home page...</p>
             </>
           )}

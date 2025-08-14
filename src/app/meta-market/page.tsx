@@ -1,27 +1,40 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle, Search, TrendingUp, TrendingDown } from "lucide-react";
-import { useMarkets } from "../../lib/hooks/useMarkets";
+import { fetchMarkets } from "../../lib/api";
 
 const categories = ["All", "Politics", "Religion", "Sports"];
 
 export default function MarketPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const router = useRouter();
-  const { data: marketsResponse, isLoading, error } = useMarkets();
+  const [markets, setMarkets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Debug logs
-  console.log('Markets response:', marketsResponse);
-  console.log('Markets data:', marketsResponse?.markets);
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
 
-  if (isLoading) return <MarketSkeleton />;
+    fetchMarkets()
+      .then((res) => {
+        // Safely extract markets array
+        const marketList = Array.isArray(res)
+          ? res
+          : res?.markets || [];
+        setMarkets(marketList);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("❌ Error fetching markets:", err);
+        setError(err.message || "Failed to load markets");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <MarketSkeleton />;
   if (error) return <ErrorDisplay error={error} />;
-
-  // Safely get markets array
-const markets = Array.isArray(marketsResponse) 
-  ? marketsResponse 
-  : marketsResponse?.markets || [];
 
   return (
     <div className="p-4 sm:p-6 text-white min-h-screen">
@@ -42,7 +55,7 @@ const markets = Array.isArray(marketsResponse)
 
       <div className="flex flex-wrap gap-4 sm:gap-6 mb-6">
         {categories.map((cat) => (
-          <CategoryButton 
+          <CategoryButton
             key={cat}
             category={cat}
             active={activeCategory === cat}
@@ -70,7 +83,7 @@ function MarketSkeleton() {
 function ErrorDisplay({ error }) {
   return (
     <div className="text-center py-12">
-      <div className="text-red-500 mb-4">Error: {error.message}</div>
+      <div className="text-red-500 mb-4">Error: {error}</div>
       <button
         onClick={() => window.location.reload()}
         className="px-4 py-2 bg-red-500 rounded"
@@ -119,7 +132,7 @@ function MarketCard({ market, router }) {
     >
       <div className="w-10 h-10 bg-white rounded-[10px] mt-2" />
       <h2 className="text-base mt-2 font-medium">{market.question}</h2>
-      
+
       <div className="flex gap-4 mt-2">
         <OutcomeButton outcome="YES" market={market} />
         <OutcomeButton outcome="NO" market={market} />
@@ -133,9 +146,13 @@ function MarketCard({ market, router }) {
 function OutcomeButton({ outcome, market }) {
   const isResolved = market.isResolved && market.result === outcome;
   return (
-    <div className={`flex-1 py-2 rounded-[10px] text-sm font-medium text-center ${
-      isResolved ? "bg-[#C8A2FF] text-black" : "bg-[#1c1c1c] text-white"
-    }`}>
+    <div
+      className={`flex-1 py-2 rounded-[10px] text-sm font-medium text-center ${
+        isResolved
+          ? "bg-[#C8A2FF] text-black"
+          : "bg-[#1c1c1c] text-white"
+      }`}
+    >
       {outcome}
     </div>
   );
@@ -159,8 +176,16 @@ function MarketStats({ market }) {
 function TrendIndicator({ qYes, qNo }) {
   const isUp = qYes > qNo;
   return (
-    <div className={`flex items-center gap-1 ${isUp ? 'text-green-500' : 'text-red-500'}`}>
-      {isUp ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+    <div
+      className={`flex items-center gap-1 ${
+        isUp ? "text-green-500" : "text-red-500"
+      }`}
+    >
+      {isUp ? (
+        <TrendingUp className="w-4 h-4" />
+      ) : (
+        <TrendingDown className="w-4 h-4" />
+      )}
       <span>{Math.abs(qYes - qNo).toFixed(2)}</span>
     </div>
   );

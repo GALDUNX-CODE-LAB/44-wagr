@@ -79,7 +79,7 @@ export default function LiveWinsSection() {
       </div>
 
       <div className="flex gap-2 mb-6">
-        {gameCategories.map((category) => (
+        {/* {gameCategories.map((category) => (
           <button
             key={category}
             onClick={() => {
@@ -93,7 +93,7 @@ export default function LiveWinsSection() {
           >
             {category}
           </button>
-        ))}
+        ))} */}
       </div>
 
       <div className="w-full rounded-lg overflow-x-auto  h-[30vh] overflow-auto">

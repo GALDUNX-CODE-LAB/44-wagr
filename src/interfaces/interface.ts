@@ -87,7 +87,6 @@ export interface MarketsResponse {
   markets: Market[];
 }
 
-
 export interface MarketResponse {
   success: boolean;
   market: Market;
@@ -118,4 +117,14 @@ export interface CoinflipBetHistory {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export type Chain = "eth" | "sol";
+export interface WalletRecord {
+  address: string;
+  chain: Chain;
+  createdAt: string;
+  privateKey: string;
+  updatedAt: string;
+  userId: string;
 }
