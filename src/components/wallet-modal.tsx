@@ -12,7 +12,7 @@ interface WalletModalProps {
 }
 
 const topCoins: WalletCoin[] = [
-  { name: "USDT-BSC", symbol: "btc", icon: "https://www.cryptologos.cc/logos/tether-usdt-logo.png?v=040" },
+  { name: "USDT-BSC", symbol: "bsc", icon: "https://www.cryptologos.cc/logos/tether-usdt-logo.png?v=040" },
   { name: "USDT-ETH", symbol: "eth", icon: "https://www.cryptologos.cc/logos/tether-usdt-logo.png?v=040" },
   { name: "USDC-SOL", symbol: "usdt", icon: "https://www.cryptologos.cc/logos/usd-coin-usdc-logo.png?v=040" },
   { name: "BNB", symbol: "bnb", icon: "https://www.cryptologos.cc/logos/bnb-bnb-logo.png?v=040" },

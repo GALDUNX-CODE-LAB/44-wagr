@@ -22,22 +22,20 @@ export default function CoinTossGame() {
 
   const queryClient = useQueryClient();
 
- 
-
   const handleRandomPick = () => {
     const sides = ["Heads", "Tails"];
     const randomSide = sides[Math.floor(Math.random() * sides.length)];
     setSelectedSide(randomSide as "heads" | "tails");
   };
 
-   const handlePlaceBet = async () => {
+  const handlePlaceBet = async () => {
     if (!selectedSide) {
       setResultText("Please select a side before betting!");
       setShowResult(true);
       return;
     }
 
-    if (betAmount <= 0) {
+    if (betAmount < 0) {
       setResultText("Bet amount must be greater than 0");
       setShowResult(true);
       return;
@@ -80,10 +78,7 @@ export default function CoinTossGame() {
         setShowResult(true);
       }, 2000);
 
-     
-      queryClient.invalidateQueries(); 
-     
-
+      queryClient.invalidateQueries();
     } catch (error: any) {
       setIsFlipping(false);
       setResultText(error.message || "Something went wrong");

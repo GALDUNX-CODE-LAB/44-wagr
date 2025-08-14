@@ -193,5 +193,5 @@ export const getUserWallets = async () => {
   const response = await apiHandler("/user/my-wallets", {
     method: "GET",
   });
-  return response;
+  return response?.wallets;
 };

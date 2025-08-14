@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useRouter } from "next/navigation";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
@@ -74,7 +74,7 @@ export default function HomePage() {
         <Image src={"/assets/banners/banner-mb.jpg"} fill className="object-cover lg:hidden" alt="banner" />
       </div>
 
-      <div className="wrap w-full overflow-hidden mb-10 bg-[#212121] pb-8 lg:ml-auto">
+      <div className="wrap w-full hidden lg:block overflow-hidden mb-10 bg-[#212121] pb-8 lg:ml-auto">
         <ContinuePlaying />
       </div>
 
@@ -148,12 +148,7 @@ export default function HomePage() {
                   <ArrowUpRight className="w-3 h-3 text-black" />
                 </div>
                 <div className="relative h-full">
-                  <Image
-                    src={game.image}
-                    alt={game.name}
-                    fill
-                    className="object-cover rounded-lg"
-                  />
+                  <Image src={game.image} alt={game.name} fill className="object-cover rounded-lg" />
                 </div>
               </div>
               <h3 className="font-medium mt-3 text-left text-sm text-white/70">{game.name}</h3>

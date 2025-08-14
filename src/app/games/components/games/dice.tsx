@@ -18,49 +18,47 @@ export default function DiceGame() {
   const oddsOptions = [60.57, 30.57, 70.57, 60.7];
   const diceRef = useRef<any>(null);
 
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   const winnableAmount = betAmount * activeOdds;
 
- const handlePlaceBet = async () => {
-  if (betAmount <= 0) {
-    alert("Please enter a valid bet amount");
-    return;
-  }
-
-  // Start the rolling animation
-  if (diceRef.current) {
-    diceRef.current.rollDice();
-  }
-
-  try {
-    
-    const response = await placeDiceBet({ betAmount, target, betType });
-console.log("🎲 Full API Response:", response);
-
-// Extract inner data object
-const data = response.data;
-
-setLastResult(data);
-
-if (diceRef.current) {
-  diceRef.current.rollToValue(data.roll, data.isWin);
-}
-    if (diceRef.current) {
-      diceRef.current.rollToValue(data.roll, data.isWin);
+  const handlePlaceBet = async () => {
+    if (betAmount < 0) {
+      alert("Please enter a valid bet amount");
+      return;
     }
-  } catch (error: any) {
-    console.error("🎲 Bet Error:", error);
-    alert(`Bet failed: ${error.message || error}`);
 
+    // Start the rolling animation
     if (diceRef.current) {
-      diceRef.current.resetDice();
+      diceRef.current.rollDice();
     }
-  }
 
-  queryClient.invalidateQueries(); 
-};
+    try {
+      const response = await placeDiceBet({ betAmount, target, betType });
+      console.log("🎲 Full API Response:", response);
 
+      // Extract inner data object
+      const data = response.data;
+
+      setLastResult(data);
+
+      if (diceRef.current) {
+        diceRef.current.rollToValue(data.roll, data.isWin);
+      }
+      if (diceRef.current) {
+        diceRef.current.rollToValue(data.roll, data.isWin);
+      }
+    } catch (error: any) {
+      console.error("🎲 Bet Error:", error);
+      alert(`Bet failed: ${error.message || error}`);
+
+      if (diceRef.current) {
+        diceRef.current.resetDice();
+      }
+    }
+
+    queryClient.invalidateQueries();
+  };
 
   // Update UI when bet type changes
   useEffect(() => {

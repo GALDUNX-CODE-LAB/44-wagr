@@ -5,6 +5,7 @@ import QRCode from "react-qr-code";
 import { ChevronDown, X, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserWallets } from "../lib/api";
+import { WalletRecord } from "../interfaces/interface";
 
 interface DepositModalProps {
   coin: {
@@ -20,6 +21,8 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
   const [address, setAddress] = useState("");
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [evmWallet, setEvmWallet] = useState<WalletRecord>();
+  const [solWallet, setSolWallet] = useState<WalletRecord>();
 
   useEffect(() => {
     if (coin) {
@@ -45,6 +48,16 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
 
   console.log(wallets, "User wallets");
 
+  useEffect(() => {
+    if (wallets && wallets.length > 0) {
+      const evm = wallets.find((w: WalletRecord) => w.chain === "eth") || null;
+      const sol = wallets.find((w: WalletRecord) => w.chain === "sol") || null;
+
+      setEvmWallet(evm);
+      setSolWallet(sol);
+    }
+  }, [wallets]);
+
   if (!coin) return null;
 
   return (
@@ -67,24 +80,6 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
               Back
             </button>
             <span className="text-white">/ Deposit {coin.name}</span>
-          </div>
-        </div>
-
-        {/* Wallet Selector */}
-        <div className="mb-6 relative">
-          <div className="relative">
-            <select
-              id="wallet-select"
-              value={wallet}
-              onChange={handleWalletChange}
-              className="w-full h-[40px] bg-[#212121] border border-white/10 text-white rounded-[10px] px-4 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-              disabled={isLoading}
-            >
-              <option value="main">Select Network</option>
-              <option value="trading">Trading Wallet</option>
-              <option value="savings">Savings Wallet</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
           </div>
         </div>
 
@@ -119,7 +114,9 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
               {isLoading ? (
                 <div className="h-4 w-full bg-gray-700 rounded animate-pulse" />
               ) : (
-                <span className="truncate font-mono text-purple-300">{address}</span>
+                <span className="truncate font-mono text-purple-300">
+                  {coin.symbol === "sol" ? solWallet?.address : evmWallet?.address}
+                </span>
               )}
             </div>
             <button
