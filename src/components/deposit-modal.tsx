@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import QRCode from "react-qr-code";
 import { ChevronDown, X, Copy, Check } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getUserWallets } from "../lib/api";
 
 interface DepositModalProps {
   coin: {
@@ -35,6 +37,13 @@ export default function DepositModal({ coin, onClose }: DepositModalProps) {
     setWallet(e.target.value);
     setIsLoading(true);
   };
+
+  const { data: wallets } = useQuery({
+    queryKey: ["user key"],
+    queryFn: getUserWallets,
+  });
+
+  console.log(wallets, "User wallets");
 
   if (!coin) return null;
 
