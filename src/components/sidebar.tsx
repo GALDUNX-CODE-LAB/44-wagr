@@ -8,6 +8,7 @@ import { RxDashboard } from "react-icons/rx";
 import { RiNftLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
 import Image from "next/image";
+import { FaEnvelope, FaSignOutAlt } from "react-icons/fa";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -34,22 +35,22 @@ export default function Sidebar() {
   const gamesList = [
     {
       name: "Crash",
-      icon: <Rocket className="w-4 h-4 rotate-[320deg]" />,
+      icon: <Rocket className="w-3 h-3 rotate-[320deg]" />,
       href: "/games/crash",
     },
     {
       name: "Dice",
-      icon: <Dices className="w-4 h-4" />,
+      icon: <Dices className="w-3 h-3" />,
       href: "/games/dice",
     },
     {
       name: "Coin",
-      icon: <ArrowRightLeft className="w-4 h-4" />,
+      icon: <ArrowRightLeft className="w-3 h-3" />,
       href: "/games/coin",
     },
     {
       name: "Wheel",
-      icon: <RefreshCcw className="w-4 h-4" />,
+      icon: <RefreshCcw className="w-3 h-3" />,
       href: "/games/wheel",
     },
   ];
@@ -91,49 +92,63 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block fixed h-full w-[245px] border-r border-white/10 bg-[#212121]">
-        <div className="flex justify-center  py-2 mt-4 border-b border-white/20">
-          <Image src={"/assets/44.png"} alt="44-wager" width={150} height={100} />
-        </div>
-        <div className="flex flex-col  px-6 gap-1 pt-20">
-          {navItems.map((item) =>
-            item.hasDropdown ? (
-              <div key={item.key}>
+      <div className="hidden lg:flex flex-col justify-between fixed h-[100vh]    w-[220px] text-xs border-r border-white/10 bg-[#212121]">
+        <div className="wrap">
+          <div className="flex justify-center items-center h-[50px]   mt-4 border-b border-white/20">
+            <div className="wrap">
+              <Image src={"/assets/44.png"} alt="44-wager" width={100} height={50} />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 m-2 rounded-lg p-2 bg-black/20">
+            {navItems.map((item) =>
+              item.hasDropdown ? (
+                <div key={item.key}>
+                  <SidebarItem
+                    label={item.key}
+                    icon={item.icon}
+                    active={activeItem === item.key}
+                    hasDropdown={true}
+                    isOpen={gamesOpen}
+                    onClick={() => setGamesOpen((prev) => !prev)}
+                  />
+                  {gamesOpen && (
+                    <div className="pl-8 flex  flex-col gap-1 mt-2">
+                      {gamesList.map((game) => (
+                        <button
+                          key={game.name}
+                          onClick={() => handleGameSelect(game.href)}
+                          className={`flex items-center gap-3 text-xs rounded px-3 py-2 transition-all ${
+                            pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {game.icon}
+                          <small>{game.name}</small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <SidebarItem
+                  key={item.key}
                   label={item.key}
                   icon={item.icon}
                   active={activeItem === item.key}
-                  hasDropdown={true}
-                  isOpen={gamesOpen}
-                  onClick={() => setGamesOpen((prev) => !prev)}
+                  onClick={() => router.push(item.href)}
                 />
-                {gamesOpen && (
-                  <div className="pl-8 flex  flex-col gap-1 mt-2">
-                    {gamesList.map((game) => (
-                      <button
-                        key={game.name}
-                        onClick={() => handleGameSelect(game.href)}
-                        className={`flex items-center gap-3 text-sm rounded px-3 py-2 transition-all ${
-                          pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white/70 hover:bg-white/10"
-                        }`}
-                      >
-                        {game.icon}
-                        {game.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <SidebarItem
-                key={item.key}
-                label={item.key}
-                icon={item.icon}
-                active={activeItem === item.key}
-                onClick={() => router.push(item.href)}
-              />
-            )
-          )}
+              )
+            )}
+          </div>
+        </div>
+        <div className="wrap relative p-2 flex flex-col justify-end">
+          <ul className="bg-black/20 rounded-lg space-y-2 p-3 mb-3">
+            <li className=" p-2 rounded-lg text-white/70 text-sm flex items-center gap-3 cursor-pointer">
+              <FaEnvelope /> Contact Support
+            </li>
+            <li className="text-red-400 p-2 rounded-lg  text-sm flex items-center gap-3 cursor-pointer">
+              <FaSignOutAlt /> Log out
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -216,13 +231,13 @@ function SidebarItem({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center justify-between gap-3 px-4 py-2 rounded-lg transition-all ${
+      className={`flex items-center justify-between my-2 w-full gap-3 px-4 py-2 rounded-lg transition-all ${
         active ? "w-[175px] h-[36px] bg-[#C8A2FF] !text-black" : "text-white/70 hover:bg-white/10"
       }`}
     >
       <div className="flex items-center gap-3">
         {icon}
-        <span className="text-sm font-medium">{label}</span>
+        <span className="text-xs font-medium">{label}</span>
       </div>
       {hasDropdown && (
         <div className="flex items-center">

@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  Search,
-  Flag,
-  Bell,
-  X,
-  Wallet,
-  Lock,
-  CreditCard,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Search, Flag, Bell, X, Wallet, Lock, CreditCard, Settings, LogOut } from "lucide-react";
 import { RiMenu4Line } from "react-icons/ri";
 import Image from "next/image";
 import WalletModal from "./wallet-modal";
@@ -33,7 +23,7 @@ export default function Navbar() {
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [switchMode, setSwitchMode] = useState(false);
-  const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false)
+  const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false);
 
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
@@ -84,13 +74,12 @@ export default function Navbar() {
     setUserDropdownOpen(false);
   };
   const openAccountSettings = () => {
-    setAccountSettingsModalOpen(true)
-     setSidebarOpen(false);
+    setAccountSettingsModalOpen(true);
+    setSidebarOpen(false);
     setUserDropdownOpen(false);
-  }
+  };
   const openLogin = () => {
     if (isAuthenticated) {
-     
       return;
     }
     setSwitchMode(false);
@@ -112,28 +101,18 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full sm:border-b border-white/15 bg-transparent sm:bg-[#212121] relative z-20 transition-colors duration-300">
+      <nav className="w-[calc(100vw-220px)] h-[65px] fixed sm:border-b border-white/15  sm:bg-[#212121] z-20 transition-colors duration-300 right-0">
         <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-13 py-4 sm:flex sm:justify-end sm:pl-[35%]">
           <div className="flex items-center justify-between sm:hidden w-full">
             <div className="flex items-center gap-2">
-              <Image
-                src="/assets/44.png"
-                alt="Logo"
-                width={60}
-                height={28}
-                className="rounded"
-              />
+              <Image src="/assets/44.png" alt="Logo" width={60} height={28} className="rounded" />
             </div>
             <button
               onClick={() => setSidebarOpen((v) => !v)}
               className="w-10 h-10 rounded-md cursor-pointer text-white hover:text-[#C8A2FF] transition"
               aria-label="Toggle menu"
             >
-              {sidebarOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <RiMenu4Line className="w-6 h-6" />
-              )}
+              {sidebarOpen ? <X className="w-6 h-6" /> : <RiMenu4Line className="w-6 h-6" />}
             </button>
           </div>
 
@@ -161,12 +140,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-2">
                       <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                        <Image
-                          width={20}
-                          height={20}
-                          src="/assets/usdt.png"
-                          alt="USDT"
-                        />
+                        <Image width={20} height={20} src="/assets/usdt.png" alt="USDT" />
                       </div>
                       <span>{balanceLoading ? "..." : displayBalance}</span>
                     </div>
@@ -185,11 +159,7 @@ export default function Navbar() {
                     <>
                       <div className="text-xs text-white/60 px-3">
                         Logged in with:{" "}
-                        {authMethod === "wallet"
-                          ? "MetaMask"
-                          : authMethod === "token"
-                          ? "Google"
-                          : "Unknown"}
+                        {authMethod === "wallet" ? "MetaMask" : authMethod === "token" ? "Google" : "Unknown"}
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
@@ -263,16 +233,9 @@ export default function Navbar() {
             >
               <div className="flex items-center gap-2">
                 <div className="relative rounded-full w-6 h-6 flex items-center justify-center">
-                  <Image
-                    src="/assets/usdt.png"
-                    alt="USDT"
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
                 </div>
-                <span className="truncate">
-                  {balanceLoading ? "..." : displayBalance}
-                </span>
+                <span className="truncate">{balanceLoading ? "..." : displayBalance}</span>
               </div>
               <div className="w-px h-5 bg-white/20 mx-2" />
               <Wallet className="w-4 h-4" />
@@ -283,9 +246,7 @@ export default function Navbar() {
                 <button
                   onClick={openSwitchModal}
                   className="flex items-center gap-2 cursor-pointer px-3 bg-white/0 whitespace-nowrap text-xs py-2 rounded-full border border-transparent text-white/80 hover:text-white hover:border-white/20"
-                  title={`Switch from ${
-                    authMethod === "wallet" ? "MetaMask" : "Google"
-                  }`}
+                  title={`Switch from ${authMethod === "wallet" ? "MetaMask" : "Google"}`}
                 >
                   Switch
                 </button>
@@ -296,13 +257,7 @@ export default function Navbar() {
                     aria-haspopup="menu"
                     aria-expanded={userDropdownOpen}
                   >
-                    <Image
-                      src="/assets/user.png"
-                      alt="User"
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
+                    <Image src="/assets/user.png" alt="User" width={40} height={40} className="rounded-full" />
                   </button>
 
                   {userDropdownOpen && (
@@ -314,11 +269,7 @@ export default function Navbar() {
                       <div className="p-4 flex flex-col gap-3 text-sm font-medium">
                         <div className="text-xs text-gray-500 border-b border-gray-200 pb-2">
                           Logged in with:{" "}
-                          {authMethod === "wallet"
-                            ? "MetaMask"
-                            : authMethod === "token"
-                            ? "Google"
-                            : "Unknown"}
+                          {authMethod === "wallet" ? "MetaMask" : authMethod === "token" ? "Google" : "Unknown"}
                           {isConnected && (
                             <div className="mt-1 text-green-600">
                               Wallet: {address?.slice(0, 6)}...
@@ -371,28 +322,12 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <WalletModal
-        open={walletModalOpen}
-        onClose={() => setWalletModalOpen(false)}
-      />
-      <TransactionsModal
-        open={transactionsModalOpen}
-        onClose={() => setTransactionsModalOpen(false)}
-      />
-      <PointsModal
-        open={pointsModalOpen}
-        onClose={() => setPointsModalOpen(false)}
-      />
-      <AffiliateModal
-        open={affiliateModalOpen}
-        onClose={() => setAffiliateModalOpen(false)}
-      />
-      <LoginModal
-        open={loginModalOpen}
-        onClose={handleLoginModalClose}
-        switchMode={switchMode}
-      />
-       <AccountSettingsModal open={accountSettingsModalOpen} onClose={() => setAccountSettingsModalOpen(false)} />
+      <WalletModal open={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
+      <TransactionsModal open={transactionsModalOpen} onClose={() => setTransactionsModalOpen(false)} />
+      <PointsModal open={pointsModalOpen} onClose={() => setPointsModalOpen(false)} />
+      <AffiliateModal open={affiliateModalOpen} onClose={() => setAffiliateModalOpen(false)} />
+      <LoginModal open={loginModalOpen} onClose={handleLoginModalClose} switchMode={switchMode} />
+      <AccountSettingsModal open={accountSettingsModalOpen} onClose={() => setAccountSettingsModalOpen(false)} />
     </>
   );
 }

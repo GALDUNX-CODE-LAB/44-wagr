@@ -7,6 +7,7 @@ import { WalletProvider } from "../components/wallet-provider";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { Suspense } from "react";
+import NavbarV2 from "../components/navbar-v2";
 
 const inter = Inter({
   weight: ["500"],
@@ -48,15 +49,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Suspense>
           <WalletProvider>
             {/* ✅ Use min-h-dvh to avoid iOS 100vh zoom/resize quirks */}
-            <div className="flex min-h-dvh">
+            <div className="flex">
               <div>
                 <Sidebar />
               </div>
 
               {/* Main content area */}
-              <div className="flex-1 flex flex-col lg:ml-[245px]">
-                <Navbar />
-                <main className="flex-1 p-4">
+              <div className="flex-1 flex flex-col lg:ml-[220px]">
+                {/* <Navbar /> */}
+                <NavbarV2 />
+                <main className="flex-1">
                   <div className="container mx-auto">{children}</div>
                 </main>
               </div>
