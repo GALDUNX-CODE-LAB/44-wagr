@@ -54,7 +54,7 @@ export default function LiveWinsSection() {
             payout: String(msg.data.payout),
           };
           queryClient.setQueryData<Win[]>(["live-wins"], (old = []) => {
-            return [win, ...old].slice(0, 10);
+            return [win, ...old].slice(0, 7);
           });
         }
       } catch (error) {
@@ -72,7 +72,7 @@ export default function LiveWinsSection() {
   }, [queryClient]);
 
   return (
-    <section className="mb-20 w-full">
+    <section className="mb-20 w-full lg:p-6">
       <div className="flex items-start gap-2 mb-4">
         <Award className="text-[#c8a2ff]" />
         <h2 className="text-xl font-bold text-white">Live Wins</h2>
@@ -96,7 +96,7 @@ export default function LiveWinsSection() {
         ))} */}
       </div>
 
-      <div className="w-full rounded-lg overflow-x-auto  h-[30vh] overflow-auto">
+      <div className="w-full rounded-lg overflow-x-auto   overflow-auto">
         <table className="min-w-full table-auto">
           <thead className="bg-[#212121]">
             <tr className="text-[#ffffff]/60 text-[12px]">

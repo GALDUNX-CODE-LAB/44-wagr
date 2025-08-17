@@ -15,6 +15,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: #c8a2ff;
+  --color-secondary: #131212;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -34,7 +37,7 @@ body {
 
 [data-testid="rk-connect-button"] {
   /* everything inside the modal */
-  color: black !important;
+  color: #131212 !important;
   background: #c8a2ff !important;
   font-size: 12px !important;
   border-radius: 30px !important;
@@ -53,12 +56,6 @@ body {
 html {
   -webkit-text-size-adjust: 100%;
 }
-input,
-select,
-textarea,
-button {
-  font-size: 16px;
-}
 
 /* Hide scrollbars but keep scrolling functional */
 ::-webkit-scrollbar {
@@ -66,6 +63,6 @@ button {
 }
 
 * {
-  -ms-overflow-style: none;  /* Internet Explorer and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+  scrollbar-width: none; /* Firefox */
 }
