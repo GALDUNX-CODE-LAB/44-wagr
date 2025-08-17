@@ -195,3 +195,31 @@ export const getUserWallets = async () => {
   });
   return response?.wallets;
 };
+
+export const getGoogleLink = async () => {
+  const response = await apiHandler("/auth/google", { method: "GET" });
+  return response;
+};
+
+export const getGoogleCallback = async (code: string) => {
+  const response = await apiHandler(`/auth/google/callback?code=${code}`, {
+    method: "POST",
+    body: {},
+  });
+  return response;
+};
+
+export const requestNonce = async (walletAddress: string) => {
+  console.log(walletAddress, "ddoee03030");
+  return await apiHandler("/auth/nonce", {
+    method: "POST",
+    data: { walletAddress },
+  });
+};
+
+export const verifySignature = async (walletAddress: string, signature: string) => {
+  return await apiHandler("/auth/verify", {
+    method: "POST",
+    data: { walletAddress, signature },
+  });
+};

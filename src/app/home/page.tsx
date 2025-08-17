@@ -4,9 +4,12 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import LiveWinsSection from "../../components/live-wins";
-import { useAuth } from "../../lib/api/useAuth";
 import { useAccount } from "wagmi";
 import HomeV2 from "./home-v2";
+import { useEffect, useState } from "react";
+import { getGoogleCallback } from "../../lib/api";
+import { setCookie } from "../../lib/api/cookie";
+import { RiLoaderLine } from "react-icons/ri";
 
 export default function HomePage() {
   const router = useRouter();
@@ -42,7 +45,34 @@ export default function HomePage() {
     "What support do we get?",
   ];
 
-  const handleGameClick = (gameName: string) => {};
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  useEffect(() => {
+    const url = window.location.href;
+    const getUrl = new URL(url);
+    const code = getUrl.searchParams.get("code");
+    const refCode = getUrl.searchParams.get("refCode");
+
+    if (code) {
+      setIsAuthenticating(true);
+      handlGoogleCallback(code);
+    }
+  }, []);
+
+  const handlGoogleCallback = async (code: string) => {
+    try {
+      // alert("Reacheed herererrrrrr");
+      const res = await getGoogleCallback(code);
+      setCookie("access-token", res.accessToken);
+      // toast.success("Logged in ");
+      setTimeout(() => {
+        window.location.href = "/home";
+      }, 2000);
+    } catch (error) {
+      console.log(error);
+      window.location.href = "/home";
+    }
+  };
 
   // return (
   //   <div className="p-4 sm:p-6 text-white container mx-auto">
@@ -187,7 +217,12 @@ export default function HomePage() {
   // );
 
   return (
-    <div className="wrap container mx-auto">
+    <div className="wrap container mx-auto bg-black/20">
+      {isAuthenticating && (
+        <div className="fixed bg-black/90 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
+          <RiLoaderLine size={30} className="animate-spin" />
+        </div>
+      )}
       <HomeV2 />
     </div>
   );

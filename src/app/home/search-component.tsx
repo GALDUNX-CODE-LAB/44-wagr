@@ -28,7 +28,7 @@ export default function GameSearch() {
   const filtered = mockResults.filter((game) => game.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div className="w-full bg-black/20 mx-auto mt-6 relative py-6 lg:p-6">
+    <div className="w-full mx-auto mt-6 relative py-6 lg:p-6">
       <div className="flex items-center bg-secondary border border-white/10 rounded-lg px-3 py-2">
         <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#243441] cursor-pointer">
           <span className="text-sm text-white">{selectedCategory}</span>

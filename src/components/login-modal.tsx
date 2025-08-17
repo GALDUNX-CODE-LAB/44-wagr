@@ -4,6 +4,11 @@ import { X } from "lucide-react";
 import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
+import { getGoogleLink, requestNonce, verifySignature } from "../lib/api";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useSignMessage } from "wagmi";
+import { useEffect } from "react";
+import { setCookie } from "../lib/api/cookie";
 
 interface LoginModalProps {
   open: boolean;
@@ -12,6 +17,51 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ open, onClose, switchMode = false }: LoginModalProps) {
+  const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+
+  const googleLogin = async () => {
+    try {
+      const res = await getGoogleLink();
+      const url = res.url;
+      window.location.href = url;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!address) return;
+    nounceHandler();
+  }, [address]);
+
+  const nounceHandler = async () => {
+    try {
+      const { message } = await requestNonce(address);
+      const signature = await signMessageAsync({
+        account: address as `0x${string}`,
+        message,
+      });
+
+      verifyUserSignature(signature);
+    } catch (error) {
+      console.log(error, "Error in nounce handler");
+    }
+  };
+
+  const verifyUserSignature = async (signature: string) => {
+    try {
+      const res = await verifySignature(address, signature);
+      console.log(res);
+      setCookie("access-token", res.accessToken);
+      alert("✅ Login success:");
+      console.log(res, "Verification data");
+      onClose();
+    } catch (err) {
+      console.error("Signature verification failed:", err);
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -60,15 +110,20 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
               </>
             )}
 
-            <button className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition">
+            <button
+              className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition"
+              onClick={() => googleLogin()}
+            >
               <FcGoogle />
               {switchMode ? "Switch to Google" : "Login with Google"}
             </button>
 
-            <button className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition">
+            {/* <button className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition">
               <Image src="/assets/metamask.svg" alt="MetaMask" width={16} height={16} />
               {switchMode ? "Switch to MetaMask" : "Login with MetaMask"}
-            </button>
+            </button> */}
+
+            <ConnectButton showBalance={false} />
 
             {switchMode && (
               <>

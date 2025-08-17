@@ -33,7 +33,7 @@ export default function BannerSlider() {
   }, []);
 
   return (
-    <div className="w-full h-[223px] bg-black/20 rounded overflow-hidden relative border border-white/10 py-6">
+    <div className="w-full h-[223px] pt-4 rounded overflow-hidden relative border border-white/10 py-6">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
