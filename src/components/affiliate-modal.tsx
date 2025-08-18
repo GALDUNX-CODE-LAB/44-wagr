@@ -105,57 +105,75 @@ export default function AffiliateModal({ open, onClose }: { open: boolean; onClo
             Ready to earn commission? Tap the &apos;Copy Referral Link&apos; button and share your default campaign.
           </p>
 
-          <div className="flex flex-col items-end w-full lg:w-auto gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-white/65 bg-[#1c1c1c] rounded-lg border border-white/10 text-sm font-mono px-3 py-2 truncate max-w-[200px]">
-                {referralLink}
-              </span>
-              <button
-                onClick={handleCopy}
-                className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black text-[10px] font-light rounded-lg px-4 py-2 transition whitespace-nowrap"
-              >
-                {copied ? <Check className="w-3 h-3" /> : 'Copy Link'}
-              </button>
-            </div>
+            <div className="flex flex-col lg:items-end w-full lg:w-auto gap-2">
+  {/* Link + Button */}
+  <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-2 w-full">
+    <span className="text-white/65 bg-[#1c1c1c] rounded-lg border border-white/10 text-sm font-mono px-3 py-2 truncate w-full sm:max-w-[200px]">
+      {referralLink}
+    </span>
+    <button
+      onClick={handleCopy}
+      className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black text-[10px] font-light rounded-lg px-4 py-2 transition whitespace-nowrap w-full sm:w-auto text-center"
+    >
+      {copied ? <Check className="w-3 h-3 inline-block" /> : "Copy Link"}
+    </button>
+  </div>
 
-            <div className="text-sm text-white/65 font-normal text-right w-full">
-              <span className="font-semibold">Code:</span> {referralCode}
-            </div>
-          </div>
+  {/* Referral Code */}
+  <div className="text-sm text-white/65 font-normal text-center sm:text-right w-full">
+    <span className="font-semibold">Code:</span> {referralCode}
+  </div>
+</div>
+
         </div>
 
         {/* Table Card */}
-        <div className="bg-[#212121] border border-white/10 rounded-[20px] p-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-bold mb-1">Stats and Referrals</h3>
-          </div>
+            <div className="bg-[#212121] border border-white/10 rounded-[20px] p-6">
+  {/* Title only visible on md+ */}
+  <div className="mb-4 hidden md:block">
+    <h3 className="text-lg font-bold mb-1">Stats and Referrals</h3>
+  </div>
 
-          <table className="w-full text-sm">
-            <thead className=" text-white/60">
-              <tr>
-                <th className="text-left px-4 py-3">Username</th>
-                <th className="text-left px-4 py-3">Date</th>
-                <th className="text-left px-4 py-3">Referrals</th>
-                <th className="text-left px-4 py-3">Earnings</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableData.map((row, i) => (
-                <tr
-                  key={i}
-                  className={`${
-                    i % 2 === 0 ? 'bg-[#1C1C1C]' : 'bg-[#212121]'
-                  } text-white`}
-                >
-                  <td className="px-4 py-3">{row.username}</td>
-                  <td className="px-4 py-3 text-white/70">{row.date}</td>
-                  <td className="px-4 py-3">{row.referrals}</td>
-                  <td className="px-4 py-3">{row.earnings}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+  {/* Responsive Table Wrapper */}
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[600px] text-sm">
+      <thead className="text-white/60">
+        <tr className="hidden md:table-row">
+          <th className="text-left px-4 py-3">Username</th>
+          <th className="text-left px-4 py-3">Date</th>
+          <th className="text-left px-4 py-3">Referrals</th>
+          <th className="text-left px-4 py-3">Earnings</th>
+        </tr>
+
+        {/* Mobile header row */}
+        <tr className="md:hidden">
+          <th
+            colSpan={4}
+            className="px-4 py-3 text-left font-bold text-white"
+          >
+            Stats and Referrals
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {tableData.map((row, i) => (
+          <tr
+            key={i}
+            className={`${
+              i % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"
+            } text-white`}
+          >
+            <td className="px-4 py-3">{row.username}</td>
+            <td className="px-4 py-3 text-white/70">{row.date}</td>
+            <td className="px-4 py-3">{row.referrals}</td>
+            <td className="px-4 py-3">{row.earnings}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
       </div>
     </div>
   );

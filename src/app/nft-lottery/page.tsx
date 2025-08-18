@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Search, Star, Trophy, Clock, Users } from "lucide-react"
+import { Search, Trophy, Clock, Users } from "lucide-react"
 
 export default function NFTLotteryPage() {
   const router = useRouter()
@@ -81,9 +81,9 @@ export default function NFTLotteryPage() {
       <div className="max-w-7xl mx-auto">
         {/* Banner */}
         <div className="w-[full] h-[223px] bg-[#212121] rounded-[20px] overflow-hidden relative border border-white/6 mb-8">
-               <Image src={"/assets/banners/banner-lg.jpg"} fill className="object-cover hidden lg:block" alt="banner" />
-               <Image src={"/assets/banners/banner-mb.jpg"} fill className="object-cover lg:hidden" alt="banner" />
-             </div>
+          <Image src={"/assets/banners/banner-lg.jpg"} fill className="object-cover hidden lg:block" alt="banner" />
+          <Image src={"/assets/banners/banner-mb.jpg"} fill className="object-cover lg:hidden" alt="banner" />
+        </div>
 
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
@@ -101,12 +101,79 @@ export default function NFTLotteryPage() {
         </div>
 
         {/* Lottery Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+        {/* Mobile: Horizontal Scroll */}
+        <div className="w-full max-w-xl overflow-hidden mb-12 md:hidden">
+          <div className="flex overflow-x-auto gap-4 no-scrollbar px-6 -mx-6">
+            {lotteryCards.map((card) => (
+              <div
+                key={card.id}
+                onClick={() => handleCardClick(card.id)}
+                className="w-[280px] min-w-[280px] min-h-[320px] max-h-[400px] bg-gradient-to-b from-[#4A3B5C] to-[#212121] border border-white/[0.06] rounded-[20px] p-4 relative overflow-hidden flex flex-col cursor-pointer hover:border-white/20 hover:from-[#5A4B6C] hover:to-[#252525] transition-all duration-200 flex-shrink-0"
+              >
+                {/* Profile Circle */}
+                <div className="absolute -top-6 -left-5 w-[100px] h-[100px] bg-[#D9D9D9] border-[3px] border-[#1C1C1C] rounded-full overflow-hidden">
+                  <Image src={card.image || "/placeholder.svg"} fill className="object-cover" alt="NFT" />
+                </div>
+
+                {/* Icon and Star */}
+                <div className="flex justify-end items-start mb-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 fill-current" />
+                    <span className="text-sm">2k</span>
+                  </div>
+                </div>
+
+                {/* Exclusive Message */}
+                <div className="mt-12 mb-4 flex-grow">
+                  <p className="text-left text-base text-white/65">{card.exclusive}</p>
+                </div>
+
+                {/* Amount */}
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-lg text-white">$500,000</span>
+                  <span className="text-lg font-medium text-white/50">{card.amount}</span>
+                </div>
+
+                {/* Divider */}
+                <div className="w-full h-px bg-white/10 mb-4"></div>
+
+                {/* Starts In */}
+                <p className="text-left text-sm text-white/60 mb-3">Starts in</p>
+
+                {/* Countdown */}
+                <div className="flex gap-1 mb-6 justify-between">
+                  <div className="w-[49px] h-[30px] bg-[#1C1C1C]/50 border border-white/[0.06] rounded-[10px] flex items-center justify-center">
+                    <span className="text-xs">{timeLeft.days}d</span>
+                  </div>
+                  <span className="text-xs self-center">:</span>
+                  <div className="w-[49px] h-[30px] bg-[#1C1C1C]/50 border border-white/[0.06] rounded-[10px] flex items-center justify-center">
+                    <span className="text-xs">{timeLeft.hours}h</span>
+                  </div>
+                  <span className="text-xs self-center">:</span>
+                  <div className="w-[49px] h-[30px] bg-[#1C1C1C]/50 border border-white/[0.06] rounded-[10px] flex items-center justify-center">
+                    <span className="text-xs">{timeLeft.minutes}m</span>
+                  </div>
+                </div>
+
+                {/* Bet Now Button */}
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-[241px] h-[40px] bg-[#C8A2FF] text-black font-medium rounded-[10px] hover:bg-[#B891FF] transition-colors mx-auto"
+                >
+                  Bet Now
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: Grid Layout */}
+        <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
           {lotteryCards.map((card) => (
             <div
               key={card.id}
               onClick={() => handleCardClick(card.id)}
-                 className="w-full max-w-[300px] min-h-[320px] max-h-[400px] bg-gradient-to-b from-[#4A3B5C] to-[#212121] border border-white/[0.06] rounded-[20px] p-4 relative mx-auto overflow-hidden flex flex-col cursor-pointer hover:border-white/20 hover:from-[#5A4B6C] hover:to-[#252525] transition-all duration-200"
+              className="w-full max-w-[300px] min-h-[320px] max-h-[400px] bg-gradient-to-b from-[#4A3B5C] to-[#212121] border border-white/[0.06] rounded-[20px] p-4 relative mx-auto overflow-hidden flex flex-col cursor-pointer hover:border-white/20 hover:from-[#5A4B6C] hover:to-[#252525] transition-all duration-200"
             >
               {/* Profile Circle */}
               <div className="absolute -top-6 -left-5 w-[100px] h-[100px] bg-[#D9D9D9] border-[3px] border-[#1C1C1C] rounded-full overflow-hidden">

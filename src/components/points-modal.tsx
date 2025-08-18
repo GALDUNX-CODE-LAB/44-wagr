@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X, ArrowRight, Coins } from "lucide-react"
-import { claimDailyStreak, fetchUserPoints } from "../lib/api" // Assuming these exist
+import { claimDailyStreak, fetchUserPoints } from "../lib/api" 
 
 interface PointsModalProps {
   open: boolean
@@ -110,24 +110,27 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-[#1C1C1C] text-white rounded-xl w-full max-w-[800px] p-6 border border-white/10 relative">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:px-4">
+      <div className="bg-[#1C1C1C] text-white rounded-xl w-full max-w-[90vw] sm:max-w-[600px] lg:max-w-[800px] p-4 sm:p-6 border border-white/10 relative max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
-        <button onClick={onClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/10">
-          <X className="w-5 h-5" />
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1 rounded-full hover:bg-white/10"
+        >
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Points System</h2>
-          <button className="bg-[#C8A2FF]/10 text-[#C8A2FF] text-xs flex items-center gap-2 rounded-full px-4 py-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <h2 className="text-xl sm:text-2xl font-bold">Points System</h2>
+          <button className="bg-[#C8A2FF]/10 text-[#C8A2FF] text-xs flex items-center gap-2 rounded-full px-3 sm:px-4 py-2">
             <Coins size={10} className="text-yellow-300" /> {userPoints} Points
           </button>
         </div>
         {/* Tabs */}
-        <div className="w-full max-w-[781px] h-[40px] bg-[#212121] border border-white/10 rounded-full flex mb-6 overflow-hidden">
+        <div className="w-full h-[36px] sm:h-[40px] bg-[#212121] border border-white/10 rounded-full flex mb-4 sm:mb-6 overflow-hidden">
           <button
             onClick={() => setActiveTab("daily")}
-            className={`w-1/2 rounded-full text-sm font-medium transition ${
+            className={`w-1/2 rounded-full text-xs sm:text-sm font-medium transition ${
               activeTab === "daily" ? "bg-[#C8A2FF] text-black" : "text-white/40"
             }`}
           >
@@ -135,7 +138,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </button>
           <button
             onClick={() => setActiveTab("social")}
-            className={`w-1/2 rounded-full text-sm font-medium transition ${
+            className={`w-1/2 rounded-full text-xs sm:text-sm font-medium transition ${
               activeTab === "social" ? "bg-[#C8A2FF] text-black" : "text-white/40"
             }`}
           >
@@ -144,22 +147,22 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
         </div>
         {/* Daily Points */}
         {activeTab === "daily" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             {streakData.map((entry, index) => (
               <div
                 key={index}
-                className="w-full h-auto relative overflow-clip bg-[#212121] border-white/10 rounded-[20px] px-6 py-4 flex flex-col justify-between items-center text-center"
+                className="w-full h-auto relative overflow-clip bg-[#212121] border-white/10 rounded-[12px] sm:rounded-[20px] px-3 sm:px-6 py-3 sm:py-4 flex flex-col justify-between items-center text-center"
               >
-                <img
+                {/* <img
                   src={"/placeholder.svg?height=100&width=100&query=abstract blur"}
                   alt={"blur"}
                   className="object-contain absolute right-0 top-0 bottom-0"
-                />
-                <span className="text-sm text-white/50 font-medium mb-2">Day {entry.day}</span>
-                <span className="text-[30px] font-medium mb-4">+{entry.points}</span>
+                /> */}
+                <span className="text-xs sm:text-sm text-white/50 font-medium mb-1 sm:mb-2">Day {entry.day}</span>
+                <span className="text-xl sm:text-[30px] font-medium mb-2 sm:mb-4">+{entry.points}</span>
                 {entry.status === "claimed" ? (
                   <button
-                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-2 text-sm font-semibold cursor-not-allowed"
+                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold cursor-not-allowed"
                     disabled
                   >
                     Claimed
@@ -170,7 +173,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                   <button
                     onClick={handleDailyClaim}
                     disabled={claiming}
-                    className={`w-full rounded-lg py-2 text-sm font-semibold ${
+                    className={`w-full rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold ${
                       claiming ? "bg-[#1c1c1c] text-white cursor-not-allowed" : "bg-white hover:bg-[#D5B3FF] text-black"
                     }`}
                   >
@@ -178,13 +181,13 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                   </button>
                 ) : entry.status === "claim" ? (
                   <button
-                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-2 text-sm font-semibold cursor-not-allowed"
+                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold cursor-not-allowed"
                     disabled
                   >
                     Not Available
                   </button>
                 ) : (
-                  <div className="w-full bg-[#1c1c1c] text-white rounded-lg py-2 text-sm font-semibold">
+                  <div className="w-full bg-[#1c1c1c] text-white rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold">
                     {entry.date || "Locked"}
                   </div>
                 )}
@@ -194,20 +197,19 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
         )}
         {/* Social Points */}
         {activeTab === "social" && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {socialPoints.map((entry, i) => (
               <div
                 key={i}
-                className={`w-full flex justify-between items-center px-6 py-4 rounded-[20px] border border-white/10 ${
+                className={`w-full flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 py-3 sm:py-4 rounded-[12px] sm:rounded-[20px] border border-white/10 gap-3 sm:gap-0 ${
                   entry.status === "claimed" ? "bg-[#1C1C1C] text-white/40" : "bg-[#212121]"
                 }`}
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-medium mb-1">{entry.action}</span>
-                  <span className=" font-medium text-sm">+{entry.points}</span>
+                  <span className="font-medium text-sm">+{entry.points}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  {/* Arrow now acts as a link and updates visited status */}
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                   <a
                     href={entry.link}
                     target="_blank"
@@ -217,24 +219,24 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                     aria-label={`Go to ${entry.action}`}
                   >
                     <ArrowRight
-                      className={`w-5 h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"} rotate-320`}
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"} rotate-320`}
                     />
                   </a>
                   {entry.status === "claimed" ? (
                     <button
-                      className="bg-black text-white w-[100px] px-4 py-2 rounded-full text-sm font-semibold cursor-not-allowed"
+                      className="bg-black text-white min-w-[80px] sm:w-[100px] px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold cursor-not-allowed"
                       disabled
                     >
                       Claimed
                     </button>
                   ) : (
                     <button
-                      className={`w-[100px] px-4 py-2 rounded-full text-sm font-semibold ${
+                      className={`min-w-[80px] sm:w-[100px] px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold ${
                         !entry.visited
                           ? "bg-black text-white/40 cursor-not-allowed"
                           : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
                       }`}
-                      disabled={!entry.visited} // Disabled until visited
+                      disabled={!entry.visited}
                     >
                       Claim
                     </button>
