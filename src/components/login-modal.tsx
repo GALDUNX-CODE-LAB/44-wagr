@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getGoogleLink, requestNonce, verifySignature } from "../lib/api";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from "wagmi";
-import { useEffect } from "react";
-import { setCookie } from "../lib/api/cookie";
+import { useEffect, useState } from "react";
+import { getCookie, setCookie } from "../lib/api/cookie";
+import { RiLoaderLine } from "react-icons/ri";
 
 interface LoginModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface LoginModalProps {
 export default function LoginModal({ open, onClose, switchMode = false }: LoginModalProps) {
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const googleLogin = async () => {
     try {
@@ -32,11 +34,15 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
 
   useEffect(() => {
     if (!address) return;
+
+    const token = getCookie("access-token");
+    if (token) return;
     nounceHandler();
   }, [address]);
 
   const nounceHandler = async () => {
     try {
+      setIsAuthenticating(true);
       const { message } = await requestNonce(address);
       const signature = await signMessageAsync({
         account: address as `0x${string}`,
@@ -59,6 +65,8 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
       onClose();
     } catch (err) {
       console.error("Signature verification failed:", err);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -78,12 +86,20 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="bg-[#212121] w-full max-w-sm rounded-[20px] border border-white/20 p-6 relative"
           >
+            {isAuthenticating && (
+              <div className="fixed bg-black/90 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
+                <RiLoaderLine size={30} className="animate-spin" />
+              </div>
+            )}
+
             <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-red-500">
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-6">{switchMode ? "Switch Account" : "Login!"}</h2>
-
+            <h2 className="text-base  font-bold text-white mb-6">
+              {switchMode ? "Switch Account" : "Login or connect wallet"}
+            </h2>
+            {/* 
             {!switchMode && (
               <>
                 <div className="mb-4">
@@ -101,29 +117,24 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
                 <button className="w-full bg-[#C8A2FF] hover:bg-[#b389ff] cursor-pointer text-white font-medium py-2 rounded-[15px] transition mb-6">
                   Login
                 </button>
-
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-white/50 text-sm">Or</span>
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
               </>
-            )}
+            )} */}
 
             <button
-              className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition"
+              className="w-full flex items-center cursor-pointer justify-center text-sm gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 mb-3 hover:bg-white/5 transition"
               onClick={() => googleLogin()}
             >
               <FcGoogle />
               {switchMode ? "Switch to Google" : "Login with Google"}
             </button>
-
-            {/* <button className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 bg-[#212121] text-white py-2 hover:bg-white/5 transition">
-              <Image src="/assets/metamask.svg" alt="MetaMask" width={16} height={16} />
-              {switchMode ? "Switch to MetaMask" : "Login with MetaMask"}
-            </button> */}
-
-            <ConnectButton showBalance={false} />
+            <div className="flex items-center gap-4 mb-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-white/50 text-sm">Or</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+            <button className="w-full flex items-center cursor-pointer justify-center gap-3 rounded-[15px] border border-white/20 text-white bg-primary transition">
+              <ConnectButton showBalance={false} />
+            </button>
 
             {switchMode && (
               <>
