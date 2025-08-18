@@ -218,8 +218,8 @@ export default function HomePage() {
   return (
     <div className="wrap container mx-auto bg-black/20">
       {isAuthenticating && (
-        <div className="fixed bg-black/90 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
-          <RiLoaderLine size={30} className="animate-spin" />
+        <div className="fixed bg-black/60 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
+          <RiLoaderLine size={30} color="#fff" className="animate-spin" />
         </div>
       )}
       <HomeV2 />

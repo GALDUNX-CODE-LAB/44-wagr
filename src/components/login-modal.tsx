@@ -87,8 +87,8 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
             className="bg-[#212121] w-full max-w-sm rounded-[20px] border border-white/20 p-6 relative"
           >
             {isAuthenticating && (
-              <div className="fixed bg-black/90 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
-                <RiLoaderLine size={30} className="animate-spin" />
+              <div className="fixed bg-black/60 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
+                <RiLoaderLine color="#fff" size={30} className="animate-spin" />
               </div>
             )}
 

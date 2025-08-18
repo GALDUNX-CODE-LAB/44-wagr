@@ -7,7 +7,7 @@ import Image from "next/image";
 export default function TheOriginals() {
   const availableGames = [
     { name: "Crash", players: 1248, image: "/assets/games/crash.png" },
-    { name: "Dice", players: 892, image: "/assets/games/dice.png" },
+    { name: "Dice", players: 892, image: "/assets/games/Dice.png" },
     { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png" },
     { name: "Wheel", players: 721, image: "/assets/games/wheels.png" },
   ];
