@@ -60,7 +60,7 @@ export default function ContinuePlaying() {
   }
 
   return (
-    <div className="bg-black/20 py-6 lg:p-6 rounded-lg relative overflow-hidden">
+    <div className="py-6 lg:p-6 rounded-lg relative overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">Continue Playing</h2>
         <div className="flex gap-2">

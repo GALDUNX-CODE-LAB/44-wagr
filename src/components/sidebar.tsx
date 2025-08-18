@@ -153,7 +153,7 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile Bottom Nav */}
-      <nav className="rounded-t-[10px] fixed bottom-0 max-w-full mx-auto px-4 backdrop-blur-sm p-5 flex justify-around items-center left-0 right-0 z-50 lg:hidden border-[#FFFFFF0F] bg-[#212121] h-[120px]">
+      <nav className="rounded-t-[10px] fixed bottom-0 max-w-full mx-auto px-4 backdrop-blur-sm p-5 flex justify-around items-center left-0 right-0 z-50 lg:hidden border-[#FFFFFF0F] bg-[#212121]">
         {navItems.map((item) =>
           item.hasDropdown ? (
             <div key="Games" className="relative">

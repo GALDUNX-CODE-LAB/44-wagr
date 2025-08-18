@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter } from "next/font/google";
 import Sidebar from "../components/sidebar";
-import Navbar from "../components/navbar";
 import { WalletProvider } from "../components/wallet-provider";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
@@ -25,12 +24,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// ✅ Use viewport export (works better in App Router than manual <meta>)
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // If you really want to stop Safari auto-zoom entirely, uncomment (accessibility tradeoff):
   maximumScale: 1,
 };
 
