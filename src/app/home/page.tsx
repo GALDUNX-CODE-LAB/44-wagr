@@ -13,7 +13,6 @@ import { RiLoaderLine } from "react-icons/ri";
 
 export default function HomePage() {
   const router = useRouter();
-  // const { isAuthenticated, error: authError, isLoading } = useAuth();
   const { address, isConnected } = useAccount();
 
   const availableGames = [
