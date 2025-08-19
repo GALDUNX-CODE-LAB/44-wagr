@@ -55,7 +55,7 @@ export default function TheOriginals() {
   };
 
   return (
-    <div className="py-6 lg:p-6 rounded-lg relative">
+    <div className="py-6  rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">The Originals</h2>
         <div className="flex gap-2">

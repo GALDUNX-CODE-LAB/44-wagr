@@ -53,7 +53,7 @@ export default function TrendingGames() {
   };
 
   return (
-    <div className="py-6 lg:p-6 rounded-lg relative overflow-hidden">
+    <div className="py-6 rounded-lg relative overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">Trending Games</h2>
         <div className="flex gap-2">

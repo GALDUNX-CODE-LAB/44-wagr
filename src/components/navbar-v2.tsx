@@ -46,7 +46,7 @@ export default function NavbarV2() {
   return (
     <>
       <div className="wrap relative h-[65px] w-full" />
-      <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed z-50">
+      <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
         <nav className="w-full h-full sm:border-b border-white/15  text-white flex items-center justify-between px-6 py-3">
           <div className="wrap lg:hidden max-h-[70px]">
             <Image src={"/assets/44.png"} alt="44-wager" width={70} height={70} />

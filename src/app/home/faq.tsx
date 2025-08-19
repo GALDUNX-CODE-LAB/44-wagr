@@ -21,7 +21,7 @@ export default function FaqSection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   return (
-    <section className="mt-20 flex flex-col md:flex-row gap-12 py-6 lg:p-6 mb-16 lg:mb-auto">
+    <section className="mt-20 flex flex-col md:flex-row gap-12 py-6 mb-16 lg:mb-auto">
       <div className="flex-1 flex flex-col justify-center">
         <div className="bg-primary text-xs max-w-fit text-black font-medium px-3 py-1 rounded mb-4">FAQs</div>
         <h3 className="text-3xl font-bold mb-4 leading-snug">
