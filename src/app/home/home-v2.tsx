@@ -7,12 +7,14 @@ import LiveWinsSection from "../../components/live-wins";
 import ContinuePlaying from "./continue-playing";
 import BannerSlider from "../../components/banner-slider";
 import GameSearch from "./search-component";
+import RandomMetaMarket from "./random-metamarket";
 
 export default function HomeV2() {
   return (
-    <div className="text-white px-3">
+    <div className="text-white px-5">
       <BannerSlider />
       <GameSearch />
+      <RandomMetaMarket />
       <ContinuePlaying />
       <TheOriginals />
       <TrendingGames />

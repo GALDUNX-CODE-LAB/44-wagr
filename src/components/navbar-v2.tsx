@@ -13,6 +13,7 @@ import { AccountSettingsModal } from "./account-settings";
 import { useAccount, useDisconnect } from "wagmi";
 import { logout } from "../lib/api/auth";
 import { getCookie } from "../lib/api/cookie";
+import { useRouter } from "next/navigation";
 
 export default function NavbarV2() {
   const [focused, setFocused] = useState(false);
@@ -31,6 +32,7 @@ export default function NavbarV2() {
   const { address, isConnected } = useAccount();
 
   const authMethod: any = "token";
+  const router = useRouter();
 
   const handleLoginModalClose = () => {
     setLoginModalOpen(false);
@@ -48,7 +50,7 @@ export default function NavbarV2() {
       <div className="wrap relative h-[65px] w-full" />
       <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
         <nav className="w-full h-full sm:border-b border-white/15  text-white flex items-center justify-between px-6 py-3">
-          <div className="wrap lg:hidden max-h-[70px]">
+          <div className="wrap lg:hidden max-h-[70px]" onClick={() => router.push("/")}>
             <Image src={"/assets/44.png"} alt="44-wager" width={70} height={70} />
           </div>
           <div className="flex-1 max-w-md hidden lg:block">

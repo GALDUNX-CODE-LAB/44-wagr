@@ -82,7 +82,7 @@ export default function TrendingGames() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-4"
+            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
           >
             {trendingGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
               <div

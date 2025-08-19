@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function TheOriginals() {
   const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/games/crash.png" },
-    { name: "Dice", players: 892, image: "/assets/games/Dice.png" },
-    { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png" },
-    { name: "Wheel", players: 721, image: "/assets/games/wheels.png" },
+    { name: "Crash", players: 1248, image: "/assets/games/crash.png", link: "/games/crash" },
+    { name: "Dice", players: 892, image: "/assets/games/Dice.png", link: "/games/dice" },
+    { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png", link: "/games/coin" },
+    { name: "Wheel", players: 721, image: "/assets/games/wheels.png", link: "/games/wheel" },
   ];
 
   const [startIndex, setStartIndex] = useState(0);
@@ -39,6 +40,8 @@ export default function TheOriginals() {
     }
   };
 
+  const router = useRouter();
+
   const handleSelectGame = (game: any) => {
     try {
       const stored = localStorage.getItem("continue-playing");
@@ -49,6 +52,7 @@ export default function TheOriginals() {
         parsed.unshift(game); // put the latest at the start
         localStorage.setItem("continue-playing", JSON.stringify(parsed));
       }
+      router.push(game.link);
     } catch (err) {
       console.error("Error updating localStorage:", err);
     }
@@ -75,7 +79,7 @@ export default function TheOriginals() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
         {availableGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
           <div
             key={index}

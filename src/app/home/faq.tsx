@@ -24,10 +24,10 @@ export default function FaqSection() {
     <section className="mt-20 flex flex-col md:flex-row gap-12 py-6 mb-16 lg:mb-auto">
       <div className="flex-1 flex flex-col justify-center">
         <div className="bg-primary text-xs max-w-fit text-black font-medium px-3 py-1 rounded mb-4">FAQs</div>
-        <h3 className="text-3xl font-bold mb-4 leading-snug">
+        <h3 className="text-xl lg:text-3xl font-bold mb-4 leading-snug">
           Why use <span className="text-primabg-primary">44-wagr</span> for gaming
         </h3>
-        <p className="text-gray-400 text-base mb-8 max-w-md">
+        <p className="text-gray-400 text-sm lg:text-base mb-8 max-w-md">
           Get answers to the most common questions about 44-wagr, our features, and how it can improve your gaming
           journey.
         </p>
