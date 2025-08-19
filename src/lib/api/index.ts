@@ -161,7 +161,7 @@ export const placeDiceBet = async ({
 
 // ✅ Fetch all markets
 export const fetchMarkets = async () => {
-  const data = await apiHandler<any>(process.env.NEXT_PUBLIC_META_MARKET_ENDPOINT || "", {
+  const data = await apiHandler<any>("/meta-market", {
     method: "GET",
   });
 
