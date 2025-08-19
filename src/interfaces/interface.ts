@@ -71,6 +71,7 @@ export interface Market {
   feePercent: number;
   isResolved: boolean;
   result?: "YES" | "NO";
+  commentCount: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -127,4 +128,17 @@ export interface WalletRecord {
   privateKey: string;
   updatedAt: string;
   userId: string;
+}
+
+export interface Comment {
+  _id: string;
+  market: string;
+  user: {
+    _id: string;
+    username?: string;
+    avatar?: string;
+  };
+  comment: string;
+  createdAt: string;
+  likes?: number;
 }

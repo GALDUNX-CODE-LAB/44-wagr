@@ -22,7 +22,7 @@ export default function LiveDiceWins() {
   const ws = useRef<WebSocket | null>(null);
   // const [liveWins , setLiveWins ] = useState(second)
 
-  const gameCategories = ["Casino", "Sports", "Race", "Dice"];
+  const gameCategories = ["Dice"];
   const [activeCategory, setActiveCategory] = useState(gameCategories[0]);
   const { data: liveWins = [] } = useQuery<Win[]>({
     queryKey: ["live-wins-dice"],

@@ -69,70 +69,69 @@ export default function DiceGame() {
 
   return (
     <div className="p-4">
-      <div className="bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 p-4 min-h-[400px]">
+      <div className="lg:bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 lg:p-4 min-h-[400px]">
         {/* Left Section */}
         <div className="flex-1 flex flex-col gap-8">
-          {/* Bet Settings */}
-          <div className="w-full flex flex-wrap font-medium gap-4 bg-[#1c1c1c]">
-            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
-              <span className="text-sm text-white/60">Multiplier</span>
-              <p className="mt-1 bg-[#212121] border border-white/10 rounded-lg px-3 py-2 text-lg font-semibold">
-                {lastResult?.multiplier?.toFixed(5) || "2.65000"}
-              </p>
-            </div>
-            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
-              <span className="text-sm text-white/60">Roll {betType === "over" ? "Over" : "Under"}</span>
-              <div className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="99"
-                  value={target}
-                  onChange={(e) => setTarget(Number(e.target.value))}
-                  className="w-full bg-transparent text-lg font-semibold outline-none"
-                />
-              </div>
-            </div>
-            <div className="flex-1 min-w-[200px] p-4 rounded-[20px]">
-              <span className="text-sm text-white/60">Win Chance</span>
-              <p className="mt-1 bg-[#212121] border border-white/10 rounded-[12px] px-3 py-2 text-lg font-semibold">
-                {betType === "over" ? (100 - target).toFixed(2) : target.toFixed(2)}%
-              </p>
-            </div>
-          </div>
-
           {/* Dice Animation */}
-          <div className="flex-grow flex flex-col justify-center items-center mt-5">
+          <div className="flex-grow flex flex-col justify-center items-center mt-5 pt-10">
             <DiceRoller ref={diceRef} />
             {lastResult && (
               <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? "text-green-400" : "text-red-400"}`}>
                 {lastResult.isWin ? "You Won!" : "You Lost"} (Roll: {lastResult.roll.toFixed(2)})
               </div>
             )}
-          </div>
 
-          {/* Bet Type Toggle */}
-          <div className="flex justify-center gap-4 mt-4">
-            <button
-              className={`px-6 py-2 rounded-full font-medium ${
-                betType === "over"
-                  ? "bg-[#C8A2FF] text-black"
-                  : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
-              }`}
-              onClick={() => setBetType("over")}
-            >
-              Roll Over
-            </button>
-            <button
-              className={`px-6 py-2 rounded-full font-medium ${
-                betType === "under"
-                  ? "bg-[#C8A2FF] text-black"
-                  : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
-              }`}
-              onClick={() => setBetType("under")}
-            >
-              Roll Under
-            </button>
+            {/* Bet Type Toggle */}
+            <div className="flex justify-center gap-4 mt-2">
+              <button
+                className={`px-6 py-2 rounded-lg text-xs font-medium ${
+                  betType === "over"
+                    ? "bg-[#C8A2FF] text-black"
+                    : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
+                }`}
+                onClick={() => setBetType("over")}
+              >
+                Roll Over
+              </button>
+              <button
+                className={`px-6 py-2 rounded-lg text-xs  font-medium ${
+                  betType === "under"
+                    ? "bg-[#C8A2FF] text-black"
+                    : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
+                }`}
+                onClick={() => setBetType("under")}
+              >
+                Roll Under
+              </button>
+            </div>
+            {/* Bet Settings */}
+            <div className="w-full grid grid-cols-3 bg-white/10 rounded-lg mt-16">
+              <div className="p-4 rounded-lg">
+                <span className="text-xs text-white/60 text-center">Multiplier</span>
+                <p className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
+                  {lastResult?.multiplier?.toFixed(5) || "2.65000"}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg">
+                <span className="text-xs text-white/60 text-center">Roll {betType === "over" ? "Over" : "Under"}</span>
+                <div className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-1.5">
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={target}
+                    onChange={(e) => setTarget(Number(e.target.value))}
+                    className="w-full bg-transparent lg:text-base text-xs font-semibold outline-none"
+                  />
+                </div>
+              </div>
+              <div className=" p-4 rounded-lg">
+                <span className="text-xs text-white/60 text-center">Win Chance</span>
+                <p className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
+                  {betType === "over" ? (100 - target).toFixed(2) : target.toFixed(2)}%
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -72,7 +72,7 @@ export default function LiveWinsSection() {
   }, [queryClient]);
 
   return (
-    <section className="mb-20 w-full lg:p-6">
+    <section className="mb-20 w-full py-6">
       <div className="flex items-start gap-2 mb-4">
         <Award className="text-[#c8a2ff]" />
         <h2 className="text-xl font-bold text-white">Live Wins</h2>
