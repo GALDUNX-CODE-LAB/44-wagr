@@ -7,10 +7,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import LiveWinsSection from "../../../../components/live-wins";
 import LiveDiceWins from "../../../../components/live-wins-dice";
 import { placeDiceBet } from "../../../../lib/api";
+import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
 
 export default function DiceGame() {
   const [activeOdds, setActiveOdds] = useState(60.57);
-  const [betAmount, setBetAmount] = useState(0.025);
+  const [betAmount, setBetAmount] = useState(0);
   const [target, setTarget] = useState(50);
   const [betType, setBetType] = useState<"over" | "under">("over");
   const [lastResult, setLastResult] = useState<any>(null);
@@ -67,6 +68,8 @@ export default function DiceGame() {
     }
   }, [betType]);
 
+  const isLoggedIn = useIsLoggedIn();
+
   return (
     <div className="p-4">
       <div className="lg:bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 lg:p-4 min-h-[400px]">
@@ -75,11 +78,11 @@ export default function DiceGame() {
           {/* Dice Animation */}
           <div className="flex-grow flex flex-col justify-center items-center mt-5 pt-10">
             <DiceRoller ref={diceRef} />
-            {lastResult && (
+            {/* {lastResult && (
               <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? "text-green-400" : "text-red-400"}`}>
                 {lastResult.isWin ? "You Won!" : "You Lost"} (Roll: {lastResult.roll.toFixed(2)})
               </div>
-            )}
+            )} */}
 
             {/* Bet Type Toggle */}
             <div className="flex justify-center gap-4 mt-2">
@@ -106,14 +109,16 @@ export default function DiceGame() {
             </div>
             {/* Bet Settings */}
             <div className="w-full grid grid-cols-3 bg-white/10 rounded-lg mt-16">
-              <div className="p-4 rounded-lg">
-                <span className="text-xs text-white/60 text-center">Multiplier</span>
-                <p className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
-                  {lastResult?.multiplier?.toFixed(5) || "2.65000"}
+              <div className="p-4 rounded-lg text-center">
+                <span className="text-xs text-white/60 text-center justify-center">Multiplier</span>
+                <p className="bg-[#212121] h-10 flex items-center justify-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
+                  {lastResult?.multiplier?.toFixed(3) || "2.650"}
                 </p>
               </div>
-              <div className="p-4 rounded-lg">
-                <span className="text-xs text-white/60 text-center">Roll {betType === "over" ? "Over" : "Under"}</span>
+              <div className="p-4 rounded-lg text-center">
+                <span className="text-xs text-white/60 text-center justify-center">
+                  Roll {betType === "over" ? "Over" : "Under"}
+                </span>
                 <div className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-1.5">
                   <input
                     type="number"
@@ -121,13 +126,13 @@ export default function DiceGame() {
                     max="99"
                     value={target}
                     onChange={(e) => setTarget(Number(e.target.value))}
-                    className="w-full bg-transparent lg:text-base text-xs font-semibold outline-none"
+                    className="w-full bg-transparent lg:text-base text-xs font-semibold text-center outline-none"
                   />
                 </div>
               </div>
-              <div className=" p-4 rounded-lg">
+              <div className=" p-4 rounded-lg text-center">
                 <span className="text-xs text-white/60 text-center">Win Chance</span>
-                <p className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
+                <p className="bg-[#212121] h-10 flex items-center justify-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
                   {betType === "over" ? (100 - target).toFixed(2) : target.toFixed(2)}%
                 </p>
               </div>
@@ -136,39 +141,32 @@ export default function DiceGame() {
         </div>
 
         {/* Right Section (Bet Summary) */}
-        <div className="w-full lg:w-[375px] flex flex-col p-4 gap-8 bg-[#1c1c1c] border border-white/10 rounded-[20px]">
-          {/* Bet Amount Input */}
-          <div>
-            <p className="text-sm text-white/60">Bet Amount</p>
-            <div className="flex items-center justify-between bg-[#212121] rounded-lg p-4 mt-1">
-              <input
-                type="number"
-                min="0.000001"
-                step="0.000001"
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
-                className="w-full bg-transparent outline-none text-white"
-              />
-              <div className="flex items-center gap-2">
-                <div className="bg-white rounded-[1000px] p-1">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
-                </div>
-                <span className="text-sm">BTC</span>
+        <div className="w-full lg:w-[375px]  p-4 gap-6 bg-[#1c1c1c] border border-white/10 rounded-lg">
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+            {/* Bet Amount Input */}
+            <div className="flex flex-col">
+              <p className="text-sm text-white/60 mb-1">Bet Amount</p>
+              <div className="flex items-center bg-[#212121] rounded-lg p-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="0"
+                  value={betAmount}
+                  onChange={(e) => setBetAmount(Number(e.target.value))}
+                  className="w-full bg-transparent outline-none text-white text-sm"
+                />
               </div>
             </div>
-          </div>
 
-          {/* Amount to Win */}
-          <div>
-            <p className="text-sm text-white/60">Profit On Win</p>
-            <div className="bg-[#212121] rounded-lg p-4 mt-1">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-white">
-                  {(betAmount * (betType === "over" ? 99 / (100 - target) : 99 / target)).toFixed(6)} BTC
+            {/* Amount to Win */}
+            <div className="flex flex-col">
+              <p className="text-sm text-white/60 mb-1">Profit On Win</p>
+              <div className="bg-[#212121] rounded-lg p-3 flex items-center justify-start">
+                <span className="text-sm text-white font-medium">
+                  {betAmount > 0
+                    ? (betAmount * (betType === "over" ? 99 / (100 - target) : 99 / target)).toFixed(3)
+                    : 0}
                 </span>
-                <div className="bg-white rounded-[1000px] p-1">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
-                </div>
               </div>
             </div>
           </div>
@@ -176,18 +174,16 @@ export default function DiceGame() {
           {/* Bet Button */}
           <button
             onClick={handlePlaceBet}
-            disabled={isBetting}
-            className={`mt-auto font-semibold rounded-[12px] py-3 transition ${
-              isBetting ? "bg-gray-500 cursor-not-allowed" : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
-            }`}
+            disabled={isBetting || !isLoggedIn}
+            className="w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold bg-[#C8A2FF] text-black disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isBetting ? "Processing..." : "Place Bet"}
+            {!isLoggedIn ? "Login to Play" : isBetting ? "Placing Bet..." : "Play"}
           </button>
         </div>
       </div>
 
       {/* Live Wins Section */}
-      <div className="mt-12 bg-[#212121] rounded-[20px] p-6">
+      <div className="mt-12 lg:bg-[#212121] rounded-[20px] lg:p-6">
         <LiveDiceWins />
       </div>
     </div>

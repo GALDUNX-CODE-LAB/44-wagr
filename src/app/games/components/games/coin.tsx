@@ -88,7 +88,7 @@ export default function CoinTossGame() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="bg-[#212121] text-white rounded-xl p-4 md:p-6 flex flex-col lg:flex-row justify-between gap-6">
+      <div className="lg:bg-[#212121] text-white rounded-xl lg:p-4 md:p-6 flex flex-col lg:flex-row justify-between gap-6">
         {/* Coin Animation and Odds */}
         <div className="flex-1 flex flex-col justify-between">
           <div className="w-full flex justify-center">
@@ -109,22 +109,6 @@ export default function CoinTossGame() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="mt-auto flex flex-wrap gap-3 pt-6">
-            {oddsOptions.map((odds) => (
-              <button
-                key={odds}
-                onClick={() => setActiveOdds(odds)}
-                className={`w-[72px] h-[30px] rounded-full text-sm font-medium transition ${
-                  activeOdds === odds
-                    ? "bg-[#C8A2FF] text-black"
-                    : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
-                }`}
-              >
-                {odds}x
-              </button>
-            ))}
           </div>
         </div>
 
@@ -225,7 +209,7 @@ export default function CoinTossGame() {
         </div>
       )}
 
-      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+      <div className="mt-10 lg:bg-[#212121] rounded-[20px] lg:p-6">
         <LiveCoinWins />
       </div>
     </div>

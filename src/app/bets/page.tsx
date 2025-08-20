@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Search, Dices, ArrowRightLeft, RefreshCcw, Star, TrendingUp, BarChart3 } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Search, Dices, ArrowRightLeft, RefreshCcw, Star, TrendingUp, BarChart3 } from "lucide-react";
 import {
   fetchCoinflipGameHistory,
   fetchDiceGameHistory,
   fetchWheelGameHistory,
   fetchCrashGameHistory,
   fetchMetaMarketGameHistory,
-} from "../../lib/api"
+} from "../../lib/api";
 
-const categories = ["All", "Dice", "Meta Market", "Flip", "Wheel", "Crash"]
+const categories = ["All", "Dice", "Meta Market", "Flip", "Wheel", "Crash"];
 
 const colorMap: Record<string, string> = {
   purple: "#C8A2FF",
@@ -19,22 +19,17 @@ const colorMap: Record<string, string> = {
   yellow: "#FACC15",
   gray: "#6B7280",
   lightgray: "#9CA3AF",
-}
-
-const colorOddsMap: Record<string, string> = {
-  purple: "1.3x",
-  red: "1.5x",
-  green: "2.0x",
-  yellow: "1.8x",
-  gray: "2.0x",
-  lightgray: "1.1x",
-}
+};
 
 export default function BetHistoryPage() {
-  const [activeCategory, setActiveCategory] = useState("All")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [bets, setBets] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bets, setBets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // 🔹 pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const mapBetToDisplay = (bet: any, gameType: string) => {
     switch (gameType) {
@@ -52,7 +47,7 @@ export default function BetHistoryPage() {
             "Bet Type": bet.betType === "over" ? `Over ${bet.target}` : `Under ${bet.target}`,
             Roll: bet.roll.toFixed(2),
           },
-        }
+        };
       case "coinflip":
         return {
           id: bet._id,
@@ -67,7 +62,7 @@ export default function BetHistoryPage() {
             Result: bet.result,
             Choice: bet.choice,
           },
-        }
+        };
       case "wheel":
         return {
           id: bet._id,
@@ -82,7 +77,7 @@ export default function BetHistoryPage() {
             Chosen: bet.chosenColor,
             Result: bet.resultColor,
           },
-        }
+        };
       case "crash":
         return {
           id: bet._id,
@@ -96,9 +91,9 @@ export default function BetHistoryPage() {
           meta: {
             "Auto Cashout": `${bet.autoCashout}x`,
             Profit: `${bet.profit >= 0 ? "+" : ""}${bet.profit} BTC`,
-            Round: bet.round.slice(-8), // Show last 8 characters of round ID
+            Round: bet.round.slice(-8),
           },
-        }
+        };
       case "metamarket":
         return {
           id: bet._id,
@@ -114,15 +109,15 @@ export default function BetHistoryPage() {
             Shares: bet.shares.toFixed(2),
             "Avg Price": `$${bet.avgPrice.toFixed(3)}`,
           },
-        }
+        };
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   useEffect(() => {
     const fetchBets = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const [diceResponse, coinflipResponse, wheelResponse, crashResponse, metaMarketResponse] = await Promise.all([
           fetchDiceGameHistory(),
@@ -130,7 +125,7 @@ export default function BetHistoryPage() {
           fetchWheelGameHistory(),
           fetchCrashGameHistory(),
           fetchMetaMarketGameHistory(),
-        ])
+        ]);
 
         const formatted = [
           ...(diceResponse?.data || []).map((bet: any) => mapBetToDisplay(bet, "dice")),
@@ -138,29 +133,33 @@ export default function BetHistoryPage() {
           ...(wheelResponse?.data || []).map((bet: any) => mapBetToDisplay(bet, "wheel")),
           ...(crashResponse?.data || []).map((bet: any) => mapBetToDisplay(bet, "crash")),
           ...(metaMarketResponse?.data || []).map((bet: any) => mapBetToDisplay(bet, "metamarket")),
-        ].filter(Boolean)
+        ].filter(Boolean);
 
-        // Sort by creation date (most recent first)
-        formatted.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        formatted.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
-        setBets(formatted)
+        setBets(formatted);
       } catch (err) {
-        console.error("Failed to fetch bet history:", err)
+        console.error("Failed to fetch bet history:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchBets()
-  }, [])
+    fetchBets();
+  }, []);
 
   const filteredBets = bets.filter((bet) => {
-    const matchesCategory = activeCategory === "All" || bet.type === activeCategory
+    const matchesCategory = activeCategory === "All" || bet.type === activeCategory;
     const matchesSearch =
       bet.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      Object.values(bet.meta).join(" ").toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+      Object.values(bet.meta).join(" ").toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // 🔹 Pagination logic
+  const totalPages = Math.ceil(filteredBets.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedBets = filteredBets.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-4 sm:p-6 text-white min-h-screen">
@@ -186,7 +185,10 @@ export default function BetHistoryPage() {
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => {
+              setActiveCategory(cat);
+              setCurrentPage(1); // reset pagination when switching
+            }}
             className={`text-sm font-medium relative pb-1 transition-colors ${
               activeCategory === cat ? "text-[#C8A2FF]" : "text-white/70 hover:text-white"
             }`}
@@ -212,11 +214,15 @@ export default function BetHistoryPage() {
 
       {/* Bet Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredBets.map((bet) => {
-          const isWin = bet.outcome === "win"
-          const cardBg = isWin ? "bg-green-400/10" : "bg-red-400/10"
-          const badgeColor = isWin ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"
-          const amountColor = isWin ? "text-green-400" : "text-red-400"
+        {/* {paginatedBets.map((bet) => {
+          // ... keep your bet card rendering code here (unchanged)
+        })} */}
+
+        {paginatedBets.map((bet) => {
+          const isWin = bet.outcome === "win";
+          const cardBg = isWin ? "bg-green-400/10" : "bg-red-400/10";
+          const badgeColor = isWin ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400";
+          const amountColor = isWin ? "text-green-400" : "text-red-400";
 
           return (
             <div
@@ -254,10 +260,10 @@ export default function BetHistoryPage() {
                     <span className="text-[12px] text-white/60 mb-1">{label}</span>
                     <div className="w-full bg-[#1C1C1C] rounded-md p-2 text-center text-sm font-semibold">
                       {(() => {
-                        const isWheelColor = bet.type === "Wheel" && (label === "Chosen" || label === "Result")
-                        const isCoinflipSide = bet.type === "Flip" && (label === "Choice" || label === "Result")
-                        const isCrashProfit = bet.type === "Crash" && label === "Profit"
-                        const isMetaMarketSide = bet.type === "Meta Market" && label === "Side"
+                        const isWheelColor = bet.type === "Wheel" && (label === "Chosen" || label === "Result");
+                        const isCoinflipSide = bet.type === "Flip" && (label === "Choice" || label === "Result");
+                        const isCrashProfit = bet.type === "Crash" && label === "Profit";
+                        const isMetaMarketSide = bet.type === "Meta Market" && label === "Side";
 
                         if (isCoinflipSide && (value === "heads" || value === "tails")) {
                           return (
@@ -273,9 +279,9 @@ export default function BetHistoryPage() {
                                 </div>
                               )}
                             </div>
-                          )
+                          );
                         } else if (isWheelColor && typeof value === "string") {
-                          const colorKey = value.toLowerCase()
+                          const colorKey = value.toLowerCase();
                           return (
                             <div className="flex items-center gap-2 justify-center">
                               <div
@@ -284,21 +290,21 @@ export default function BetHistoryPage() {
                               />
                               <span className="capitalize">{value}</span>
                             </div>
-                          )
+                          );
                         } else if (isCrashProfit) {
-                          const profitValue = Number.parseFloat(String(value).replace(/[^\d.-]/g, ""))
-                          const profitColor = profitValue >= 0 ? "text-green-400" : "text-red-400"
-                          return <span className={`text-xs ${profitColor}`}>{String(value)}</span>
+                          const profitValue = Number.parseFloat(String(value).replace(/[^\d.-]/g, ""));
+                          const profitColor = profitValue >= 0 ? "text-green-400" : "text-red-400";
+                          return <span className={`text-xs ${profitColor}`}>{String(value)}</span>;
                         } else if (isMetaMarketSide) {
-                          const sideColor = value === "YES" ? "text-green-400" : "text-red-400"
-                          const sideBg = value === "YES" ? "bg-green-400/10" : "bg-red-400/10"
+                          const sideColor = value === "YES" ? "text-green-400" : "text-red-400";
+                          const sideBg = value === "YES" ? "bg-green-400/10" : "bg-red-400/10";
                           return (
                             <div className={`px-2 py-1 rounded ${sideBg}`}>
                               <span className={`text-xs font-bold ${sideColor}`}>{String(value)}</span>
                             </div>
-                          )
+                          );
                         } else {
-                          return <span className="text-xs">{String(value)}</span>
+                          return <span className="text-xs">{String(value)}</span>;
                         }
                       })()}
                     </div>
@@ -306,9 +312,32 @@ export default function BetHistoryPage() {
                 ))}
               </div>
             </div>
-          )
+          );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-8 lg:mb-0 mb-16">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded bg-primary text-black/70 text-sm disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="text-white/70 text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 rounded bg-primary text-black/70 text-sm disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
-  )
+  );
 }

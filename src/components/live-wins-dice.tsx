@@ -97,7 +97,7 @@ export default function LiveDiceWins() {
         ))}
       </div>
 
-      <div className="w-full rounded-lg overflow-x-auto  h-[30vh] overflow-auto">
+      <div className="w-full rounded-lg overflow-x-auto overflow-auto">
         <table className="min-w-full table-auto">
           <thead className="bg-[#212121]">
             <tr className="text-[#ffffff]/60 text-[12px]">
