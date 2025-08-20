@@ -1,6 +1,6 @@
 "use client";
 
-import { Bitcoin } from "lucide-react";
+import { Bitcoin, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
@@ -186,8 +186,8 @@ export default function StakeRingWheelGame() {
             <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
               <span className="text-sm text-white">{betAmount}</span>
               <div className="flex items-center gap-2">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-full w-6 h-6 flex items-center justify-center">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-black px-3 py-1 rounded-lg">
                   <p className="text-white font-medium leading-none">{activeOdds}x</p>
@@ -201,7 +201,7 @@ export default function StakeRingWheelGame() {
             <select
               value={selectedRisk}
               onChange={(e) => setSelectedRisk(e.target.value)}
-              className="mt-2 bg-[#212121] text-white rounded-[12px] p-3 text-xs lg:text-base lg:p-4 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-[12px] p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -214,7 +214,7 @@ export default function StakeRingWheelGame() {
             <select
               value={selectedSegments}
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
-              className="mt-2 bg-[#212121] text-white rounded-lg p-3 text-xs lg:text-base lg:p-4 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-lg p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
             >
               {[6, 8, 10, 12, 14, 16, 18, 20].map((num) => (
                 <option key={num} value={num}>
