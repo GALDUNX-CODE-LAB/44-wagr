@@ -1,11 +1,13 @@
 "use client";
 
-import { Bitcoin, Star } from "lucide-react";
+import { Bitcoin, DollarSignIcon, Star } from "lucide-react";
 import { useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { useQueryClient } from "@tanstack/react-query";
 import { placeCoinflipBet } from "../../../../lib/api";
 import LiveCoinWins from "../../../../components/live-wins-coin";
+import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
+import { TbLoader2 } from "react-icons/tb";
 
 export default function CoinTossGame() {
   const [betAmount, setBetAmount] = useState(0);
@@ -21,7 +23,7 @@ export default function CoinTossGame() {
   const winnableAmount = betAmount * activeOdds;
 
   const queryClient = useQueryClient();
-
+  const isLoggedIn = useIsLoggedIn();
   const handleRandomPick = () => {
     const sides = ["Heads", "Tails"];
     const randomSide = sides[Math.floor(Math.random() * sides.length)];
@@ -128,8 +130,8 @@ export default function CoinTossGame() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-full w-6 h-6 flex items-center justify-center">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-black px-3 py-1 rounded-lg">
                   <p className="text-white font-medium leading-none">{activeOdds}x</p>
@@ -176,8 +178,8 @@ export default function CoinTossGame() {
             <div className="bg-[#212121] rounded-lg p-3 mt-1">
               <div className="flex justify-between">
                 <span className="text-sm text-white">{winnableAmount.toFixed(6)}</span>
-                <div className="bg-white rounded-[1000px] p-1">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-[1000px] p-1">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
               </div>
             </div>
@@ -185,12 +187,12 @@ export default function CoinTossGame() {
 
           <button
             onClick={handlePlaceBet}
-            disabled={isFlipping || !selectedSide}
+            disabled={isFlipping || !selectedSide || !isLoggedIn}
             className={`bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition ${
               isFlipping ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {isFlipping ? "Flipping..." : "Bet"}
+            {!isLoggedIn ? "Login to Play" : isFlipping ? <TbLoader2 className="animate-spin" size={14} /> : "Play"}
           </button>
         </div>
       </div>
@@ -201,7 +203,7 @@ export default function CoinTossGame() {
             <p className="text-lg font-semibold mb-4">{resultText}</p>
             <button
               onClick={() => setShowResult(false)}
-              className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition"
+              className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition "
             >
               Close
             </button>
