@@ -14,10 +14,10 @@ export default function HomeV2() {
     <div className="text-white px-5">
       <BannerSlider />
       <GameSearch />
-      <RandomMetaMarket />
       <ContinuePlaying />
       <TheOriginals />
       <TrendingGames />
+      <RandomMetaMarket />
       <LiveWinsSection />
       <FaqSection />
     </div>
