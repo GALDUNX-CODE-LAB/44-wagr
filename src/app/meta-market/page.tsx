@@ -134,7 +134,7 @@ function MarketGrid({ markets, router }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
       {markets.map((market) => (
         <MarketCard key={market._id} market={market} router={router} />
       ))}
@@ -148,12 +148,18 @@ function MarketCard({ market, router }) {
       onClick={() => router.push(`/meta-market/${market._id}`)}
       className="cursor-pointer bg-[#212121] rounded-[20px] border border-white/6 p-4 flex flex-col gap-3 transition hover:border-[#C8A2FF]/30"
     >
-      <div className="flex">
+      <div className="flex  gap-3 items-center lg:items-start">
         <div className="lg:min-w-10 lg:min-h-10 min-w-10 min-h-10 bg-white rounded-[10px] mt-2" />
+        <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2">
+          {market.question}
+        </h2>
       </div>
-      <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2">
-        {market.question}
-      </h2>
+
+      <div className="flex gap-3 items-center my-3">
+        <button className="p-2 rounded-lg text-xs font-medium lg:text-sm bg-primary text-black w-full">Yes</button>
+        <button className="p-2 rounded-lg text-xs font-medium lg:text-sm bg-secondary w-full">No</button>
+      </div>
+
       <MarketStats market={market} />
     </div>
   );
