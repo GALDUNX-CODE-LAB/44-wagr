@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import LiveCrashWns from "../../../../components/live-wins-crash";
-import { placeCrashBet } from "../../../../lib/api";
+import { getCrashHistory, placeCrashBet } from "../../../../lib/api";
 import useCrashSocket from "../../../../hooks/useCrashSocket";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
 
 type Round = { roundId: string; crashPoint: number } | null;
 type BetStatus = "none" | "placed" | "cashed" | "lost";
@@ -36,6 +38,8 @@ export default function CrashGame() {
   const simRef = useRef<NodeJS.Timeout | null>(null);
   const tickRef = useRef<number | null>(null);
 
+  const queryClient = useQueryClient();
+
   const onSocketMessage = (msg: any) => {
     if (msg?.event === "crash-result") {
       setBettingOpen(!!msg.data?.newRound);
@@ -58,7 +62,14 @@ export default function CrashGame() {
   });
 
   const enableSimulation = wsStatus !== "open" && retries >= 4;
+  const { data: history = [], isLoading } = useQuery({
+    queryKey: ["crash-history"],
+    queryFn: getCrashHistory,
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
+  });
 
+  console.log(history, "Crash Historyy");
   useEffect(() => {
     if (!currentRound) return;
     const start = Date.now();
@@ -144,6 +155,7 @@ export default function CrashGame() {
           : prev
       );
     }
+    queryClient.invalidateQueries({ queryKey: ["user-data"] });
   }, [displayMultiplier, bettingOpen, currentRound, myBet]);
 
   useEffect(() => {
@@ -166,9 +178,13 @@ export default function CrashGame() {
         );
       }
     }
+    queryClient.invalidateQueries({ queryKey: ["user-data"] });
   }, [bettingOpen, currentRound, myBet]);
 
+  const isLoggedIn = useIsLoggedIn();
+
   const bettingDisabledReason = useMemo(() => {
+    if (!isLoggedIn) return "Login to play";
     if (!bettingOpen) return "Betting closed";
     if (!nextRoundId) return "Waiting for next round";
     if (myBet && myBet.status === "placed" && myBet.roundId === nextRoundId) return "Bet already locked";
@@ -186,6 +202,8 @@ export default function CrashGame() {
       autoCashout,
       status: "placed",
     });
+
+    queryClient.invalidateQueries({ queryKey: ["user-data"] });
   };
 
   const formatTime = (ms: number) => `${Math.ceil(ms / 1000)}s`;
@@ -198,6 +216,7 @@ export default function CrashGame() {
             wsStatus === "open" ? "bg-green-500" : wsStatus === "connecting" ? "bg-yellow-500" : "bg-red-500"
           }`}
         />
+
         <span className="uppercase tracking-wide">{wsStatus}</span>
         {wsError && <span className="text-red-400">• {wsError}</span>}
         {wsStatus !== "open" && (
@@ -209,6 +228,19 @@ export default function CrashGame() {
           </button>
         )}
         {enableSimulation && <span className="ml-2 rounded bg-amber-500/10 px-2 py-1 text-amber-400">Simulation</span>}
+
+        <div className="flex gap-3 items-center">
+          {history?.map((i: number, index: number) => (
+            <span
+              className={` ${
+                index === 0 ? "bg-primary text-black" : "text-white/70 bg-black/70 "
+              } rounded-2xl p-1 px-3 text-xs`}
+              key={index}
+            >
+              {i}x
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -220,11 +252,23 @@ export default function CrashGame() {
 
           <div className="h-56 sm:h-64 flex items-center justify-center">
             {!bettingOpen ? (
-              <div className="text-5xl sm:text-6xl font-bold text-[#c8a2ff]">{displayMultiplier.toFixed(2)}x</div>
+              <>
+                {!currentRound ? (
+                  <p className="text-xl sm:text-2xl animate-bounce">Waiting For Next Round</p>
+                ) : (
+                  <div className="text-5xl sm:text-6xl font-bold text-[#c8a2ff]">{displayMultiplier.toFixed(2)}x</div>
+                )}
+              </>
             ) : (
               <div className="text-center">
-                <p className="text-xl sm:text-2xl">Lock in your bet</p>
-                <p className="text-[#c8a2ff] text-2xl sm:text-3xl mt-1">{formatTime(betTimeLeft)}</p>
+                {!currentRound ? (
+                  <p className="text-xl sm:text-2xl animate-bounce">Waiting For Next Round</p>
+                ) : (
+                  <>
+                    <p className="text-xl sm:text-2xl">Lock in your bet</p>
+                    <p className="text-[#c8a2ff] text-2xl sm:text-3xl mt-1">{formatTime(betTimeLeft)}</p>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -3,6 +3,7 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Dice6 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type DiceRollerRef = {
   rollDice: () => void;
@@ -10,12 +11,18 @@ export type DiceRollerRef = {
   resetDice: () => void;
 };
 
-const DiceRollerComponent = (_: any, ref: React.Ref<DiceRollerRef>) => {
+type DiceRollerProps = {
+  onClick?: () => void; // optional onClick prop
+};
+
+const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRollerRef>) => {
   const [result, setResult] = useState<number | null>(null);
   const [win, setWin] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [resultText, setResultText] = useState("");
   const controls = useAnimation();
+
+  const queryClient = useQueryClient();
 
   // Fine-tuned positioning to match expected percentages exactly
   const calculatePosition = (value: number) => {
@@ -85,6 +92,7 @@ const DiceRollerComponent = (_: any, ref: React.Ref<DiceRollerRef>) => {
     setTimeout(() => {
       setResultText(isWin ? `🎉 You WON! Rolled ${roll.toFixed(2)}` : `❌ You LOST! Rolled ${roll.toFixed(2)}`);
       setShowPopup(true);
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
     }, 100);
   };
 
@@ -142,7 +150,10 @@ const DiceRollerComponent = (_: any, ref: React.Ref<DiceRollerRef>) => {
           <div className="bg-[#1C1C1C] border border-white/10 p-6 rounded-xl text-white text-center max-w-xs w-full">
             <p className="text-lg font-semibold mb-4">{resultText}</p>
             <button
-              onClick={() => setShowPopup(false)}
+              onClick={() => {
+                onClick();
+                setShowPopup(false);
+              }}
               className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition"
             >
               Close

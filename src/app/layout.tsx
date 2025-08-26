@@ -51,8 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </div>
               <div className="content w-[100vw] lg:w-[calc(100vw-220px)] lg:ml-[220px]">
                 <div className="">
-                  <NavbarV2 />
-                  {children}
+                  <NavbarV2 />.{children}
                 </div>
               </div>
             </div>

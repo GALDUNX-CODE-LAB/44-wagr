@@ -1,13 +1,14 @@
 "use client";
 
 import { Bitcoin, DollarSignIcon, Star } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { useQueryClient } from "@tanstack/react-query";
 import { placeCoinflipBet } from "../../../../lib/api";
 import LiveCoinWins from "../../../../components/live-wins-coin";
 import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
 import { TbLoader2 } from "react-icons/tb";
+import { FaCircle } from "react-icons/fa";
 
 export default function CoinTossGame() {
   const [betAmount, setBetAmount] = useState(0);
@@ -18,9 +19,13 @@ export default function CoinTossGame() {
   const [showResult, setShowResult] = useState(false);
   const [resultText, setResultText] = useState("");
   const [coinRotation, setCoinRotation] = useState(0);
+  const [betHistory, setBetHistory] = useState([]);
 
   const oddsOptions = [2, 4, 6, 8];
   const winnableAmount = betAmount * activeOdds;
+  useEffect(() => {
+    handleHistory();
+  }, []);
 
   const queryClient = useQueryClient();
   const isLoggedIn = useIsLoggedIn();
@@ -64,8 +69,8 @@ export default function CoinTossGame() {
       }
 
       const result = data.result.toLowerCase() === "heads" ? "heads" : "tails";
-      const baseRotation = 1080;
-      const targetRotation = result === "heads" ? baseRotation : baseRotation + 180;
+      const spins = 3;
+      const targetRotation = result === "heads" ? spins * 360 : spins * 360 + 180;
 
       setCoinRotation((prev) => prev + targetRotation);
       setCoinSide(result);
@@ -80,12 +85,21 @@ export default function CoinTossGame() {
         setShowResult(true);
       }, 2000);
 
-      queryClient.invalidateQueries();
+      // ✅ Save result in sessionStorage
+      const stored = JSON.parse(sessionStorage.getItem("coin-history") || "[]");
+      // keep max 3 results (you can change 3 → N)
+      const updatedHistory = [...stored, data].slice(-8);
+      sessionStorage.setItem("coin-history", JSON.stringify(updatedHistory));
     } catch (error: any) {
       setIsFlipping(false);
       setResultText(error.message || "Something went wrong");
       setShowResult(true);
     }
+  };
+
+  const handleHistory = () => {
+    const stored = JSON.parse(sessionStorage.getItem("coin-history") || "[]");
+    setBetHistory(stored);
   };
 
   return (
@@ -110,6 +124,25 @@ export default function CoinTossGame() {
                   <Star className="w-[120px] h-[120px] md:w-[150px] md:h-[150px] text-black fill-black" />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="wrap mt-16">
+            <div className="flex flex-wrap gap-3 items-center">
+              {betHistory.map((i, index) => (
+                <span
+                  className={` ${
+                    i.isWin ? "bg-primary text-secondary " : "bg-black/70 text-white/90"
+                  } text-xs px-3 p-1 rounded-full`}
+                  key={index}
+                >
+                  {i.result === "tails" ? (
+                    <Star className="w-2.5 h-2.5 fill-black" />
+                  ) : (
+                    <FaCircle className="w-2.5 h-2.5 text-red-500" />
+                  )}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -190,7 +223,7 @@ export default function CoinTossGame() {
             disabled={isFlipping || !selectedSide || !isLoggedIn}
             className={`bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition ${
               isFlipping ? "opacity-50 cursor-not-allowed" : ""
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            } disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center`}
           >
             {!isLoggedIn ? "Login to Play" : isFlipping ? <TbLoader2 className="animate-spin" size={14} /> : "Play"}
           </button>
@@ -202,7 +235,11 @@ export default function CoinTossGame() {
           <div className="bg-[#1C1C1C] border border-white/10 p-6 rounded-xl text-white text-center max-w-xs w-full">
             <p className="text-lg font-semibold mb-4">{resultText}</p>
             <button
-              onClick={() => setShowResult(false)}
+              onClick={() => {
+                handleHistory();
+                setShowResult(false);
+                queryClient.invalidateQueries({ queryKey: ["user-data"] });
+              }}
               className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition "
             >
               Close
