@@ -216,7 +216,7 @@ export default function HomePage() {
   // );
 
   return (
-    <div className="wrap lg:max-w-6xl mx-auto">
+    <div className="wrap w-full lg:max-w-8xl mx-auto">
       {isAuthenticating && (
         <div className="fixed bg-black/60 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
           <RiLoaderLine size={30} color="#fff" className="animate-spin" />

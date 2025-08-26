@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X, ArrowRight, Coins } from "lucide-react";
 import { claimDailyStreak, fetchUserPoints } from "../lib/api";
 import { motion } from "framer-motion";
+import { useUser } from "../hooks/useUserData";
 
 interface PointsModalProps {
   open: boolean;

@@ -14,6 +14,9 @@ import { useAccount, useDisconnect } from "wagmi";
 import { logout } from "../lib/api/auth";
 import { getCookie } from "../lib/api/cookie";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getUserData } from "../lib/api";
+import { useUser } from "../hooks/useUserData";
 
 export default function NavbarV2() {
   const [focused, setFocused] = useState(false);
@@ -45,6 +48,13 @@ export default function NavbarV2() {
     if (token) setIsLoggedIn(true);
   }, []);
 
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["user-data"],
+    queryFn: getUserData,
+  });
+
+  const { balance } = useUser();
+
   return (
     <>
       <div className="wrap relative h-[65px] w-full" />
@@ -71,7 +81,7 @@ export default function NavbarV2() {
                 <div className="relative rounded-lg w-4 h-4 flex items-center justify-center ml-2">
                   <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
                 </div>
-                <span className="truncate">0.00</span>
+                <span className="truncate">{balance?.toFixed(2)}</span>
                 <button
                   className="bg-primary text-black p-1 px-2 rounded-lg text-l"
                   onClick={() => setWalletModalOpen(true)}
