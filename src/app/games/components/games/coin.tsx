@@ -1,11 +1,14 @@
 "use client";
 
-import { Bitcoin, Star } from "lucide-react";
-import { useState } from "react";
+import { Bitcoin, DollarSignIcon, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { useQueryClient } from "@tanstack/react-query";
 import { placeCoinflipBet } from "../../../../lib/api";
 import LiveCoinWins from "../../../../components/live-wins-coin";
+import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
+import { TbLoader2 } from "react-icons/tb";
+import { FaCircle } from "react-icons/fa";
 
 export default function CoinTossGame() {
   const [betAmount, setBetAmount] = useState(0);
@@ -16,12 +19,16 @@ export default function CoinTossGame() {
   const [showResult, setShowResult] = useState(false);
   const [resultText, setResultText] = useState("");
   const [coinRotation, setCoinRotation] = useState(0);
+  const [betHistory, setBetHistory] = useState([]);
 
   const oddsOptions = [2, 4, 6, 8];
   const winnableAmount = betAmount * activeOdds;
+  useEffect(() => {
+    handleHistory();
+  }, []);
 
   const queryClient = useQueryClient();
-
+  const isLoggedIn = useIsLoggedIn();
   const handleRandomPick = () => {
     const sides = ["Heads", "Tails"];
     const randomSide = sides[Math.floor(Math.random() * sides.length)];
@@ -62,8 +69,8 @@ export default function CoinTossGame() {
       }
 
       const result = data.result.toLowerCase() === "heads" ? "heads" : "tails";
-      const baseRotation = 1080;
-      const targetRotation = result === "heads" ? baseRotation : baseRotation + 180;
+      const spins = 3;
+      const targetRotation = result === "heads" ? spins * 360 : spins * 360 + 180;
 
       setCoinRotation((prev) => prev + targetRotation);
       setCoinSide(result);
@@ -78,7 +85,11 @@ export default function CoinTossGame() {
         setShowResult(true);
       }, 2000);
 
-      queryClient.invalidateQueries();
+      // ✅ Save result in sessionStorage
+      const stored = JSON.parse(sessionStorage.getItem("coin-history") || "[]");
+      // keep max 3 results (you can change 3 → N)
+      const updatedHistory = [...stored, data].slice(-8);
+      sessionStorage.setItem("coin-history", JSON.stringify(updatedHistory));
     } catch (error: any) {
       setIsFlipping(false);
       setResultText(error.message || "Something went wrong");
@@ -86,9 +97,14 @@ export default function CoinTossGame() {
     }
   };
 
+  const handleHistory = () => {
+    const stored = JSON.parse(sessionStorage.getItem("coin-history") || "[]");
+    setBetHistory(stored);
+  };
+
   return (
     <div className="p-4 md:p-6">
-      <div className="bg-[#212121] text-white rounded-xl p-4 md:p-6 flex flex-col lg:flex-row justify-between gap-6">
+      <div className="lg:bg-[#212121] text-white rounded-xl lg:p-4 md:p-6 flex flex-col lg:flex-row justify-between gap-6">
         {/* Coin Animation and Odds */}
         <div className="flex-1 flex flex-col justify-between">
           <div className="w-full flex justify-center">
@@ -111,20 +127,23 @@ export default function CoinTossGame() {
             </div>
           </div>
 
-          <div className="mt-auto flex flex-wrap gap-3 pt-6">
-            {oddsOptions.map((odds) => (
-              <button
-                key={odds}
-                onClick={() => setActiveOdds(odds)}
-                className={`w-[72px] h-[30px] rounded-full text-sm font-medium transition ${
-                  activeOdds === odds
-                    ? "bg-[#C8A2FF] text-black"
-                    : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
-                }`}
-              >
-                {odds}x
-              </button>
-            ))}
+          <div className="wrap mt-16">
+            <div className="flex flex-wrap gap-3 items-center">
+              {betHistory.map((i, index) => (
+                <span
+                  className={` ${
+                    i.isWin ? "bg-primary text-secondary " : "bg-black/70 text-white/90"
+                  } text-xs px-3 p-1 rounded-full`}
+                  key={index}
+                >
+                  {i.result === "tails" ? (
+                    <Star className="w-2.5 h-2.5 fill-black" />
+                  ) : (
+                    <FaCircle className="w-2.5 h-2.5 text-red-500" />
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -144,8 +163,8 @@ export default function CoinTossGame() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-full w-6 h-6 flex items-center justify-center">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-black px-3 py-1 rounded-lg">
                   <p className="text-white font-medium leading-none">{activeOdds}x</p>
@@ -192,8 +211,8 @@ export default function CoinTossGame() {
             <div className="bg-[#212121] rounded-lg p-3 mt-1">
               <div className="flex justify-between">
                 <span className="text-sm text-white">{winnableAmount.toFixed(6)}</span>
-                <div className="bg-white rounded-[1000px] p-1">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-[1000px] p-1">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
               </div>
             </div>
@@ -201,12 +220,12 @@ export default function CoinTossGame() {
 
           <button
             onClick={handlePlaceBet}
-            disabled={isFlipping || !selectedSide}
+            disabled={isFlipping || !selectedSide || !isLoggedIn}
             className={`bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition ${
               isFlipping ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center`}
           >
-            {isFlipping ? "Flipping..." : "Bet"}
+            {!isLoggedIn ? "Login to Play" : isFlipping ? <TbLoader2 className="animate-spin" size={14} /> : "Play"}
           </button>
         </div>
       </div>
@@ -216,8 +235,12 @@ export default function CoinTossGame() {
           <div className="bg-[#1C1C1C] border border-white/10 p-6 rounded-xl text-white text-center max-w-xs w-full">
             <p className="text-lg font-semibold mb-4">{resultText}</p>
             <button
-              onClick={() => setShowResult(false)}
-              className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition"
+              onClick={() => {
+                handleHistory();
+                setShowResult(false);
+                queryClient.invalidateQueries({ queryKey: ["user-data"] });
+              }}
+              className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-full px-6 py-2 transition "
             >
               Close
             </button>
@@ -225,7 +248,7 @@ export default function CoinTossGame() {
         </div>
       )}
 
-      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+      <div className="mt-10 lg:bg-[#212121] rounded-[20px] lg:p-6">
         <LiveCoinWins />
       </div>
     </div>

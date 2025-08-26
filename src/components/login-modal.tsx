@@ -67,6 +67,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
       console.error("Signature verification failed:", err);
     } finally {
       setIsAuthenticating(false);
+      window.location.href = "/";
     }
   };
 

@@ -45,19 +45,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="text-[#ededed] font-inter min-h-dvh min-w-dvw ">
         <Suspense>
           <WalletProvider>
-            {/* ✅ Use min-h-dvh to avoid iOS 100vh zoom/resize quirks */}
             <div className="flex">
-              <div>
+              <div className="wrap relative ">
                 <Sidebar />
               </div>
-
-              {/* Main content area */}
-              <div className="flex-1 flex flex-col lg:ml-[220px]">
-                {/* <Navbar /> */}
-                <NavbarV2 />
-                <main className="flex-1">
-                  <div className="container mx-auto">{children}</div>
-                </main>
+              <div className="content w-[100vw] lg:w-[calc(100vw-220px)] lg:ml-[220px]">
+                <div className="">
+                  <NavbarV2 />.{children}
+                </div>
               </div>
             </div>
           </WalletProvider>

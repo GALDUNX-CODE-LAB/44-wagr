@@ -22,7 +22,7 @@ export default function LiveCoinWins() {
   const ws = useRef<WebSocket | null>(null);
   // const [liveWins , setLiveWins ] = useState(second)
 
-  const gameCategories = ["Casino", "Sports", "Race", "Dice"];
+  const gameCategories = ["Coin Flip"];
   const [activeCategory, setActiveCategory] = useState(gameCategories[0]);
   const { data: liveWins = [] } = useQuery<Win[]>({
     queryKey: ["live-wins-coin"],
@@ -87,7 +87,7 @@ export default function LiveCoinWins() {
               setActiveCategory(category);
               router.push(`/games/${category.toLowerCase()}`);
             }}
-            className={`w-[92px] h-[30px] rounded-full flex items-center justify-center text-sm transition ${
+            className={`h-[30px] rounded-full flex items-center justify-center text-sm transition ${
               activeCategory === category ? "bg-[#C8A2FF] text-black" : "bg-[#313131] text-white/70 hover:bg-[#2a2a2a]"
             }`}
             style={{ padding: "5px 23px", gap: "10px" }}
@@ -97,7 +97,7 @@ export default function LiveCoinWins() {
         ))}
       </div>
 
-      <div className="w-full rounded-lg overflow-x-auto  h-[30vh] overflow-auto">
+      <div className="w-full rounded-lg overflow-x-auto  overflow-auto">
         <table className="min-w-full table-auto">
           <thead className="bg-[#212121]">
             <tr className="text-[#ffffff]/60 text-[12px]">

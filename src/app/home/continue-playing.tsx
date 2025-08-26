@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { FaCircle } from "react-icons/fa";
 
 export default function ContinuePlaying() {
   const [cachedGames, setCachedGames] = useState<any[]>([]);
@@ -60,7 +61,7 @@ export default function ContinuePlaying() {
   }
 
   return (
-    <div className="py-6 lg:p-6 rounded-lg relative overflow-hidden">
+    <div className="py-6 rounded-lg relative overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">Continue Playing</h2>
         <div className="flex gap-2">
@@ -89,14 +90,17 @@ export default function ContinuePlaying() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-4"
+            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
           >
             {cachedGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
-              <div
-                key={index}
-                className="h-40 relative bg-black rounded-md flex items-center justify-center text-white"
-              >
-                <Image src={game.image} fill alt={game.name} className="object-cover rounded-md" />
+              <div className="wrap" key={index}>
+                <div className="h-40 relative bg-black rounded-md flex items-center justify-center text-white">
+                  <Image src={game.image} fill alt={game.name} className="object-cover rounded-md" />
+                </div>
+                <div className="wrap text-xs flex items-center gap-2 text-white/70 mt-1">
+                  <FaCircle size={10} className="text-green-600" />
+                  <span>{game.name}</span>
+                </div>
               </div>
             ))}
           </motion.div>

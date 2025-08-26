@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Search, Trophy, Clock, Users } from "lucide-react"
+import { Search, Trophy, Clock, Users, Bitcoin } from "lucide-react"
 
 export default function NFTLotteryPage() {
   const router = useRouter()
@@ -77,7 +77,7 @@ export default function NFTLotteryPage() {
   ]
 
   return (
-    <div className=" text-white p-6">
+    <div className=" text-white p-6 ">
       <div className="max-w-7xl mx-auto">
         {/* Banner */}
         <div className="w-[full] h-[223px] bg-[#212121] rounded-[20px] overflow-hidden relative border border-white/6 mb-8">
@@ -232,67 +232,110 @@ export default function NFTLotteryPage() {
         </div>
 
         {/* Bottom Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Top Winning Lotteries */}
-          <div className="w-full max-w-[600px] min-h-[400px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <Trophy className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-xl font-bold">Top Winning Lotteries</h2>
-            </div>
+         <div className="w-full max-w-[600px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
+  <div className="flex items-center gap-3 mb-6">
+    <h2 className="text-xl font-bold">Top Winning Lotteries</h2>
+  </div>
 
-            <div className="space-y-4 flex-grow overflow-y-auto">
-              {[1, 2, 3, 4, 5].map((rank) => (
-                <div key={rank} className="flex items-center justify-between p-3 bg-[#1C1C1C]/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-[#C8A2FF] text-black rounded-full flex items-center justify-center text-sm font-bold">
-                      {rank}
-                    </span>
-                    <div>
-                      <p className="font-medium">Premium NFT #{rank}</p>
-                      <p className="text-sm text-gray-400">Collection Series</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-400">${(5000 - rank * 500).toLocaleString()}</p>
-                    <p className="text-xs text-gray-400">Total Won</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+  <div className="space-y-4 flex-grow overflow-y-auto">
+    {[1, 2, 3, 4, 5].map((rank) => (
+      <div
+        key={rank}
+        className="flex items-center justify-between py-4 rounded-lg"
+      >
+        {/* Left: Rank as big plain text */}
+        <span className="text-3xl md:text-[45px] font-bold text-white w-10 md:w-12 text-left">
+          {rank}
+        </span>
+
+        {/* Middle: Image + Info */}
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="w-6 h-6 rounded-full mt-1 overflow-hidden flex-shrink-0">
+            <Image
+              src="/assets/nft4.png"
+              width={24}
+              height={24}
+              className="object-cover"
+              alt={`NFT ${rank}`}
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium truncate">Premium NFT #{rank}</p>
+            {/* Mobile next draw */}
+            <p className="text-[10px] md:hidden text-white/65 whitespace-nowrap">
+              Next Draw: 00h-00m-00s
+            </p>
+            <p className="font-bold text-base md:text-lg text-white mt-1">
+              $500,000
+            </p>
+          </div>
+        </div>
+
+        {/* Right: Next Draw + Button */}
+        <div className="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
+          <p className="text-xs hidden md:block text-white whitespace-nowrap">
+            Next Draw: 00h-00m-00s
+          </p>
+          <button className="px-3 py-1.5 text-sm font-medium bg-[#C8A2FF] text-black rounded-[8px] hover:bg-[#B891FF] transition-colors">
+            Bet Now
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+
+
+
           </div>
 
           {/* Recent Winners */}
-          <div className="w-full max-w-[600px] min-h-[400px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
+          <div className="w-full max-w-[600px]  max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
             <div className="flex items-center gap-3 mb-6">
-              <Clock className="w-6 h-6 text-blue-400" />
               <h2 className="text-xl font-bold">Recent Winners</h2>
             </div>
 
-            <div className="space-y-4 flex-grow overflow-y-auto">
-              {recentWinners.map((winner, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-[#1C1C1C]/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden">
-                      <Image
-                        src={winner.avatar || "/placeholder.svg"}
-                        width={40}
-                        height={40}
-                        className="object-cover"
-                        alt={winner.username}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium">{winner.username}</p>
-                      <p className="text-sm text-gray-400">Winner</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-400">{winner.price}</p>
-                    <p className="text-xs text-gray-400">Prize Won</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            < div className=" bg-[#c8a2ff]/50 rounded-[5px] h-[40px] w-full mb-5 " />
+
+              <div className="space-y-4 flex-grow overflow-y-auto">
+  {/* Header */}
+  <div className="flex items-center justify-between px-2 py-1  ">
+    <span className="text-sm font-medium text-white/65">Player</span>
+    <span className="text-sm font-medium text-white/65">Price</span>
+  </div>
+
+  {/* Winners List */}
+  {recentWinners.map((winner, index) => (
+    <div
+      key={index}
+      className="flex items-center justify-between p-2 bg-[#1C1C1C]/50 rounded-lg"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full overflow-hidden">
+          <Image
+            src={winner.avatar || "/placeholder.svg"}
+            width={32}
+            height={32}
+            className="object-cover"
+            alt={winner.username}
+          />
+        </div>
+        <div>
+          <p className="font-medium">{winner.username}</p>
+        </div>
+      </div>
+
+      <div className="text-right flex gap-2 ">
+        <p className="font-bold text-white">{winner.price}</p>
+        <div className="bg-yellow-400 rounded-full w-5 h-5 flex mt-0.5 items-center justify-center">
+          <Bitcoin className="w-3 h-3 text-white" />
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
           </div>
         </div>
       </div>

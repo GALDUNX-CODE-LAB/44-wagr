@@ -161,7 +161,7 @@ export const placeDiceBet = async ({
 
 // ✅ Fetch all markets
 export const fetchMarkets = async () => {
-  const data = await apiHandler<any>(process.env.NEXT_PUBLIC_META_MARKET_ENDPOINT || "", {
+  const data = await apiHandler<any>("/meta-market", {
     method: "GET",
   });
 
@@ -222,4 +222,14 @@ export const verifySignature = async (walletAddress: string, signature: string) 
     method: "POST",
     data: { walletAddress, signature },
   });
+};
+
+export const getUserData = async () => {
+  const response = await apiHandler("/user", { method: "GET" });
+  return response.message;
+};
+
+export const getCrashHistory = async () => {
+  const response = await apiHandler("/crash/history", { method: "GET" });
+  return response.results;
 };

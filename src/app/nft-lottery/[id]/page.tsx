@@ -18,7 +18,7 @@ export default function LotteryDetailsPage() {
     id: lotteryId,
     title: `Exclusive NFT Collection #${lotteryId}`,
     image: "/assets/nft1.png",
-    winningPrice: "$15,000",
+    winningPrice: "$20,000",
     nextDrawTime: "8/12/2025, 9:08:00 PM",
   }
 
@@ -67,32 +67,39 @@ export default function LotteryDetailsPage() {
           </button>
         </div> */}
 
-        <div className="flex flex-col lg:flex-row gap-8 mb-8">
-          {/* Left - Image */}
-          <div className="w-full lg:w-[400px] h-[400px] bg-[#212121] border border-white/10 rounded-[20px] overflow-hidden relative flex-shrink-0">
-            <Image
-              src={lotteryData.image || "/placeholder.svg"}
-              fill
-              className="object-cover"
-              alt={lotteryData.title}
-            />
-          </div>
+       <div className="flex flex-col gap-6 mb-8">
+  {/* Top row: Image + Title */}
+  <div className="flex items-center gap-4">
+    <div className="w-[100px] h-[100px] rounded-full overflow-hidden relative flex-shrink-0">
+      <Image
+        src={lotteryData.image || "/placeholder.svg"}
+        fill
+        className="object-cover"
+        alt={lotteryData.title}
+      />
+    </div>
+    <h1 className="text-xl font-medium">{lotteryData.title}</h1>
+  </div>
 
-          {/* Right - Title and Info */}
-          <div className="flex-1 space-y-6">
-            <h1 className="text-24px font-medium ">{lotteryData.title}</h1>
+  {/* Next Draw Time */}
+  <div className="w-full max-w-[450px] font-medium flex items-center justify-between px-2">
+    <span className="text-sm text-white/60">Next Draw Time</span>
+    <span className="text-base text-white">{lotteryData.nextDrawTime}</span>
+  </div>
 
-            <div className="w-full max-w-[450px] h-[40px] font-medium  flex items-center justify-between px-2">
-              <span className="text-sm text-white/60">Next Draw Time Starts In</span>
-              <span className="text-base text-white">{lotteryData.nextDrawTime}</span>
-            </div>
+    <div className="w-full max-w-[450px]  font-medium flex items-center justify-between px-2">
+    <span className="text-sm text-white/60">Next Draw Time Starts In</span>
+    <span className="text-base text-white">{lotteryData.nextDrawTime}</span>
+  </div>
 
-            <div className="w-full max-w-[405px] h-[40px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
-              <span className="text-sm text-gray-300">Winning Price</span>
-              <span className="text-lg font-bold text-green-400">{lotteryData.winningPrice}</span>
-            </div>
-          </div>
-        </div>
+  {/* Winning Price */}
+  <div className="w-full max-w-[405px] h-[40px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
+    <span className="text-sm text-gray-300">Winning Price</span>
+    <span className="text-lg font-bold text-[#c8a2ff]">
+      {lotteryData.winningPrice}
+    </span>
+  </div>
+</div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Card - Number Selection */}
@@ -101,7 +108,7 @@ export default function LotteryDetailsPage() {
 
             {/* Inner card for number selection */}
             <div className="w-full max-w-[516px] min-h-[353px] bg-[#1C1C1C] border border-white/[0.1] rounded-[16px] p-5">
-              <h4 className="text-xs font-medium mb-6">Choose your number</h4>
+              <h4 className="text-xs font-medium mb-6">Choose your balls</h4>
 
               {/* Number grid */}
               <div className="grid grid-cols-7 gap-2">
@@ -121,47 +128,51 @@ export default function LotteryDetailsPage() {
               </div>
 
               <div className="mt-4 text-sm text-white/60">
-                Selected: {selectedNumbers.join(", ") || "None"} ({selectedNumbers.length}/6)
+                 {selectedNumbers.join(", ") } 
               </div>
             </div>
           </div>
 
           {/* Right Card - Betting */}
           <div className="w-full max-w-[556px] min-h-[433px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6">
-            <h3 className="text-base font-medium mb-2">Bet</h3>
-            <div className="w-full h-[1px] bg-white/10 mb-6"></div>
+            <h3 className="text-base font-medium mb-4">Bet</h3>
+            <div className="w-full h-[1px] bg-white/10 mb-8"></div>
 
             <div className="space-y-4">
               {/* Draw input */}
               <div>
-                <label className="block text-sm text-white mb-2">Draw</label>
+                <label className="block text-sm text-white mb-4">Draw</label>
                 <input
                   type="text"
                   value={drawAmount}
                   onChange={(e) => setDrawAmount(e.target.value)}
                   className="w-full max-w-[516px] h-[45px] bg-[#1C1C1C] border border-white/[0.1] rounded-[10px] px-4 text-white placeholder-gray-500 focus:outline-none focus:border-white/20"
-                  placeholder="Enter draw amount"
+                  placeholder="Draw"
                 />
               </div>
 
               {/* Bet amount input */}
-              <div>
-                <label className="block text-sm text-white mb-2">Bet Amount</label>
-                <input
-                  type="number"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(e.target.value)}
-                  className="w-full max-w-[516px] h-[45px] bg-[#1C1C1C] border border-white/[0.1] rounded-[10px] px-4 text-white placeholder-gray-500 focus:outline-none focus:border-white/20"
-                  placeholder="Enter bet amount"
-                />
-              </div>
+                    <div>
+  <label className="block text-sm text-white mb-4">Bet Amount</label>
+  <div className="relative w-full max-w-[516px]">
+    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white">$</span>
+    <input
+      type="number"
+      value={betAmount}
+      onChange={(e) => setBetAmount(e.target.value)}
+      className="w-full h-[45px] bg-[#1C1C1C] border border-white/[0.1] rounded-[10px] pl-8 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-white/20"
+      placeholder="Enter bet amount"
+    />
+  </div>
+</div>
+
             </div>
 
             {/* Line separator */}
-            <div className="w-full h-[1px] bg-white/10 my-6"></div>
+            <div className="w-full h-[1px] bg-white/10 my-8"></div>
 
             {/* Betting summary */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-8">
               <div className="flex justify-between text-sm">
                 <span className="text-white/65">Potential Return</span>
                 <span className="text-white font-medium">${calculatePotentialReturn()}</span>
@@ -174,10 +185,10 @@ export default function LotteryDetailsPage() {
 
             {/* Bet button */}
             <button
-              className="w-full h-[50px] bg-[#C8A2FF] text-black font-bold text-lg rounded-[10px] hover:bg-[#B891FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-[50px] bg-[#C8A2FF] mt-2 text-black font-bold text-lg rounded-[10px] hover:bg-[#B891FF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={selectedNumbers.length === 0 || !betAmount}
             >
-              Place Bet
+              Bet Now 
             </button>
           </div>
         </div>

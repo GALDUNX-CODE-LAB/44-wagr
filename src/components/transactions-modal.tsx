@@ -47,8 +47,7 @@ export default function TransactionsModal({ open, onClose }: TransactionsModalPr
 
   if (!open) return null;
 
-  const filtered = transactions.filter((tx) => tx.type === activeTab);
-
+  const filtered = Array.isArray(transactions) ? transactions.filter((tx) => tx.type === activeTab) : [];
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
       <div className="bg-[#1c1c1c] w-full max-w-[1080px] rounded-[20px] border border-white/10 p-4 relative flex flex-col lg:flex-row gap-4">
@@ -93,7 +92,9 @@ export default function TransactionsModal({ open, onClose }: TransactionsModalPr
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-6 text-white/50">Loading...</td>
+                    <td colSpan={4} className="text-center py-6 text-white/50">
+                      Loading...
+                    </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
@@ -104,9 +105,7 @@ export default function TransactionsModal({ open, onClose }: TransactionsModalPr
                 ) : (
                   filtered.map((tx, idx) => (
                     <tr key={tx._id} className={idx % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"}>
-                      <td className="py-6 px-4 text-sm whitespace-nowrap">
-                        {new Date(tx.date).toLocaleDateString()}
-                      </td>
+                      <td className="py-6 px-4 text-sm whitespace-nowrap">{new Date(tx.date).toLocaleDateString()}</td>
                       <td className="py-6 px-4 text-sm">
                         <div className="flex items-center gap-2">
                           <span
@@ -122,9 +121,7 @@ export default function TransactionsModal({ open, onClose }: TransactionsModalPr
                         </div>
                       </td>
                       <td className="py-6 px-4 text-sm font-mono truncate">—</td>
-                      <td className="py-6 px-4 text-sm whitespace-nowrap text-right">
-                        {tx.amount}
-                      </td>
+                      <td className="py-6 px-4 text-sm whitespace-nowrap text-right">{tx.amount}</td>
                     </tr>
                   ))
                 )}

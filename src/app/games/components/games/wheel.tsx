@@ -1,13 +1,13 @@
 "use client";
 
-import { Bitcoin } from "lucide-react";
+import { Bitcoin, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
 import { HARD_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
 import { placeWheelBet } from "../../../../lib/api/wheel-api";
-
+import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
 
 const COLOR_MAPPING = {
   purple: "#C8A2FF",
@@ -29,10 +29,8 @@ export default function StakeRingWheelGame() {
   const [selectedSegments, setSelectedSegments] = useState(HARD_CODED_SEGMENTS.length);
   const [recentResults, setRecentResults] = useState<Array<{ multiplier: number; color: string }>>([]);
   const [fixedSegments, setFixedSegments] = useState(HARD_CODED_SEGMENTS);
-   const [isBetting, setIsBetting] = useState(false);
-
-  
-
+  const [isBetting, setIsBetting] = useState(false);
+  const isLoggedIn = useIsLoggedIn();
   const segmentAngle = 360 / selectedSegments;
 
   useEffect(() => {
@@ -51,83 +49,75 @@ export default function StakeRingWheelGame() {
       .join(", ")})`;
   };
 
-const handleSpin = async () => {
-  if (isSpinning || !fixedSegments.length) return;
+  const handleSpin = async () => {
+    if (isSpinning || !fixedSegments.length) return;
 
-  setIsSpinning(true);
-  setShowResult(false);
+    setIsSpinning(true);
+    setShowResult(false);
 
-  try {
-    // Randomly pick a color from wheel segments
-    const randomColor = fixedSegments[Math.floor(Math.random() * fixedSegments.length)].color;
+    try {
+      // Randomly pick a color from wheel segments
+      const randomColor = fixedSegments[Math.floor(Math.random() * fixedSegments.length)].color;
 
-    // Send primitive values, not objects
-    const response = await placeWheelBet({
-      stake: betAmount, // ensure it's a number
-      chosenColor: randomColor,
-    });
+      // Send primitive values, not objects
+      const response = await placeWheelBet({
+        stake: betAmount, // ensure it's a number
+        chosenColor: randomColor,
+      });
 
-    if (!response?.success) {
-      throw new Error("Bet failed.");
-    }
+      if (!response?.success) {
+        throw new Error("Bet failed.");
+      }
 
-    const { resultColor, multiplier } = response.data;
+      const { resultColor, multiplier } = response.data;
 
-    // Find result index from the wheel segments
-    const resultIndex = fixedSegments.findIndex(
-      (seg) => seg.color === resultColor
-    );
+      // Find result index from the wheel segments
+      const resultIndex = fixedSegments.findIndex((seg) => seg.color === resultColor);
 
-    if (resultIndex === -1) {
+      if (resultIndex === -1) {
+        setIsSpinning(false);
+        setResultText("Invalid result from server.");
+        setShowResult(true);
+        return;
+      }
+
+      // Spin calculation
+      const SEGMENT_COUNT = fixedSegments.length;
+      const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
+      const segmentCenterInGradient = resultIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+      const segmentCenterInNormal = (segmentCenterInGradient + 90) % 360;
+      const rotationNeeded = (360 - segmentCenterInNormal) % 360;
+
+      const SPIN_COUNT = 5;
+      const currentBase = Math.floor(wheelRotation / 360) * 360;
+      const totalRotation = currentBase + SPIN_COUNT * 360 + rotationNeeded;
+
+      setWheelRotation(totalRotation);
+
+      setTimeout(() => {
+        setIsSpinning(false);
+
+        const winAmount = Number(betAmount) * multiplier;
+        setResultText(
+          multiplier > 0
+            ? `🎉 Landed on ${resultColor}! Won ${winAmount.toFixed(6)} BTC (${multiplier}x)`
+            : `❌ Landed on ${resultColor} - Better luck next time!`
+        );
+
+        setRecentResults((prev) => [{ multiplier, color: resultColor }, ...prev.slice(0, 4)]);
+
+        setShowResult(true);
+      }, 4500);
+    } catch (error: any) {
       setIsSpinning(false);
-      setResultText("Invalid result from server.");
+      setResultText(error.message || "Bet failed");
       setShowResult(true);
-      return;
     }
-
-    // Spin calculation
-    const SEGMENT_COUNT = fixedSegments.length;
-    const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
-    const segmentCenterInGradient =
-      resultIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-    const segmentCenterInNormal = (segmentCenterInGradient + 90) % 360;
-    const rotationNeeded = (360 - segmentCenterInNormal) % 360;
-
-    const SPIN_COUNT = 5;
-    const currentBase = Math.floor(wheelRotation / 360) * 360;
-    const totalRotation =
-      currentBase + SPIN_COUNT * 360 + rotationNeeded;
-
-    setWheelRotation(totalRotation);
-
-    setTimeout(() => {
-      setIsSpinning(false);
-
-      const winAmount = Number(betAmount) * multiplier;
-      setResultText(
-        multiplier > 0
-          ? `🎉 Landed on ${resultColor}! Won ${winAmount.toFixed(6)} BTC (${multiplier}x)`
-          : `❌ Landed on ${resultColor} - Better luck next time!`
-      );
-
-      setRecentResults((prev) => [
-        { multiplier, color: resultColor },
-        ...prev.slice(0, 4),
-      ]);
-
-      setShowResult(true);
-    }, 4500);
-  } catch (error: any) {
-    setIsSpinning(false);
-    setResultText(error.message || "Bet failed");
-    setShowResult(true);
-  }
-};
-
+  };
 
   return (
     <div className="px-4 py-6">
-      <div className="bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 justify-between items-center lg:items-start p-6">
+      <div className="lg:bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 justify-between items-center lg:items-start lg:p-6">
         {/* Segment Cards (Left) */}
         <div className="hidden lg:flex lg:flex-col flex-wrap gap-2 justify-center">
           {fixedSegments.map((segment, idx) => (
@@ -192,12 +182,12 @@ const handleSpin = async () => {
         {/* Betting Panel */}
         <div className="w-full lg:w-[347px] bg-[#1C1C1C] rounded-[16px] border border-white/10 p-4 flex flex-col gap-4">
           <div>
-            <p className="text-sm text-white/60">Bet Amount</p>
+            <p className="text-xs lg:text-sm text-white/60">Bet Amount</p>
             <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
               <span className="text-sm text-white">{betAmount}</span>
               <div className="flex items-center gap-2">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                  <Bitcoin className="w-4 h-4 text-yellow-400" />
+                <div className="bg-emerald-600 rounded-full w-6 h-6 flex items-center justify-center">
+                  <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-black px-3 py-1 rounded-lg">
                   <p className="text-white font-medium leading-none">{activeOdds}x</p>
@@ -207,11 +197,11 @@ const handleSpin = async () => {
           </div>
 
           <div>
-            <p className="text-sm text-white/60">Risk</p>
+            <p className="text-xs lg:text-sm text-white/60">Risk</p>
             <select
               value={selectedRisk}
               onChange={(e) => setSelectedRisk(e.target.value)}
-              className="mt-2 bg-[#212121] text-white rounded-[12px] p-4 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-[12px] p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -220,11 +210,11 @@ const handleSpin = async () => {
           </div>
 
           <div>
-            <p className="text-sm text-white/60">Segments</p>
+            <p className="text-xs lg:text-sm text-white/60">Segments</p>
             <select
               value={selectedSegments}
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
-              className="mt-2 bg-[#212121] text-white rounded-lg p-4 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-lg p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
             >
               {[6, 8, 10, 12, 14, 16, 18, 20].map((num) => (
                 <option key={num} value={num}>
@@ -236,13 +226,20 @@ const handleSpin = async () => {
 
           <button
             onClick={handleSpin}
+            disabled={isSpinning || !isBetting || !isLoggedIn}
+            className="w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold bg-[#C8A2FF] text-black disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {!isLoggedIn ? "Login to Play" : isBetting || isSpinning ? "Placing Bet..." : "Play"}
+          </button>
+          {/* <button
+            onClick={handleSpin}
             disabled={isSpinning || isBetting}
             className={`${
               isSpinning || isBetting ? "opacity-50 cursor-not-allowed" : ""
             } bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-3.5 mt-auto transition`}
           >
             {isSpinning || isBetting ? "Processing..." : "Bet"}
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -262,7 +259,7 @@ const handleSpin = async () => {
       )}
 
       {/* Live Wins */}
-      <div className="mt-10 bg-[#212121] rounded-[20px] p-6">
+      <div className="mt-10 lg:bg-[#212121] rounded-[20px] lg:p-6">
         <LiveWheelsWins />
       </div>
     </div>
