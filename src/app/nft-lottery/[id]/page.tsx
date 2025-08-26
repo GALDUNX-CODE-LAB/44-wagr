@@ -67,10 +67,10 @@ export default function LotteryDetailsPage() {
           </button>
         </div> */}
 
-       <div className="flex flex-col gap-6 mb-8">
+              <div className="flex flex-col gap-6 mb-8">
   {/* Top row: Image + Title */}
   <div className="flex items-center gap-4">
-    <div className="w-[100px] h-[100px] rounded-full overflow-hidden relative flex-shrink-0">
+    <div className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full overflow-hidden relative flex-shrink-0">
       <Image
         src={lotteryData.image || "/placeholder.svg"}
         fill
@@ -78,28 +78,36 @@ export default function LotteryDetailsPage() {
         alt={lotteryData.title}
       />
     </div>
-    <h1 className="text-xl font-medium">{lotteryData.title}</h1>
+    <h1 className="text-lg md:text-xl font-medium break-words">
+      {lotteryData.title}
+    </h1>
   </div>
 
   {/* Next Draw Time */}
-  <div className="w-full max-w-[450px] font-medium flex items-center justify-between px-2">
-    <span className="text-sm text-white/60">Next Draw Time</span>
-    <span className="text-base text-white">{lotteryData.nextDrawTime}</span>
+  <div className="w-full max-w-[400px] font-medium flex items-center justify-between px-2">
+    <span className="md:text-sm text-xs text-white/60">Next Draw Time</span>
+    <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
+      {lotteryData.nextDrawTime}
+    </span>
   </div>
 
-    <div className="w-full max-w-[450px]  font-medium flex items-center justify-between px-2">
-    <span className="text-sm text-white/60">Next Draw Time Starts In</span>
-    <span className="text-base text-white">{lotteryData.nextDrawTime}</span>
+  {/* Next Draw Starts In */}
+  <div className="w-full max-w-[400px] font-medium flex items-center justify-between px-2">
+    <span className="md:text-sm text-xs text-white/60 ">Next Draw Time Starts In</span>
+    <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
+      {lotteryData.nextDrawTime}
+    </span>
   </div>
 
   {/* Winning Price */}
-  <div className="w-full max-w-[405px] h-[40px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
+  <div className="w-full h-[44px] max-w-[400px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
     <span className="text-sm text-gray-300">Winning Price</span>
     <span className="text-lg font-bold text-[#c8a2ff]">
       {lotteryData.winningPrice}
     </span>
   </div>
 </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Card - Number Selection */}
@@ -111,12 +119,12 @@ export default function LotteryDetailsPage() {
               <h4 className="text-xs font-medium mb-6">Choose your balls</h4>
 
               {/* Number grid */}
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-2 ">
                 {numbers.map((number) => (
                   <button
                     key={number}
                     onClick={() => handleNumberSelect(number)}
-                    className={`w-[41px] h-[41px] rounded-full border text-sm font-medium transition-colors ${
+                    className={`md:w-[41px] w-[36px] h-[36px] md:h-[41px] rounded-full border text-sm font-medium transition-colors ${
                       selectedNumbers.includes(number)
                         ? "bg-[#C8A2FF] border-[#C8A2FF] text-black"
                         : "bg-[#212121] border-white/[0.1] text-white hover:border-white/20"
