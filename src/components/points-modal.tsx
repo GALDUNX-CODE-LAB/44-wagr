@@ -129,7 +129,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
         <div className="w-full max-w-[781px] h-[40px] bg-[#212121] border border-white/10 rounded-full flex mb-6 overflow-hidden">
           <button
             onClick={() => setActiveTab("daily")}
-            className={`w-1/2 rounded-full text-sm font-medium transition ${
+            className={`w-1/2 rounded-full text-xs sm:text-sm font-medium transition ${
               activeTab === "daily" ? "bg-[#C8A2FF] text-black" : "text-white/40"
             }`}
           >
@@ -137,7 +137,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </button>
           <button
             onClick={() => setActiveTab("social")}
-            className={`w-1/2 rounded-full text-sm font-medium transition ${
+            className={`w-1/2 rounded-full text-xs sm:text-sm font-medium transition ${
               activeTab === "social" ? "bg-[#C8A2FF] text-black" : "text-white/40"
             }`}
           >
@@ -175,7 +175,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                   <button
                     onClick={handleDailyClaim}
                     disabled={claiming}
-                    className={`w-full rounded-lg py-2 text-sm font-semibold ${
+                    className={`w-full rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold ${
                       claiming ? "bg-[#1c1c1c] text-white cursor-not-allowed" : "bg-white hover:bg-[#D5B3FF] text-black"
                     }`}
                   >
@@ -183,13 +183,13 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                   </button>
                 ) : entry.status === "claim" ? (
                   <button
-                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-2 text-sm font-semibold cursor-not-allowed"
+                    className="w-full bg-[#1c1c1c] text-white rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold cursor-not-allowed"
                     disabled
                   >
                     Not Available
                   </button>
                 ) : (
-                  <div className="w-full bg-[#1c1c1c] text-white rounded-lg py-2 text-sm font-semibold">
+                  <div className="w-full bg-[#1c1c1c] text-white rounded-lg py-1.5 sm:py-2 text-xs sm:text-sm font-semibold">
                     {entry.date || "Locked"}
                   </div>
                 )}
@@ -198,7 +198,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </div>
         )}
         {activeTab === "social" && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {socialPoints.map((entry, i) => (
               <motion.div
                 key={i}
@@ -212,7 +212,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-medium mb-1">{entry.action}</span>
-                  <span className=" font-medium text-sm">+{entry.points}</span>
+                  <span className="font-medium text-sm">+{entry.points}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <a
@@ -226,19 +226,19 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
                     aria-label={`Go to ${entry.action}`}
                   >
                     <ArrowRight
-                      className={`w-5 h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"} rotate-320`}
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"} rotate-320`}
                     />
                   </a>
                   {entry.status === "claimed" ? (
                     <button
-                      className="bg-black text-white w-[100px] px-4 py-2 rounded-full text-sm font-semibold cursor-not-allowed"
+                      className="bg-black text-white min-w-[80px] sm:w-[100px] px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold cursor-not-allowed"
                       disabled
                     >
                       Claimed
                     </button>
                   ) : (
                     <button
-                      className={`w-[100px] px-4 py-2 rounded-full text-sm font-semibold ${
+                      className={`min-w-[80px] sm:w-[100px] px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold ${
                         !entry.visited
                           ? "bg-black text-white/40 cursor-not-allowed"
                           : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
