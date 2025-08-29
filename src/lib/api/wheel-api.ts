@@ -23,11 +23,17 @@ export const fetchSegments = async (): Promise<DynamicSegment[]> => {
 };
 
 // ✅ FIXED: Backend expects 'betAmount', not 'stake'
-export const placeWheelBet = async ({ stake, chosenColor }: { stake: number; chosenColor: string }) => {
+export const placeWheelBet = async ({
+  stake,
+  chosenColor,
+}: {
+  stake: number;
+  chosenColor: string;
+}) => {
   // ✅ IMPORTANT: Backend expects 'betAmount', not 'stake'
-  const payload = { 
-    betAmount: stake,  // ← Changed from 'stake' to 'betAmount' to match backend
-    chosenColor 
+  const payload = {
+    betAmount: stake, // ← Changed from 'stake' to 'betAmount' to match backend
+    chosenColor,
   };
 
   console.log("[placeWheelBet] Input parameters:", { stake, chosenColor });
@@ -43,8 +49,10 @@ export const placeWheelBet = async ({ stake, chosenColor }: { stake: number; cho
     console.log("[placeWheelBet] SUCCESS:", response);
     return response;
   } catch (error: any) {
-    console.error("[placeWheelBet] Error response:", error?.response?.data || error);
+    console.error(
+      "[placeWheelBet] Error response:",
+      error?.response?.data || error
+    );
     throw error;
   }
 };
-

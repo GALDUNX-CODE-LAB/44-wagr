@@ -142,3 +142,31 @@ export interface Comment {
   createdAt: string;
   likes?: number;
 }
+
+// types/lottery.ts
+export interface LotteryCard {
+  id: number;
+  amount: string;
+  exclusive: string;
+  image: string;
+}
+
+export interface Winner {
+  username: string;
+  price: string;
+  avatar: string;
+}
+
+export interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+}
+
+export interface LotteryItem {
+  rank: number;
+  name: string;
+  image: string;
+  price: string;
+  nextDraw: string;
+}

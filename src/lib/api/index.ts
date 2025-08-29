@@ -233,3 +233,10 @@ export const getCrashHistory = async () => {
   const response = await apiHandler("/crash/history", { method: "GET" });
   return response.results;
 };
+
+export const fetchLotteries = async () => {
+  const response = await apiHandler("/lottery", {
+    method: "GET",
+  });
+  return response;
+};
