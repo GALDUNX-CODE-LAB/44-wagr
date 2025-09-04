@@ -170,3 +170,42 @@ export interface LotteryItem {
   price: string;
   nextDraw: string;
 }
+
+export interface LotteryNumbersResponse {
+  roundId: string;
+  availableNumbers: number[];
+  totalAvailable: number;
+}
+
+export interface LotteryBetResponse {
+  data: {
+    userId: string;
+    roundId: string;
+    pickedNumbers: number[];
+    amount: number;
+    isWinner: boolean;
+    _id: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
+  success: boolean;
+  message: string;
+}
+
+export interface Lottery {
+  _id: string;
+  name: string;
+  imgUrl: string;
+  ticketPrice: number;
+  totalBets: number;
+  startTime: string;
+  endTime: string;
+  isCompleted: boolean;
+  winningNumbers?: number[];
+  pickCount?: number;
+}
+export interface BetData {
+  pickedNumbers: number[];
+  amount: number;
+}

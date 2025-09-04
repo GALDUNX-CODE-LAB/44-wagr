@@ -240,3 +240,37 @@ export const fetchLotteries = async () => {
   });
   return response;
 };
+
+
+export const fetchLotteryWinners = async () => {
+  const response = await apiHandler("/lottery/winners", {
+    method: "GET",
+  });
+  return response;
+}
+
+
+export const fetchLotteryNumbers = async (roundId: string) => {
+  const response = await apiHandler(`/lottery/${roundId}/numbers`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const placeLotteryBet = async (
+  lotteryId: string,
+  betData: {
+    pickedNumbers: number[];
+    amount: number;
+  }
+) => {
+  const response = await apiHandler(`/lottery/bet`, {
+    method: "POST",
+    body: JSON.stringify({
+      lotteryNumbers: betData.pickedNumbers,
+      lotteryId: lotteryId,
+      amount: betData.amount,
+    }),
+  });
+  return response;
+};
