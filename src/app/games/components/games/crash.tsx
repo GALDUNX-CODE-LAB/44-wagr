@@ -35,6 +35,8 @@ export default function CrashGame() {
   const [nextRoundId, setNextRoundId] = useState("");
   const [myBet, setMyBet] = useState<MyBet | null>(null);
 
+  console.log(myBet);
+
   const simRef = useRef<NodeJS.Timeout | null>(null);
   const tickRef = useRef<number | null>(null);
 
@@ -43,6 +45,7 @@ export default function CrashGame() {
   const onSocketMessage = (msg: any) => {
     if (msg?.event === "crash-result") {
       setBettingOpen(!!msg.data?.newRound);
+      // setMyBet(!!msg.data?.newRound && null);
       if (msg.data?.newRound) setNextRoundId(msg.data.roundId);
       setCurrentRound({ roundId: msg.data?.roundId, crashPoint: msg.data?.crashPoint });
       setDisplayMultiplier(1);
@@ -95,6 +98,7 @@ export default function CrashGame() {
 
   useEffect(() => {
     if (!currentRound) return;
+    if (bettingOpen && currentRound) setMyBet(null);
     const interval = setInterval(() => {
       if (!bettingOpen) setTimeLeft((prev) => Math.max(prev - 100, 0));
       else setBetTimeLeft((prev) => Math.max(prev - 100, 0));
@@ -140,7 +144,7 @@ export default function CrashGame() {
     if (myBet.status !== "placed") return;
     if (currentRound.roundId !== myBet.roundId) return;
 
-    if (!bettingOpen && displayMultiplier >= myBet.autoCashout) {
+    if (displayMultiplier >= myBet.autoCashout) {
       const payout = Number((myBet.stake * myBet.autoCashout).toFixed(6));
       const profit = Number((payout - myBet.stake).toFixed(6));
       setMyBet((prev) =>
@@ -343,22 +347,15 @@ export default function CrashGame() {
                   <p className="text-xs text-white/60">Status</p>
                   <p
                     className={`text-sm font-semibold ${
-                      myBet.status === "cashed"
+                      displayMultiplier > myBet.autoCashout
                         ? "text-green-400"
-                        : myBet.status === "lost"
+                        : !bettingOpen
                         ? "text-red-400"
                         : "text-white"
                     }`}
                   >
-                    {myBet.status === "placed" && !bettingOpen
-                      ? `Flying… ${displayMultiplier.toFixed(2)}x`
-                      : myBet.status === "placed"
-                      ? "Locked"
-                      : myBet.status === "cashed"
-                      ? `Cashed at ${myBet.cashedAt?.toFixed(2)}x`
-                      : myBet.status === "lost"
-                      ? "Lost"
-                      : "—"}
+                    {!bettingOpen && `Flying… ${displayMultiplier.toFixed(2)}x`}
+                    {bettingOpen && `awaiting result`}
                   </p>
                 </div>
 
@@ -366,16 +363,16 @@ export default function CrashGame() {
                   <>
                     <div className="bg-[#212121] rounded-lg p-3">
                       <p className="text-xs text-white/60">Payout</p>
-                      <p className="text-sm font-semibold">{(myBet.payout ?? 0).toFixed(6)} BTC</p>
+                      <p className={`text-sm font-semibold `}>{(myBet.stake * myBet.autoCashout).toFixed(3)} </p>
                     </div>
                     <div className="bg-[#212121] rounded-lg p-3">
                       <p className="text-xs text-white/60">Profit</p>
                       <p
                         className={`text-sm font-semibold ${
-                          (myBet.profit ?? 0) >= 0 ? "text-green-400" : "text-red-400"
+                          displayMultiplier >= myBet.autoCashout ? "text-green-400" : "text-red-400"
                         }`}
                       >
-                        {(myBet.profit ?? 0).toFixed(6)} BTC
+                        {bettingOpen ? "-" : myBet.autoCashout < displayMultiplier ? "Won" : "Loss"}
                       </p>
                     </div>
                   </>
