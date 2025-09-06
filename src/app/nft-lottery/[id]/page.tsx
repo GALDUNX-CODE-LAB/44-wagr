@@ -32,6 +32,7 @@ export default function LotteryDetailsPage() {
   const [betting, setBetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lotteryData, setLotteryData] = useState<Lottery | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState("");
 
   const formatTimeRemaining = (endTime: string) => {
     const now = new Date().getTime();
@@ -43,14 +44,33 @@ export default function LotteryDetailsPage() {
     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
     const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((difference / 1000 / 60) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
 
-    return `${days}d ${hours}h ${minutes}m`;
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
   };
 
   const calculatePotentialReturn = () => {
     const bet = Number.parseFloat(betAmount) || 0;
     return (bet * 2.5).toFixed(2);
   };
+
+  useEffect(() => {
+    if (!lotteryData?.endTime || lotteryData.isCompleted) return;
+
+    const updateCountdown = () => {
+      const formatted = formatTimeRemaining(lotteryData.endTime);
+      setTimeRemaining(formatted);
+      
+      if (formatted === "Draw has ended") {
+        setLotteryData(prev => prev ? { ...prev, isCompleted: true } : null);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [lotteryData?.endTime, lotteryData?.isCompleted]);
 
   useEffect(() => {
     const loadLotteryData = async () => {
@@ -73,9 +93,7 @@ export default function LotteryDetailsPage() {
         const numbersResponse: LotteryNumbersResponse =
           await fetchLotteryNumbers(lotteryId);
         setAvailableNumbers(numbersResponse.availableNumbers || []);
-        console.log(numbersResponse);
       } catch (error) {
-        console.error("Failed to fetch lottery data:", error);
         setError("Failed to load lottery data");
         setAvailableNumbers(Array.from({ length: 49 }, (_, i) => i + 1));
       } finally {
@@ -135,7 +153,6 @@ export default function LotteryDetailsPage() {
         setError("Failed to place bet");
       }
     } catch (error) {
-      console.error("Failed to place bet:", error);
       setError("Failed to place bet. Please try again.");
     } finally {
       setBetting(false);
@@ -213,9 +230,7 @@ export default function LotteryDetailsPage() {
               Next Draw Time Starts In
             </span>
             <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
-              {lotteryData.isCompleted
-                ? "Completed"
-                : formatTimeRemaining(lotteryData.endTime)}
+              {lotteryData.isCompleted ? "Completed" : timeRemaining}
             </span>
           </div>
 
@@ -253,7 +268,7 @@ export default function LotteryDetailsPage() {
             )}
             <button
               onClick={() => router.push("/nft-lottery")}
-              className="px-6 py-3 bg-[#C8A2FF] text-black rounded-lg hover:bg-[#B891FF] transition-colors"
+              className="px-6 py-3 bg-[#C8A2FF] text-black cursor-pointer rounded-lg hover:bg-[#B891FF] transition-colors"
             >
               View Other Lotteries
             </button>
