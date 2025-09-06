@@ -17,26 +17,23 @@ export const HARD_CODED_SEGMENTS: DynamicSegment[] = [
   { color: "purple", multiplier: 1.2 },
 ];
 
-// ✅ No longer fetches from backend — returns fixed config
+export const SINGLE_CODED_SEGMENTS: DynamicSegment[] = [
+  { color: "green", multiplier: 2 },
+  { color: "yellow", multiplier: 1.5 },
+  { color: "lightgray", multiplier: 0 },
+  { color: "blue", multiplier: 3 },
+  { color: "red", multiplier: 2.5 },
+  { color: "purple", multiplier: 1.2 },
+];
+
 export const fetchSegments = async (): Promise<DynamicSegment[]> => {
   return HARD_CODED_SEGMENTS;
 };
 
-// ✅ FIXED: Backend expects 'betAmount', not 'stake'
-export const placeWheelBet = async ({
-  stake,
-  chosenColor,
-}: {
-  stake: number;
-  chosenColor: string;
-}) => {
-  // ✅ IMPORTANT: Backend expects 'betAmount', not 'stake'
+export const placeWheelBet = async ({ stake }: { stake: number }) => {
   const payload = {
-    betAmount: stake, // ← Changed from 'stake' to 'betAmount' to match backend
-    chosenColor,
+    stake,
   };
-
-  console.log("[placeWheelBet] Input parameters:", { stake, chosenColor });
   console.log("[placeWheelBet] Payload being sent to backend:", payload);
 
   try {
@@ -49,10 +46,7 @@ export const placeWheelBet = async ({
     console.log("[placeWheelBet] SUCCESS:", response);
     return response;
   } catch (error: any) {
-    console.error(
-      "[placeWheelBet] Error response:",
-      error?.response?.data || error
-    );
+    console.error("[placeWheelBet] Error response:", error?.response?.data || error);
     throw error;
   }
 };
