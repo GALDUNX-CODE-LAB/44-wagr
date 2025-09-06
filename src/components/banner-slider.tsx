@@ -6,17 +6,17 @@ import Image from "next/image";
 
 const banners = [
   {
-    desktop: "/assets/banners/banner-lg.jpg",
+    desktop: "/assets/banners/banner-lg.png",
     mobile: "/assets/banners/banner-mb.jpg",
     alt: "Banner 1",
   },
   {
-    desktop: "/assets/banners/banner-lg.jpg",
+    desktop: "/assets/banners/banner-lg.png",
     mobile: "/assets/banners/banner-mb.jpg",
     alt: "Banner 2",
   },
   {
-    desktop: "/assets/banners/banner-lg.jpg",
+    desktop: "/assets/banners/banner-lg.png",
     mobile: "/assets/banners/banner-mb.jpg",
     alt: "Banner 3",
   },

@@ -4,10 +4,12 @@ import { Bitcoin, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
-import { HARD_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
+import { HARD_CODED_SEGMENTS, SINGLE_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
 import { placeWheelBet } from "../../../../lib/api/wheel-api";
 import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
+import { useUser } from "../../../../hooks/useUserData";
+import { useQueryClient } from "@tanstack/react-query";
 
 const COLOR_MAPPING = {
   purple: "#C8A2FF",
@@ -33,10 +35,15 @@ export default function StakeRingWheelGame() {
   const isLoggedIn = useIsLoggedIn();
   const segmentAngle = 360 / selectedSegments;
 
+  const [inErr, setInErr] = useState<string | null>();
+
   useEffect(() => {
     const trimmed = HARD_CODED_SEGMENTS.slice(0, selectedSegments);
     setFixedSegments(trimmed);
   }, [selectedSegments]);
+
+  const { balance } = useUser();
+  const queryClient = useQueryClient();
 
   const generateGradient = () => {
     return `conic-gradient(from 90deg, ${fixedSegments
@@ -51,18 +58,14 @@ export default function StakeRingWheelGame() {
 
   const handleSpin = async () => {
     if (isSpinning || !fixedSegments.length) return;
+    if (betAmount > balance) return setInErr("Insufficient Balance");
 
     setIsSpinning(true);
     setShowResult(false);
 
     try {
-      // Randomly pick a color from wheel segments
-      const randomColor = fixedSegments[Math.floor(Math.random() * fixedSegments.length)].color;
-
-      // Send primitive values, not objects
       const response = await placeWheelBet({
-        stake: betAmount, // ensure it's a number
-        chosenColor: randomColor,
+        stake: betAmount,
       });
 
       if (!response?.success) {
@@ -71,7 +74,6 @@ export default function StakeRingWheelGame() {
 
       const { resultColor, multiplier } = response.data;
 
-      // Find result index from the wheel segments
       const resultIndex = fixedSegments.findIndex((seg) => seg.color === resultColor);
 
       if (resultIndex === -1) {
@@ -81,7 +83,6 @@ export default function StakeRingWheelGame() {
         return;
       }
 
-      // Spin calculation
       const SEGMENT_COUNT = fixedSegments.length;
       const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
       const segmentCenterInGradient = resultIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
@@ -112,6 +113,11 @@ export default function StakeRingWheelGame() {
       setIsSpinning(false);
       setResultText(error.message || "Bet failed");
       setShowResult(true);
+    } finally {
+      setInErr(null);
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["user-data"] });
+      }, 3500);
     }
   };
 
@@ -120,7 +126,7 @@ export default function StakeRingWheelGame() {
       <div className="lg:bg-[#212121] text-white rounded-xl flex flex-col lg:flex-row gap-6 justify-between items-center lg:items-start lg:p-6">
         {/* Segment Cards (Left) */}
         <div className="hidden lg:flex lg:flex-col flex-wrap gap-2 justify-center">
-          {fixedSegments.map((segment, idx) => (
+          {SINGLE_CODED_SEGMENTS.map((segment, idx) => (
             <div key={idx} className="w-[60px] h-[50px] rounded-[10px] border border-white/10 flex flex-col">
               <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
                 {segment.multiplier}x
@@ -184,29 +190,20 @@ export default function StakeRingWheelGame() {
           <div>
             <p className="text-xs lg:text-sm text-white/60">Bet Amount</p>
             <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
-              <span className="text-sm text-white">{betAmount}</span>
+              <input
+                type="number"
+                className={`ring-0 focus:ring-0 outline-0 text-sm ${inErr && "border border-red-300"} `}
+                placeholder=""
+                value={betAmount}
+                onChange={(e) => setBetAmount(Number(e.target.value))}
+              />
               <div className="flex items-center gap-2">
                 <div className="bg-emerald-600 rounded-full w-6 h-6 flex items-center justify-center">
                   <DollarSignIcon className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-black px-3 py-1 rounded-lg">
-                  <p className="text-white font-medium leading-none">{activeOdds}x</p>
-                </div>
               </div>
             </div>
-          </div>
-
-          <div>
-            <p className="text-xs lg:text-sm text-white/60">Risk</p>
-            <select
-              value={selectedRisk}
-              onChange={(e) => setSelectedRisk(e.target.value)}
-              className="mt-2 bg-[#212121] text-white rounded-[12px] p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
+            <small className="text-red-300 capitalize">{inErr}</small>
           </div>
 
           <div>
@@ -216,7 +213,7 @@ export default function StakeRingWheelGame() {
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
               className="mt-2 bg-[#212121] text-white rounded-lg p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
             >
-              {[6, 8, 10, 12, 14, 16, 18, 20].map((num) => (
+              {[8].map((num) => (
                 <option key={num} value={num}>
                   {num}
                 </option>
@@ -226,7 +223,7 @@ export default function StakeRingWheelGame() {
 
           <button
             onClick={handleSpin}
-            disabled={isSpinning || !isBetting || !isLoggedIn}
+            disabled={isSpinning || isBetting || !isLoggedIn}
             className="w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold bg-[#C8A2FF] text-black disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {!isLoggedIn ? "Login to Play" : isBetting || isSpinning ? "Placing Bet..." : "Play"}

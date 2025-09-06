@@ -8,7 +8,10 @@ interface AxiosOptions {
   [key: string]: any;
 }
 
-const apiHandler = async <T = any>(endpoint: string, options: AxiosOptions = {}): Promise<T> => {
+const apiHandler = async <T = any>(
+  endpoint: string,
+  options: AxiosOptions = {}
+): Promise<T> => {
   const token = getCookie("access-token");
   const headers = {
     "Content-Type": "application/json",
