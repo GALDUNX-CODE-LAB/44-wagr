@@ -33,6 +33,7 @@ export default function LotteryDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lotteryData, setLotteryData] = useState<Lottery | null>(null);
   const [timeRemaining, setTimeRemaining] = useState("");
+  const [success, setSuccess] = useState<string | null>(null);
 
   const formatTimeRemaining = (endTime: string) => {
     const now = new Date().getTime();
@@ -60,9 +61,11 @@ export default function LotteryDetailsPage() {
     const updateCountdown = () => {
       const formatted = formatTimeRemaining(lotteryData.endTime);
       setTimeRemaining(formatted);
-      
+
       if (formatted === "Draw has ended") {
-        setLotteryData(prev => prev ? { ...prev, isCompleted: true } : null);
+        setLotteryData((prev) =>
+          prev ? { ...prev, isCompleted: true } : null
+        );
       }
     };
 
@@ -119,11 +122,7 @@ export default function LotteryDetailsPage() {
   };
 
   const handlePlaceBet = async () => {
-    if (
-      selectedNumbers.length !== MAX_SELECTIONS ||
-      !betAmount ||
-      !lotteryData
-    ) {
+    if (selectedNumbers.length !== MAX_SELECTIONS || !lotteryData) {
       return;
     }
 
@@ -133,7 +132,6 @@ export default function LotteryDetailsPage() {
 
       const betData = {
         pickedNumbers: selectedNumbers.sort((a, b) => a - b),
-        amount: Number.parseFloat(betAmount),
       };
 
       const response: LotteryBetResponse = await placeLotteryBet(
@@ -141,18 +139,14 @@ export default function LotteryDetailsPage() {
         betData
       );
 
-      if (response.success) {
-        alert(`Bet placed successfully! Bet ID: ${response.data._id}`);
-        setSelectedNumbers([]);
-        setBetAmount(lotteryData.ticketPrice.toString());
-        setDrawAmount("");
-        const numbersResponse: LotteryNumbersResponse =
-          await fetchLotteryNumbers(lotteryId);
-        setAvailableNumbers(numbersResponse.availableNumbers || []);
-      } else {
-        setError("Failed to place bet");
-      }
+      setError(null);
+      setSuccess("Bet placed successfully! 🎉");
+      setSelectedNumbers([]);
+      setTimeout(() => {
+        router.push("/nft-lottery");
+      }, 1000);
     } catch (error) {
+      console.error("Betting error:", error);
       setError("Failed to place bet. Please try again.");
     } finally {
       setBetting(false);
@@ -245,6 +239,12 @@ export default function LotteryDetailsPage() {
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
+            {success}
           </div>
         )}
 

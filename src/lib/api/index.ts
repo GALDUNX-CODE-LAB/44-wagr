@@ -27,11 +27,17 @@ export const fetchWheelsWins = async () => {
 };
 
 export const placeCrashBet = async (payload: CrashBetPayload) => {
-  const response = await apiHandler("/crash/bet", { method: "POST", data: payload });
+  const response = await apiHandler("/crash/bet", {
+    method: "POST",
+    data: payload,
+  });
   return response;
 };
 
-export const addMetaMarketComment = async (marketId: string, comment: string) => {
+export const addMetaMarketComment = async (
+  marketId: string,
+  comment: string
+) => {
   const response = await apiHandler(`/meta-market/${marketId}/comment`, {
     method: "POST",
     data: { comment },
@@ -40,9 +46,12 @@ export const addMetaMarketComment = async (marketId: string, comment: string) =>
 };
 
 export const fetchComments = async (marketId: string, page = 1, limit = 10) => {
-  const response = await apiHandler(`/meta-market/${marketId}/comments?page=${page}&limit=${limit}`, {
-    method: "GET",
-  });
+  const response = await apiHandler(
+    `/meta-market/${marketId}/comments?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+    }
+  );
 
   return response;
 };
@@ -69,9 +78,12 @@ export const fetchUserBets = async (page = 1, game = "all") => {
 };
 
 export const fetchCoinflipGameHistory = async (page = 1) => {
-  const response = await apiHandler(`/user/my-bets?game=coinflip&page=${page}`, {
-    method: "GET",
-  });
+  const response = await apiHandler(
+    `/user/my-bets?game=coinflip&page=${page}`,
+    {
+      method: "GET",
+    }
+  );
   return response;
 };
 
@@ -97,9 +109,12 @@ export const fetchCrashGameHistory = async (page = 1) => {
 };
 
 export const fetchMetaMarketGameHistory = async (page = 1) => {
-  const response = await apiHandler(`/user/my-bets?game=metamarket&page=${page}`, {
-    method: "GET",
-  });
+  const response = await apiHandler(
+    `/user/my-bets?game=metamarket&page=${page}`,
+    {
+      method: "GET",
+    }
+  );
   return response;
 };
 
@@ -131,7 +146,13 @@ export const fetchUserTransactions = async () => {
   return response;
 };
 
-export const placeCoinflipBet = async ({ betAmount, choice }: { betAmount: number; choice: "heads" | "tails" }) => {
+export const placeCoinflipBet = async ({
+  betAmount,
+  choice,
+}: {
+  betAmount: number;
+  choice: "heads" | "tails";
+}) => {
   const normalizedChoice = choice.toLowerCase();
 
   const response = await apiHandler("/coinflip/bet", {
@@ -182,7 +203,11 @@ export const fetchMarketById = async (id: string): Promise<Market> => {
 };
 
 // ✅ Place a market bet
-export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
+export const placeMarketBet = async (
+  marketId: string,
+  side: "YES" | "NO",
+  stake: number
+) => {
   return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",
     body: JSON.stringify({ side, stake }),
@@ -217,7 +242,10 @@ export const requestNonce = async (walletAddress: string) => {
   });
 };
 
-export const verifySignature = async (walletAddress: string, signature: string) => {
+export const verifySignature = async (
+  walletAddress: string,
+  signature: string
+) => {
   return await apiHandler("/auth/verify", {
     method: "POST",
     data: { walletAddress, signature },
@@ -241,14 +269,12 @@ export const fetchLotteries = async () => {
   return response;
 };
 
-
 export const fetchLotteryWinners = async () => {
   const response = await apiHandler("/lottery/winners", {
     method: "GET",
   });
   return response;
-}
-
+};
 
 export const fetchLotteryNumbers = async (roundId: string) => {
   const response = await apiHandler(`/lottery/${roundId}/numbers`, {
@@ -258,19 +284,21 @@ export const fetchLotteryNumbers = async (roundId: string) => {
 };
 
 export const placeLotteryBet = async (
-  lotteryId: string,
+  roundId: string,
   betData: {
     pickedNumbers: number[];
-    amount: number;
   }
 ) => {
+  const requestData = {
+    roundId: roundId,
+    pickedNumbers: betData.pickedNumbers,
+  };
+  
+  console.log('Actual request data being sent:', requestData);
+  
   const response = await apiHandler(`/lottery/bet`, {
     method: "POST",
-    body: JSON.stringify({
-      lotteryNumbers: betData.pickedNumbers,
-      lotteryId: lotteryId,
-      amount: betData.amount,
-    }),
+    data: requestData, 
   });
   return response;
 };
