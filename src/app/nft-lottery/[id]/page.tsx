@@ -6,16 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import NumberSelection from "../components/number-selection";
 import BettingPanel from "../components/betting-panel";
-import {
-  fetchLotteryNumbers,
-  placeLotteryBet,
-  fetchLotteries,
-} from "../../../lib/api";
-import {
-  LotteryNumbersResponse,
-  LotteryBetResponse,
-  Lottery,
-} from "../../../interfaces/interface";
+import { fetchLotteryNumbers, placeLotteryBet, fetchLotteries } from "../../../lib/api";
+import { LotteryNumbersResponse, LotteryBetResponse, Lottery } from "../../../interfaces/interface";
 
 const MAX_SELECTIONS = 5;
 
@@ -63,9 +55,7 @@ export default function LotteryDetailsPage() {
       setTimeRemaining(formatted);
 
       if (formatted === "Draw has ended") {
-        setLotteryData((prev) =>
-          prev ? { ...prev, isCompleted: true } : null
-        );
+        setLotteryData((prev) => (prev ? { ...prev, isCompleted: true } : null));
       }
     };
 
@@ -84,17 +74,14 @@ export default function LotteryDetailsPage() {
         setError(null);
 
         const lotteriesResponse = await fetchLotteries();
-        const lottery = lotteriesResponse.lotteries?.find(
-          (l: Lottery) => l._id === lotteryId
-        );
+        const lottery = lotteriesResponse.lotteries?.find((l: Lottery) => l._id === lotteryId);
 
         if (lottery) {
           setLotteryData(lottery);
           setBetAmount(lottery.ticketPrice.toString());
         }
 
-        const numbersResponse: LotteryNumbersResponse =
-          await fetchLotteryNumbers(lotteryId);
+        const numbersResponse: LotteryNumbersResponse = await fetchLotteryNumbers(lotteryId);
         setAvailableNumbers(numbersResponse.availableNumbers || []);
       } catch (error) {
         setError("Failed to load lottery data");
@@ -134,10 +121,7 @@ export default function LotteryDetailsPage() {
         pickedNumbers: selectedNumbers.sort((a, b) => a - b),
       };
 
-      const response: LotteryBetResponse = await placeLotteryBet(
-        lotteryId,
-        betData
-      );
+      const response: LotteryBetResponse = await placeLotteryBet(lotteryId, betData);
 
       setError(null);
       setSuccess("Bet placed successfully! 🎉");
@@ -205,24 +189,18 @@ export default function LotteryDetailsPage() {
                 }}
               />
             </div>
-            <h1 className="text-lg md:text-xl font-medium break-words">
-              {lotteryData.name}
-            </h1>
+            <h1 className="text-lg md:text-xl font-medium break-words">{lotteryData.name}</h1>
           </div>
 
           <div className="w-full max-w-[400px] font-medium flex items-center justify-between px-2">
-            <span className="md:text-sm text-xs text-white/60">
-              Next Draw Time
-            </span>
+            <span className="md:text-sm text-xs text-white/60">Next Draw Time</span>
             <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
               {new Date(lotteryData.endTime).toLocaleString()}
             </span>
           </div>
 
           <div className="w-full max-w-[400px] font-medium flex items-center justify-between px-2">
-            <span className="md:text-sm text-xs text-white/60">
-              Next Draw Time Starts In
-            </span>
+            <span className="md:text-sm text-xs text-white/60">Next Draw Time Starts In</span>
             <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
               {lotteryData.isCompleted ? "Completed" : timeRemaining}
             </span>
@@ -230,22 +208,16 @@ export default function LotteryDetailsPage() {
 
           <div className="w-full h-[44px] max-w-[400px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
             <span className="text-sm text-gray-300">Ticket Price</span>
-            <span className="text-lg font-bold text-[#c8a2ff]">
-              ${lotteryData.ticketPrice.toLocaleString()}
-            </span>
+            <span className="text-lg font-bold text-[#c8a2ff]">${lotteryData.ticketPrice.toLocaleString()}</span>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-            {error}
-          </div>
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">{error}</div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
-            {success}
-          </div>
+          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">{success}</div>
         )}
 
         {lotteryData.isCompleted ? (

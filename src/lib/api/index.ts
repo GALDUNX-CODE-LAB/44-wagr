@@ -34,10 +34,7 @@ export const placeCrashBet = async (payload: CrashBetPayload) => {
   return response;
 };
 
-export const addMetaMarketComment = async (
-  marketId: string,
-  comment: string
-) => {
+export const addMetaMarketComment = async (marketId: string, comment: string) => {
   const response = await apiHandler(`/meta-market/${marketId}/comment`, {
     method: "POST",
     data: { comment },
@@ -46,12 +43,9 @@ export const addMetaMarketComment = async (
 };
 
 export const fetchComments = async (marketId: string, page = 1, limit = 10) => {
-  const response = await apiHandler(
-    `/meta-market/${marketId}/comments?page=${page}&limit=${limit}`,
-    {
-      method: "GET",
-    }
-  );
+  const response = await apiHandler(`/meta-market/${marketId}/comments?page=${page}&limit=${limit}`, {
+    method: "GET",
+  });
 
   return response;
 };
@@ -78,12 +72,9 @@ export const fetchUserBets = async (page = 1, game = "all") => {
 };
 
 export const fetchCoinflipGameHistory = async (page = 1) => {
-  const response = await apiHandler(
-    `/user/my-bets?game=coinflip&page=${page}`,
-    {
-      method: "GET",
-    }
-  );
+  const response = await apiHandler(`/user/my-bets?game=coinflip&page=${page}`, {
+    method: "GET",
+  });
   return response;
 };
 
@@ -109,12 +100,9 @@ export const fetchCrashGameHistory = async (page = 1) => {
 };
 
 export const fetchMetaMarketGameHistory = async (page = 1) => {
-  const response = await apiHandler(
-    `/user/my-bets?game=metamarket&page=${page}`,
-    {
-      method: "GET",
-    }
-  );
+  const response = await apiHandler(`/user/my-bets?game=metamarket&page=${page}`, {
+    method: "GET",
+  });
   return response;
 };
 
@@ -146,13 +134,7 @@ export const fetchUserTransactions = async () => {
   return response;
 };
 
-export const placeCoinflipBet = async ({
-  betAmount,
-  choice,
-}: {
-  betAmount: number;
-  choice: "heads" | "tails";
-}) => {
+export const placeCoinflipBet = async ({ betAmount, choice }: { betAmount: number; choice: "heads" | "tails" }) => {
   const normalizedChoice = choice.toLowerCase();
 
   const response = await apiHandler("/coinflip/bet", {
@@ -203,11 +185,7 @@ export const fetchMarketById = async (id: string): Promise<Market> => {
 };
 
 // ✅ Place a market bet
-export const placeMarketBet = async (
-  marketId: string,
-  side: "YES" | "NO",
-  stake: number
-) => {
+export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
   return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",
     body: JSON.stringify({ side, stake }),
@@ -242,10 +220,7 @@ export const requestNonce = async (walletAddress: string) => {
   });
 };
 
-export const verifySignature = async (
-  walletAddress: string,
-  signature: string
-) => {
+export const verifySignature = async (walletAddress: string, signature: string) => {
   return await apiHandler("/auth/verify", {
     method: "POST",
     data: { walletAddress, signature },
@@ -293,12 +268,12 @@ export const placeLotteryBet = async (
     roundId: roundId,
     pickedNumbers: betData.pickedNumbers,
   };
-  
-  console.log('Actual request data being sent:', requestData);
-  
+
+  console.log("Actual request data being sent:", requestData);
+
   const response = await apiHandler(`/lottery/bet`, {
     method: "POST",
-    data: requestData, 
+    data: requestData,
   });
   return response;
 };
