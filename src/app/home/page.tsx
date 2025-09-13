@@ -16,23 +16,23 @@ export default function HomePage() {
   const { address, isConnected } = useAccount();
 
   const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/games/crash.png" },
-    { name: "Dice", players: 892, image: "/assets/games/dice.png" },
-    { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png" },
-    { name: "Wheel", players: 721, image: "/assets/games/wheels.png" },
+    { name: "Crash", players: 1248, image: "/assets/gamesV2/crash.png" },
+    { name: "Dice", players: 892, image: "/assets/gamesV2/dice.png" },
+    { name: "Coin", players: 1532, image: "/assets/gamesV2/coin-flip.png" },
+    { name: "Wheel", players: 721, image: "/assets/gamesV2/wheels.png" },
   ];
 
   const trendingGames = [
-    { name: "Roulette Royale", players: 1248, image: "/assets/games/crash.png" },
-    { name: "Blackjack Pro", players: 1248, image: "/assets/games/coin-flip.png" },
-    { name: "Slots Mania", players: 1248, image: "/assets/games/Dice.png" },
-    { name: "Poker Stars", players: 1248, image: "/assets/games/glass-bridge.png" },
-    { name: "Baccarat Elite", players: 1248, image: "/assets/games/mine.png" },
-    { name: "Craps Champion", players: 1248, image: "/assets/games/Plinko.png" },
-    { name: "Texas Holdem", players: 1248, image: "/assets/games/pump.png" },
-    { name: "Dice Master", players: 1248, image: "/assets/games/red-light.png" },
-    { name: "Virtual Sports", players: 1248, image: "/assets/games/rock.png" },
-    { name: "Wheel of Fortune", players: 1248, image: "/assets/games/wheels.png" },
+    { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash.png" },
+    { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coin-flip.png" },
+    { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/Dice.png" },
+    { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge.png" },
+    { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mine.png" },
+    { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko.png" },
+    { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump.png" },
+    { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light.png" },
+    { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps.png" },
+    { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels.png" },
   ];
 
   const cardData = [

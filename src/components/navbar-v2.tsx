@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, User, Bell, MessageSquare, Coins, Lock, CreditCard, Settings, LogOut, LogOutIcon } from "lucide-react";
+import {
+  Search,
+  User,
+  Bell,
+  MessageSquare,
+  Coins,
+  Lock,
+  CreditCard,
+  Settings,
+  LogOut,
+  LogOutIcon,
+  ArrowUpRight,
+} from "lucide-react";
 import Image from "next/image";
 import WalletModal from "./wallet-modal";
 import TransactionsModal from "./transactions-modal";
@@ -29,7 +41,8 @@ export default function NavbarV2() {
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [switchMode, setSwitchMode] = useState(false);
-  const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false);
+  const [accountSettingsModalOpen, setAccountSettingsModalOpen] =
+    useState(false);
 
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
@@ -60,8 +73,16 @@ export default function NavbarV2() {
       <div className="wrap relative h-[65px] w-full" />
       <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
         <nav className="w-full h-full sm:border-b border-white/15  text-white flex items-center justify-between px-6 py-3">
-          <div className="wrap lg:hidden max-h-[70px]" onClick={() => router.push("/")}>
-            <Image src={"/assets/44.png"} alt="44-wager" width={70} height={70} />
+          <div
+            className="wrap lg:hidden max-h-[70px]"
+            onClick={() => router.push("/")}
+          >
+            <Image
+              src={"/assets/44.png"}
+              alt="44-wager"
+              width={70}
+              height={70}
+            />
           </div>
           <div className="flex-1 max-w-md hidden lg:block">
             <div className="flex h-[30px] items-center border border-white/20 rounded-md px-3 py-2">
@@ -79,7 +100,12 @@ export default function NavbarV2() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 bg-primary/20 text-sm rounded-lg px-0 p-1">
                 <div className="relative rounded-lg w-4 h-4 flex items-center justify-center ml-2">
-                  <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
+                  <Image
+                    src="/assets/usdt.png"
+                    alt="USDT"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
                 <span className="truncate">{balance?.toFixed(2)}</span>
                 <button
@@ -89,9 +115,15 @@ export default function NavbarV2() {
                   <small>Wallet</small>
                 </button>
               </div>
-              <Coins className="w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
+              <Coins
+                className="w-5 h-5 text-yellow-500 cursor-pointer"
+                onClick={() => setPointsModalOpen(true)}
+              />
               <div className="relative">
-                <User className="w-5 h-5 cursor-pointer" onClick={() => setUserDropdownOpen(!userDropdownOpen)} />
+                <User
+                  className="w-5 h-5 cursor-pointer"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                />
                 {userDropdownOpen && (
                   <div
                     className="absolute top-12 right-0 z-50 w-[220px] rounded-[10px] border border-[#FFFFFF33] bg-white text-black shadow-xl"
@@ -101,7 +133,11 @@ export default function NavbarV2() {
                     <div className="p-4 flex flex-col gap-3 text-sm font-medium">
                       <div className="text-xs text-gray-500 border-b border-gray-200 pb-2">
                         Logged in with:{" "}
-                        {authMethod === "wallet" ? "MetaMask" : authMethod === "token" ? "Google" : "Unknown"}
+                        {authMethod === "wallet"
+                          ? "MetaMask"
+                          : authMethod === "token"
+                          ? "Google"
+                          : "Unknown"}
                         {isConnected && (
                           <div className="mt-1 text-green-600">
                             Wallet: {address?.slice(0, 6)}...
@@ -131,6 +167,13 @@ export default function NavbarV2() {
                         Affiliate
                       </button>
                       <button
+                        className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
+                        onClick={() => router.push("/withdraw")}
+                      >
+                        <ArrowUpRight className="w-3 h-3" />
+                        Withdraw Funds
+                      </button>
+                      <button
                         className="flex items-center cursor-pointer gap-2 mt-2 text-red-500 hover:text-red-600 text-xs"
                         onClick={() => logout()}
                       >
@@ -150,7 +193,9 @@ export default function NavbarV2() {
           {!isLoggedIn && (
             <>
               <div className="wrap" onClick={() => setLoginModalOpen(true)}>
-                <button className="bg-primary text-black rounded-lg text-sm p-2 px-3">Login</button>
+                <button className="bg-primary text-black rounded-lg text-sm p-2 px-3">
+                  Login
+                </button>
               </div>
             </>
           )}
@@ -173,12 +218,31 @@ export default function NavbarV2() {
         </AnimatePresence>
       </div>
 
-      <WalletModal open={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
-      <TransactionsModal open={transactionsModalOpen} onClose={() => setTransactionsModalOpen(false)} />
-      <PointsModal open={pointsModalOpen} onClose={() => setPointsModalOpen(false)} />
-      <AffiliateModal open={affiliateModalOpen} onClose={() => setAffiliateModalOpen(false)} />
-      <LoginModal open={loginModalOpen} onClose={handleLoginModalClose} switchMode={switchMode} />
-      <AccountSettingsModal open={accountSettingsModalOpen} onClose={() => setAccountSettingsModalOpen(false)} />
+      <WalletModal
+        open={walletModalOpen}
+        onClose={() => setWalletModalOpen(false)}
+      />
+      <TransactionsModal
+        open={transactionsModalOpen}
+        onClose={() => setTransactionsModalOpen(false)}
+      />
+      <PointsModal
+        open={pointsModalOpen}
+        onClose={() => setPointsModalOpen(false)}
+      />
+      <AffiliateModal
+        open={affiliateModalOpen}
+        onClose={() => setAffiliateModalOpen(false)}
+      />
+      <LoginModal
+        open={loginModalOpen}
+        onClose={handleLoginModalClose}
+        switchMode={switchMode}
+      />
+      <AccountSettingsModal
+        open={accountSettingsModalOpen}
+        onClose={() => setAccountSettingsModalOpen(false)}
+      />
     </>
   );
 }

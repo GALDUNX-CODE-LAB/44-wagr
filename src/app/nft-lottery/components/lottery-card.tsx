@@ -123,7 +123,7 @@ export default function LotteryCard({
       {!card.isCompleted && (
         <button
           onClick={handleBetClick}
-          className="w-full max-w-[241px] h-[40px] bg-[#C8A2FF] text-black font-medium rounded-[10px] hover:bg-[#B891FF] transition-colors mx-auto"
+          className="w-full max-w-[241px] h-[40px] bg-[#C8A2FF] text-black cursor-pointer font-medium rounded-[10px] hover:bg-[#B891FF] transition-colors mx-auto"
         >
           Bet Now
         </button>

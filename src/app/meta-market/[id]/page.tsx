@@ -23,6 +23,7 @@ export default function MarketDetailsPage() {
     fetchMarketById(marketId)
       .then((res) => {
         setData(res);
+        console.log(res);
         setLoading(false);
       })
       .catch((err) => {

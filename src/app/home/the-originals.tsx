@@ -7,10 +7,10 @@ import { useRouter } from "next/navigation";
 
 export default function TheOriginals() {
   const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/games/crash.png", link: "/games/crash" },
-    { name: "Dice", players: 892, image: "/assets/games/Dice.png", link: "/games/dice" },
-    { name: "Coin", players: 1532, image: "/assets/games/coin-flip.png", link: "/games/coin" },
-    { name: "Wheel", players: 721, image: "/assets/games/wheels.png", link: "/games/wheel" },
+    { name: "Crash", players: 1248, image: "/assets/gamesV2/crash.png", link: "/games/crash" },
+    { name: "Dice", players: 892, image: "/assets/gamesV2/dice.png", link: "/games/dice" },
+    { name: "Coin", players: 1532, image: "/assets/gamesV2/coinflip.png", link: "/games/coin" },
+    { name: "Wheel", players: 721, image: "/assets/gamesV2/wheels.png", link: "/games/wheel" },
   ];
 
   const [startIndex, setStartIndex] = useState(0);
@@ -84,9 +84,9 @@ export default function TheOriginals() {
           <div
             key={index}
             onClick={() => handleSelectGame(game)}
-            className="h-40 relative bg-black rounded-md flex items-center justify-center text-white cursor-pointer hover:opacity-80 transition"
+            className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
           >
-            <Image src={game.image} fill alt={game.name} className="object-cover rounded-md" />
+            <Image src={game.image} fill alt={game.name} className="rounded-md" />
           </div>
         ))}
       </div>
