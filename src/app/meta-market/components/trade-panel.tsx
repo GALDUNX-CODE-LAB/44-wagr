@@ -5,6 +5,7 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import { placeMarketBet } from "../../../lib/api";
 import type { Market } from "../../../interfaces/interface";
 import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   market: Market;
@@ -18,6 +19,8 @@ export default function TradePanel({ market, betAmount, setBetAmount, selectedOp
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isLoggedIn = useIsLoggedIn();
+
+  const queryclient = useQueryClient();
 
   const totalShares = (market.qYes ?? 0) + (market.qNo ?? 0);
   const yesProbability = totalShares > 0 ? (market.qYes! / totalShares) * 100 : 50;
@@ -40,6 +43,7 @@ export default function TradePanel({ market, betAmount, setBetAmount, selectedOp
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to place bet");
     } finally {
+      await queryclient.invalidateQueries();
       setIsPlacingBet(false);
     }
   };

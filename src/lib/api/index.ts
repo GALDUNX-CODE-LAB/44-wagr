@@ -188,7 +188,7 @@ export const fetchMarketById = async (id: string): Promise<Market> => {
 export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
   return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",
-    body: JSON.stringify({ side, stake }),
+    data: JSON.stringify({ side, stake }),
   });
 };
 

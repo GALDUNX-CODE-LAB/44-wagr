@@ -12,12 +12,20 @@ export default function MarketHeader({ market }: { market: Market }) {
     day: "numeric",
   });
 
+  // 👇 Construct data for Graph
+  const graphData = market.trend.map((point) => ({
+    label: new Date(point.time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    yes: point.yes,
+    no: point.no,
+  }));
+
   return (
     <div className="flex-1 flex flex-col gap-4">
       <h1 className=" text-lg lg:text-2xl font-medium flex items-center gap-3">
         <div className="lg:min-w-[60px] lg:min-h-[60px] min-w-[30px] min-h-[30px] bg-white rounded-[10px]" />
         {market.question}
       </h1>
+
       <div className="flex flex-wrap gap-4 text-white/20 text-xs lg:text-sm">
         <p>{market.b?.toLocaleString()} vol</p>
         <p>{marketDate}</p>
@@ -33,7 +41,8 @@ export default function MarketHeader({ market }: { market: Market }) {
         </span>
       </div>
 
-      <Graph yesProbability={yesProbability} noProbability={noProbability} />
+      {/* Graph now expects `data` */}
+      <Graph data={graphData} />
     </div>
   );
 }
