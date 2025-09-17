@@ -42,16 +42,18 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
 
   const nounceHandler = async () => {
     try {
-      setIsAuthenticating(true);
       const { message } = await requestNonce(address);
       const signature = await signMessageAsync({
         account: address as `0x${string}`,
         message,
       });
+      setIsAuthenticating(true);
 
       verifyUserSignature(signature);
     } catch (error) {
       console.log(error, "Error in nounce handler");
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 

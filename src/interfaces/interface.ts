@@ -209,3 +209,24 @@ export interface BetData {
   pickedNumbers: number[];
   amount: number;
 }
+
+export interface MarketPrice {
+  yesPrice: number;
+  noPrice: number;
+}
+
+export interface UserPortfolio {
+  user: string;
+  market: string;
+  yesShares: number;
+  noShares: number;
+  avgYesPrice: number;
+  avgNoPrice: number;
+}
+
+export interface ExecuteMarketPayload {
+  marketId: string;
+  side: "YES" | "NO";
+  shares: number;
+  action: "BUY" | "SELL";
+}

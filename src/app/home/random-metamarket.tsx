@@ -6,6 +6,7 @@ import { fetchMarkets } from "../../lib/api";
 import type { Market } from "../../interfaces/interface";
 import { MessageCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { FaChartLine } from "react-icons/fa";
 
 const ROTATE_MS = 10000;
 const FETCH_MS = 30000;
@@ -108,7 +109,10 @@ export default function RandomMetaMarket() {
 
   return (
     <div className="w-full lg:max-w-8xl mx-auto text-white my-8">
-      <h2 className="text-white font-semibold text-sm mb-2 lg:text-lg">Meta market</h2>
+      <h2 className="text-white font-semibold text-sm mb-2 lg:text-lg flex gap-2 items-center">
+        <FaChartLine className="text-primary" />
+        Meta market
+      </h2>
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

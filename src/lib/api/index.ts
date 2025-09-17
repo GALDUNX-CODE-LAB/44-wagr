@@ -1,4 +1,4 @@
-import { Market, CrashBetPayload } from "../../interfaces/interface";
+import { Market, CrashBetPayload, MarketPrice, UserPortfolio, ExecuteMarketPayload } from "../../interfaces/interface";
 import apiHandler from "../api-handler";
 
 export const fetchLiveWins = async () => {
@@ -276,4 +276,26 @@ export const placeLotteryBet = async (
     data: requestData,
   });
   return response;
+};
+
+export const fetchMarketPrices = async (id: string): Promise<MarketPrice> => {
+  const response = await apiHandler(`/meta-market/price/${id}`, {
+    method: "GET",
+  });
+  return response.data;
+};
+
+export const fetchUserPorfolio = async (id: string): Promise<UserPortfolio> => {
+  const response = await apiHandler(`/meta-market/portfolio/${id}`, {
+    method: "GET",
+  });
+  return response.data;
+};
+
+export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
+  const response = await apiHandler(`/meta-market/execute/trade`, {
+    method: "POST",
+    data: payload,
+  });
+  return response.data;
 };

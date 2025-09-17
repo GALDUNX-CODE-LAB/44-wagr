@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { TbNumber44Small } from "react-icons/tb";
 
 export default function TheOriginals() {
   const availableGames = [
@@ -61,7 +62,10 @@ export default function TheOriginals() {
   return (
     <div className="py-6  rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-white font-semibold lg:text-lg">The Originals</h2>
+        <h2 className="text-white font-semibold lg:text-lg flex items-center gap-1">
+          <TbNumber44Small className="text-primary bg-primary/20 rounded" />
+          The Originals
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={handlePrev}

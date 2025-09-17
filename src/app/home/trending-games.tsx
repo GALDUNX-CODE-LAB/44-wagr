@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { MdOutlineCasino } from "react-icons/md";
 
 export default function TrendingGames() {
   const items = Array.from({ length: 20 }).map((_, i) => i + 1);
   const trendingGames = [
     { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash.png" },
     { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip.png" },
-    { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/Dice.png" },
+    { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice.png" },
     { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge.png" },
     { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines.png" },
     { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko.png" },
@@ -55,7 +56,10 @@ export default function TrendingGames() {
   return (
     <div className="py-6 rounded-lg relative overflow-hidden">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-white font-semibold lg:text-lg">Trending Games</h2>
+        <h2 className="text-white font-semibold lg:text-lg flex gap-1 items-center">
+          <MdOutlineCasino className="text-primary" />
+          Trending Games
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={handlePrev}
