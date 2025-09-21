@@ -162,7 +162,6 @@ export const placeDiceBet = async ({
   return response;
 };
 
-// ✅ Fetch all markets
 export const fetchMarkets = async () => {
   const data = await apiHandler<any>("/meta-market", {
     method: "GET",
@@ -172,7 +171,6 @@ export const fetchMarkets = async () => {
   return Array.isArray(data) ? { success: true, markets: data } : data;
 };
 
-// ✅ Fetch single market by ID
 export const fetchMarketById = async (id: string): Promise<Market> => {
   const data = await apiHandler<{ market: Market }>(`/meta-market/${id}`, {
     method: "GET",
@@ -298,4 +296,25 @@ export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
     data: payload,
   });
   return response.data;
+};
+
+export const createUserWithdrawal = async (amount: number, walletAddress: string) => {
+  const requestData = {
+    amount: amount,
+    walletAddress: walletAddress,
+  };
+  const response = await apiHandler(`/user/withdrawals`, {
+    method: "POST",
+    data: requestData,
+  });
+
+  return response;
+};
+
+export const getUserWithdrawals = async () => {
+  const response = await apiHandler(`/user/withdrawals`, {
+    method: "GET",
+  });
+
+  return response;
 };
