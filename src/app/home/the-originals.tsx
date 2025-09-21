@@ -187,17 +187,26 @@ export default function TheOriginals() {
               <div
                 key={index}
                 onClick={() => handleSelectGame(game)}
-                className="h-40 relative bg-black rounded-md flex items-center justify-center text-white cursor-pointer hover:opacity-80 transition select-none"
+                className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
                 draggable={false}
               >
-                <Image
-                  src={game.image}
-                  fill
-                  alt={game.name}
-                  className="object-cover rounded-md pointer-events-none"
-                  draggable={false}
-                />
+                <Image src={game.image} fill alt={game.name} draggable={false} />
               </div>
+
+              // <div
+              //   key={index}
+              //   onClick={() => handleSelectGame(game)}
+              //   className="h-40 relative bg-black rounded-md flex items-center justify-center text-white cursor-pointer hover:opacity-80 transition select-none"
+              //   draggable={false}
+              // >
+              //   <Image
+              //     src={game.image}
+              //     fill
+              //     alt={game.name}
+              //     className="object-cover rounded-md pointer-events-none"
+              //     draggable={false}
+              //   />
+              // </div>
             ))}
           </motion.div>
         </AnimatePresence>

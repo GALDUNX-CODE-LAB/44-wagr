@@ -173,17 +173,25 @@ export default function TrendingGames() {
             {trendingGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
               <div
                 key={index}
-                className="h-40 relative bg-black rounded-md flex items-center justify-center text-white select-none"
+                className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
                 draggable={false}
               >
-                <Image
-                  src={game.image}
-                  fill
-                  alt={game.name}
-                  className="object-cover rounded-md pointer-events-none"
-                  draggable={false}
-                />
+                <Image src={game.image} fill alt={game.name} draggable={false} />
               </div>
+
+              // <div
+              //   key={index}
+              //   className="h-40 relative bg-black rounded-md flex items-center justify-center text-white select-none"
+              //   draggable={false}
+              // >
+              //   <Image
+              //     src={game.image}
+              //     fill
+              //     alt={game.name}
+              //     className="object-cover rounded-md pointer-events-none"
+              //     draggable={false}
+              //   />
+              // </div>
             ))}
           </motion.div>
         </AnimatePresence>
