@@ -1,52 +1,40 @@
 'use client'
 
-import React, { useState } from 'react';
-import { Search, ChevronDown, Bitcoin, Coins } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getUserWithdrawals } from '../../../lib/api';
 
 const WithdrawalHistoryCard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Dummy data for the table
-  const transactions = [
-    {
-      id: '001',
-      hash: '0x1234...abcd',
-      amount: '0.5',
-      date: '2024-01-15',
-      crypto: { name: 'Bitcoin', icon: Bitcoin },
-      status: 'approved'
-    },
-    {
-      id: '002',
-      hash: '0x5678...efgh',
-      amount: '2.3',
-      date: '2024-01-14',
-      crypto: { name: 'Ethereum', icon: Coins },
-      status: 'cancelled'
-    },
-    {
-      id: '003',
-      hash: '0x9012...ijkl',
-      amount: '1.8',
-      date: '2024-01-13',
-      crypto: { name: 'Bitcoin', icon: Bitcoin },
-      status: 'pending'
-    },
-    {
-      id: '004',
-      hash: '0x3456...mnop',
-      amount: '5.2',
-      date: '2024-01-12',
-      crypto: { name: 'Ethereum', icon: Coins },
-      status: 'approved'
-    },
-  ];
+  useEffect(() => {
+    const fetchWithdrawals = async () => {
+      try {
+        const response = await getUserWithdrawals();
+        setWithdrawals(response.data.withdrawals);
+      } catch (error) {
+        console.error('Failed to fetch withdrawals:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusStyle = (status: string) => {
+    fetchWithdrawals();
+  }, []);
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusStyle = (status) => {
     const baseStyle = "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium";
     
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'cancelled':
         return `${baseStyle} bg-red-500/10 text-red-400 border border-red-500/20`;
       case 'approved':
@@ -58,12 +46,46 @@ const WithdrawalHistoryCard = () => {
     }
   };
 
-  const filteredTransactions = transactions.filter(tx => {
-    const matchesSearch = tx.hash.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tx.crypto.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || tx.status === filterStatus;
+  const filteredTransactions = withdrawals.filter(tx => {
+    const matchesSearch = tx._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tx.hash.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tx.amount.toString().includes(searchTerm);
+    const matchesFilter = filterStatus === 'all' || tx.status.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesFilter;
   });
+
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-[720px] h-auto min-h-[352px] bg-[#212121] border border-white/10 rounded-[20px] p-4 sm:p-6 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[720px] h-auto min-h-[352px] bg-[#212121] border border-white/10 rounded-[20px] p-4 sm:p-6">
@@ -98,83 +120,128 @@ const WithdrawalHistoryCard = () => {
         </div>
       </div>
 
-      {/* Table - Desktop View */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="text-white/60 text-xs ">
-              <th className="text-left px-2 pb-3 font-medium">ID</th>
-              <th className="text-left px-2 pb-3 font-medium">Hash</th>
-              <th className="text-left px-2 pb-3 font-medium">Amount</th>
-              <th className="text-left px-2 pb-3 font-medium">Date</th>
-              <th className="text-left px-2 pb-3 font-medium">Crypto</th>
-              <th className="text-left px-2 pb-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.slice(0, 4).map((tx) => {
-              const IconComponent = tx.crypto.icon;
-              return (
-                <tr key={tx.id} className="text-white  text-sm  hover:bg-white/5 transition-colors">
-                  <td className="py-3 px-2">{tx.id}</td>
-                  <td className="py-3 px-2">{tx.hash}</td>
-                  <td className="py-3 px-2">{tx.amount}</td>
-                  <td className="py-3 px-2">{tx.date}</td>
-                  <td className="py-3 px-2">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="w-4 h-4 text-orange-500" />
-                      <span className="text-sm">{tx.crypto.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 ">
-                    <span className={getStatusStyle(tx.status)}>
-                      {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                    </span>
-                  </td>
+      {filteredTransactions.length === 0 ? (
+        <div className="text-center text-gray-400 py-8">
+          No withdrawals found
+        </div>
+      ) : (
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-white/60 text-xs ">
+                  <th className="text-left px-2 pb-3 font-medium">ID</th>
+                  <th className="text-left px-2 pb-3 font-medium">Hash</th>
+                  <th className="text-left px-2 pb-3 font-medium">Amount</th>
+                  <th className="text-left px-2 pb-3 font-medium">Date</th>
+                  <th className="text-left px-2 pb-3 font-medium">Status</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {currentTransactions.map((tx) => (
+                  <tr key={tx._id} className="text-white text-sm hover:bg-white/5 transition-colors">
+                    <td className="py-1 px-2">{tx._id.slice(-6)}</td>
+                    <td className="py-1 px-2">{tx.hash || 'N/A'}</td>
+                    <td className="py-1 px-2">{tx.amount}</td>
+                    <td className="py-1 px-2">{formatDate(tx.date)}</td>
+                    <td className="py-1">
+                      <span className={getStatusStyle(tx.status)}>
+                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      {/* Cards - Mobile View */}
-      <div className="md:hidden space-y-3">
-        {filteredTransactions.slice(0, 4).map((tx) => {
-          const IconComponent = tx.crypto.icon;
-          return (
-            <div key={tx.id} className="bg-[#1C1C1C] border border-white/10 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <IconComponent className="w-4 h-4 text-orange-500" />
-                  <span className="text-white font-medium">{tx.crypto.name}</span>
+          <div className="md:hidden space-y-3">
+            {currentTransactions.map((tx) => (
+              <div key={tx._id} className="bg-[#1C1C1C] border border-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white font-medium">USDT</span>
+                  <span className={getStatusStyle(tx.status)}>
+                    {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                  </span>
                 </div>
-                <span className={getStatusStyle(tx.status)}>
-                  {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                </span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">ID:</span>
+                    <span className="text-white">{tx._id.slice(-6)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Amount:</span>
+                    <span className="text-white font-medium">{tx.amount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Date:</span>
+                    <span className="text-gray-300">{formatDate(tx.date)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Hash:</span>
+                    <span className="text-gray-300 truncate ml-2">{tx.hash || 'N/A'}</span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">ID:</span>
-                  <span className="text-white">{tx.id}</span>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+              <div className="text-sm text-gray-400">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} entries
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg bg-[#1C1C1C] border border-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/5 transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const page = index + 1;
+                    const isCurrentPage = page === currentPage;
+                    const showPage = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                    
+                    if (!showPage && page !== 2 && page !== totalPages - 1) {
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="px-2 text-gray-400">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          isCurrentPage
+                            ? 'bg-[#C8A2FF] text-black'
+                            : 'bg-[#1C1C1C] border border-white/10 text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Amount:</span>
-                  <span className="text-white font-medium">{tx.amount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Date:</span>
-                  <span className="text-gray-300">{tx.date}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Hash:</span>
-                  <span className="text-gray-300 truncate ml-2">{tx.hash}</span>
-                </div>
+                
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg bg-[#1C1C1C] border border-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/5 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

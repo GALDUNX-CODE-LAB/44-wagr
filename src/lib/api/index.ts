@@ -303,9 +303,17 @@ export const createUserWithdrawal = async (amount: number, walletAddress: string
     amount: amount,
     walletAddress: walletAddress,
   };
-  const response = await apiHandler(`/transactions/user/withdrawals`, {
+  const response = await apiHandler(`/user/withdrawals`, {
     method: "POST",
     data: requestData,
+  });
+
+  return response;
+};
+
+export const getUserWithdrawals = async () => {
+  const response = await apiHandler(`/user/withdrawals`, {
+    method: "GET",
   });
 
   return response;
