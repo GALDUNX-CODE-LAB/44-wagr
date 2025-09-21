@@ -82,11 +82,6 @@ export default function Sidebar() {
       icon: <TbGraph className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
       key: "Meta Market",
     },
-     {
-      href: "/withdraw",
-      icon: <TbGraph className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
-      key: "Meta Mark",
-    },
   ];
 
   const handleGameSelect = (gameHref) => {

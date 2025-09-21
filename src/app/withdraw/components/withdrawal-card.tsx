@@ -1,82 +1,87 @@
-'use client';
-import React, { useState } from 'react';
-import { ChevronDown, Bitcoin, Coins } from 'lucide-react';
+"use client";
+import React, { useState } from "react";
+import { createUserWithdrawal } from "../../../lib/api";
+import { useUser } from "../../../hooks/useUserData";
 
 const WithdrawalFormCard = () => {
-  const [selectedCoin, setSelectedCoin] = useState('');
-  const [address, setAddress] = useState('');
-  const [amount, setAmount] = useState('');
+  const [address, setAddress] = useState("");
+  const [amount, setAmount] = useState("");
 
-  const coins = [
-    { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', icon: Bitcoin, maxBalance: 10.5, fee: 0.001 },
-    { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: Coins, maxBalance: 25.8, fee: 0.005 },
-  ];
+  const { balance } = useUser();
 
-  const selectedCoinData = coins.find(coin => coin.id === selectedCoin);
-  const IconComponent = selectedCoinData?.icon;
+  const usdtData = {
+    symbol: "USDT",
+    maxBalance: balance || 0,
+    fee: 1,
+  };
 
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
       setAddress(text);
     } catch (err) {
-      console.error('Failed to read clipboard contents: ', err);
-      setAddress('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa');
+      console.error("Failed to read clipboard contents: ", err);
+      alert("Failed to paste from clipboard. Please paste manually.");
     }
   };
 
   const handleMax = () => {
-    if (selectedCoinData) {
-      setAmount(selectedCoinData.maxBalance.toString());
+    if (balance) {
+      setAmount(balance.toString());
     }
   };
 
   const calculateTotal = () => {
-    if (!amount || !selectedCoinData) return '0.000';
+    if (!amount) return "0.00";
     const numAmount = parseFloat(amount);
-    return (numAmount + selectedCoinData.fee).toFixed(3);
+    return (numAmount + usdtData.fee).toFixed(2);
   };
 
-  const handleWithdraw = () => {
-    if (!address || !amount || !selectedCoin) {
-      alert('Please fill in all fields');
+  const handleWithdraw = async () => {
+    if (!address || !amount) {
+      alert("Please fill in all fields");
       return;
     }
-    alert(`Withdrawing ${amount} ${selectedCoinData?.symbol} to ${address}`);
+
+    try {
+      const numAmount = parseFloat(amount);
+      const response = await createUserWithdrawal(numAmount, address);
+      console.log("Withdrawal successful:", response);
+      alert("Your withdrawal request has been submitted successfully! It will be processed within 24 hours.");
+
+      setAmount("");
+      setAddress("");
+    } catch (error) {
+      console.error("Withdrawal failed:", error);
+      alert("Withdrawal failed. Please try again.");
+    }
   };
 
   return (
-    <div className="w-full max-w-[377px] h-[352px] bg-[#212121] border border-white/10 rounded-[20px] p-4 flex flex-col">
-      <h2 className="text-white font-normal text-lg mb-4">Withdraw</h2>
+    <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-4 flex flex-col">
+      <h2 className="text-white font-normal lg:text-lg mb-4">Withdraw</h2>
 
       <div className="flex-1 space-y-3">
         <div className="w-full">
           <div className="relative">
-            <select
-              value={selectedCoin}
-              onChange={(e) => setSelectedCoin(e.target.value)}
-              className="appearance-none w-full h-[40px] pl-8 pr-10 bg-[#1C1C1C] border border-white/10 rounded-[15px] text-white focus:outline-none focus:border-purple-500 cursor-pointer text-sm"
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center pointer-events-none">
+              <img src="/assets/usdt.png" alt="USDT" className="w-4 h-4" />
+            </div>
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full h-[40px] pl-8 pr-12 bg-[#1C1C1C] border placeholder:text-xs border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
+            />
+            <button
+              onClick={handleMax}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
             >
-              <option value="" disabled className="text-white/60 text-xs font-normal ">
-                Select cryptocurrency to withdraw
-              </option>
-              {coins.map((coin) => (
-                <option key={coin.id} value={coin.id} className="text-white ">
-                    {coin.name} ({coin.symbol})
-                </option>
-              ))}
-            </select>
-            
-            {selectedCoinData && (
-              <div className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/60 rounded-full p-0.5 flex items-center gap-2 pointer-events-none">
-                <IconComponent className="w-4 h-4 text-orange-500" />
-              </div>
-            )}
-            
-            
-            
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              Max
+            </button>
           </div>
+          <p className="text-white/60 text-xs mt-2 ml-1">Available: {balance?.toFixed(2) || "0.00"}</p>
         </div>
 
         <div className="w-full">
@@ -96,51 +101,24 @@ const WithdrawalFormCard = () => {
             </button>
           </div>
         </div>
-
-        <div className="w-full">
-          <div className="relative">
-            <input
-              type="number"
-              placeholder="Amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full h-[40px] px-4 pr-12 bg-[#1C1C1C] border placeholder:text-xs border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
-            />
-            <button
-              onClick={handleMax}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
-            >
-              Max
-            </button>
-          </div>
-          {selectedCoinData && (
-            <p className="text-white/60 text-xs mt-2 ml-1">
-              Available: {selectedCoinData.maxBalance} {selectedCoinData.symbol}
-            </p>
-          )}
-        </div>
       </div>
 
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-2 mt-4 flex flex-col justify-between gap-4">
         <div className="space-y-1 flex-1">
           <div className="flex gap-2 text-white/60 text-xs">
             <span>Transaction Fee:</span>
-            <span className="text-white">
-              {selectedCoinData ? `${selectedCoinData.fee} ${selectedCoinData.symbol}` : '0.000'}
-            </span>
+            <span className="text-white">{usdtData.fee}</span>
           </div>
           <div className="flex gap-2 text-white/60 font-semibold text-xs">
             <span>Total Amount:</span>
-            <span className=' text-white'>
-              {calculateTotal()} {selectedCoinData?.symbol || ''}
-            </span>
+            <span className="text-white">{calculateTotal()}</span>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleWithdraw}
-          disabled={!address || !amount || !selectedCoin}
-          className="px-4 py-2.5 bg-[#c8a2ff] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-normal rounded-[10px] transition-colors text-sm whitespace-nowrap"
+          disabled={!address || !amount}
+          className="px-4 py-2.5 bg-[#c8a2ff] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-normal rounded-[10px] transition-colors text-xs lg:text-sm whitespace-nowrap"
         >
           Withdraw
         </button>
