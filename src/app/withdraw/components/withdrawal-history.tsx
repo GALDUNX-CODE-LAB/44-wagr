@@ -71,7 +71,6 @@ const WithdrawalHistoryCard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 sm:gap-4">
         <h2 className="text-white font-normal text-lg -mt-2 ">Withdraw History</h2>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
             <input
@@ -83,7 +82,6 @@ const WithdrawalHistoryCard = () => {
             />
           </div>
           
-          {/* Filter Dropdown */}
           <div className="relative">
             <select
               value={filterStatus}

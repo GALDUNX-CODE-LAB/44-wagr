@@ -7,6 +7,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { Suspense } from "react";
 import NavbarV2 from "../components/navbar-v2";
+import { Footer } from "../components/footer";
 
 const inter = Inter({
   weight: ["500"],
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <div className="">
                   <NavbarV2 />
                   {children}
+                  <Footer />
                 </div>
               </div>
             </div>

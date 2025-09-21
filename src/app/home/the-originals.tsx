@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TbNumber44Small } from "react-icons/tb";
@@ -16,6 +17,9 @@ export default function TheOriginals() {
 
   const [startIndex, setStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [direction, setDirection] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
 
   useEffect(() => {
     const updateVisibleCount = () => {
@@ -31,12 +35,14 @@ export default function TheOriginals() {
 
   const handleNext = () => {
     if (startIndex < availableGames.length - visibleCount) {
+      setDirection(1);
       setStartIndex(startIndex + 1);
     }
   };
 
   const handlePrev = () => {
     if (startIndex > 0) {
+      setDirection(-1);
       setStartIndex(startIndex - 1);
     }
   };
@@ -50,7 +56,7 @@ export default function TheOriginals() {
 
       const exists = parsed.some((g) => g.name === game.name);
       if (!exists) {
-        parsed.unshift(game); // put the latest at the start
+        parsed.unshift(game);
         localStorage.setItem("continue-playing", JSON.stringify(parsed));
       }
       router.push(game.link);
@@ -59,8 +65,78 @@ export default function TheOriginals() {
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = startX - x;
+
+    if (Math.abs(walk) > 50) {
+      if (walk > 0 && startIndex < availableGames.length - visibleCount) {
+        setDirection(1);
+        setStartIndex(startIndex + 1);
+        setIsDragging(false);
+      } else if (walk < 0 && startIndex > 0) {
+        setDirection(-1);
+        setStartIndex(startIndex - 1);
+        setIsDragging(false);
+      }
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX;
+    const walk = startX - x;
+
+    if (Math.abs(walk) > 50) {
+      if (walk > 0 && startIndex < availableGames.length - visibleCount) {
+        setDirection(1);
+        setStartIndex(startIndex + 1);
+        setIsDragging(false);
+      } else if (walk < 0 && startIndex > 0) {
+        setDirection(-1);
+        setStartIndex(startIndex - 1);
+        setIsDragging(false);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0 && startIndex < availableGames.length - visibleCount) {
+      setDirection(1);
+      setStartIndex(startIndex + 1);
+    } else if (e.deltaY < 0 && startIndex > 0) {
+      setDirection(-1);
+      setStartIndex(startIndex - 1);
+    }
+  };
+
   return (
-    <div className="py-6  rounded-lg relative">
+    <div className="py-6 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex items-center gap-1">
           <TbNumber44Small className="text-primary bg-primary/20 rounded" />
@@ -83,16 +159,48 @@ export default function TheOriginals() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
-        {availableGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
-          <div
-            key={index}
-            onClick={() => handleSelectGame(game)}
-            className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
+
+      <div className="relative h-40">
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            key={startIndex}
+            custom={direction}
+            initial={{ x: direction > 0 ? 300 : -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+            style={{
+              userSelect: "none",
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
           >
-            <Image src={game.image} fill alt={game.name} className="rounded-md" />
-          </div>
-        ))}
+            {availableGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
+              <div
+                key={index}
+                onClick={() => handleSelectGame(game)}
+                className="h-40 relative bg-black rounded-md flex items-center justify-center text-white cursor-pointer hover:opacity-80 transition select-none"
+                draggable={false}
+              >
+                <Image
+                  src={game.image}
+                  fill
+                  alt={game.name}
+                  className="object-cover rounded-md pointer-events-none"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

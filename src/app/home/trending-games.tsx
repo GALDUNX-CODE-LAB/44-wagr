@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -24,6 +24,10 @@ export default function TrendingGames() {
   const [startIndex, setStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(8);
   const [direction, setDirection] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const updateVisibleCount = () => {
     if (typeof window !== "undefined") {
@@ -53,6 +57,76 @@ export default function TrendingGames() {
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = startX - x;
+
+    if (Math.abs(walk) > 50) {
+      if (walk > 0 && startIndex < trendingGames.length - visibleCount) {
+        setDirection(1);
+        setStartIndex(startIndex + 1);
+        setIsDragging(false);
+      } else if (walk < 0 && startIndex > 0) {
+        setDirection(-1);
+        setStartIndex(startIndex - 1);
+        setIsDragging(false);
+      }
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX;
+    const walk = startX - x;
+
+    if (Math.abs(walk) > 50) {
+      if (walk > 0 && startIndex < trendingGames.length - visibleCount) {
+        setDirection(1);
+        setStartIndex(startIndex + 1);
+        setIsDragging(false);
+      } else if (walk < 0 && startIndex > 0) {
+        setDirection(-1);
+        setStartIndex(startIndex - 1);
+        setIsDragging(false);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0 && startIndex < trendingGames.length - visibleCount) {
+      setDirection(1);
+      setStartIndex(startIndex + 1);
+    } else if (e.deltaY < 0 && startIndex > 0) {
+      setDirection(-1);
+      setStartIndex(startIndex - 1);
+    }
+  };
+
   return (
     <div className="py-6 rounded-lg relative overflow-hidden">
       <div className="flex justify-between items-center mb-4">
@@ -77,18 +151,38 @@ export default function TrendingGames() {
           </button>
         </div>
       </div>
+
       <div className="relative h-40">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={startIndex}
             className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+            style={{
+              userSelect: "none",
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
           >
             {trendingGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
               <div
                 key={index}
-                className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
+                className="h-40 relative bg-black rounded-md flex items-center justify-center text-white select-none"
+                draggable={false}
               >
-                <Image src={game.image} fill alt={game.name} />
+                <Image
+                  src={game.image}
+                  fill
+                  alt={game.name}
+                  className="object-cover rounded-md pointer-events-none"
+                  draggable={false}
+                />
               </div>
             ))}
           </motion.div>
