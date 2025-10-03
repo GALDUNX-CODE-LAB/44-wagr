@@ -21,10 +21,10 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
         <MarketHeader market={market} />
         <TradePanel
           market={market}
-          betAmount={betAmount}
-          setBetAmount={setBetAmount}
-          selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
+          // betAmount={betAmount}
+          // setBetAmount={setBetAmount}
+          // selectedOption={selectedOption}
+          // setSelectedOption={setSelectedOption}
         />
       </div>
 
