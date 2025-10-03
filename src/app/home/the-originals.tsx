@@ -54,11 +54,8 @@ export default function TheOriginals() {
       const stored = localStorage.getItem("continue-playing");
       let parsed: any[] = stored ? JSON.parse(stored) : [];
 
-      const exists = parsed.some((g) => g.name === game.name);
-      if (!exists) {
-        parsed.unshift(game);
-        localStorage.setItem("continue-playing", JSON.stringify(parsed));
-      }
+      parsed.unshift(game);
+      localStorage.setItem("continue-playing", JSON.stringify(parsed));
       router.push(game.link);
     } catch (err) {
       console.error("Error updating localStorage:", err);
