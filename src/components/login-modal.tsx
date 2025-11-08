@@ -4,12 +4,13 @@ import { X } from "lucide-react";
 import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
-import { getGoogleLink, requestNonce, verifySignature } from "../lib/api";
+import { getGoogleLink, requestNonce, setupProfile, verifySignature } from "../lib/api";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from "wagmi";
 import { useEffect, useState } from "react";
 import { getCookie, setCookie } from "../lib/api/cookie";
 import { RiLoaderLine } from "react-icons/ri";
+import SetupProfileModal from "./set-profile-modal";
 
 interface LoginModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [openProfileSetup, setOpenProfileSetup] = useState(false);
 
   const googleLogin = async () => {
     try {
@@ -62,17 +64,22 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
       const res = await verifySignature(address, signature);
       console.log(res);
       setCookie("access-token", res.accessToken);
+
+      const usernameChanged = res.user.usernameChanged;
+      if (usernameChanged == false) {
+        setOpenProfileSetup(true);
+        return;
+      }
       alert("✅ Login success:");
       console.log(res, "Verification data");
       onClose();
+      window.location.href = "/";
     } catch (err) {
       console.error("Signature verification failed:", err);
     } finally {
       setIsAuthenticating(false);
-      window.location.href = "/";
     }
   };
-
   return (
     <AnimatePresence>
       {open && (
@@ -89,6 +96,12 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="bg-[#212121] w-full max-w-sm rounded-[20px] border border-white/20 p-6 relative"
           >
+            <SetupProfileModal
+              open={openProfileSetup}
+              onClose={() => {
+                setOpenProfileSetup(false);
+              }}
+            />
             {isAuthenticating && (
               <div className="fixed bg-black/60 top-0 bottom-0 left-0 right-0 z-[10000] flex items-center justify-center">
                 <RiLoaderLine color="#fff" size={30} className="animate-spin" />

@@ -318,3 +318,12 @@ export const getUserWithdrawals = async () => {
 
   return response;
 };
+
+export const setupProfile = async (payload: { username: string; referralCode: string }) => {
+  const response = await apiHandler(`/user/setup-profile`, {
+    method: "PATCH",
+    data: payload,
+  });
+
+  return response;
+};

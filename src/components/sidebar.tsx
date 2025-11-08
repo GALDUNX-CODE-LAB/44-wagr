@@ -9,6 +9,7 @@ import { RiNftLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
 import Image from "next/image";
 import { FaEnvelope, FaSignOutAlt } from "react-icons/fa";
+import { logout } from "../lib/api/auth";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -145,7 +146,10 @@ export default function Sidebar() {
             <li className=" p-2 rounded-lg text-white/70 text-sm flex items-center gap-3 cursor-pointer">
               <FaEnvelope /> Contact Support
             </li>
-            <li className="text-red-400 p-2 rounded-lg  text-sm flex items-center gap-3 cursor-pointer">
+            <li
+              className="text-red-400 p-2 rounded-lg  text-sm flex items-center gap-3 cursor-pointer"
+              onClick={() => logout()}
+            >
               <FaSignOutAlt /> Log out
             </li>
           </ul>
