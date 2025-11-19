@@ -1,6 +1,8 @@
-"use client"
+"use client";
 
-import { Search } from "lucide-react"
+import { BadgeQuestionMark, Search } from "lucide-react";
+import { useState } from "react";
+import InfoModal from "../../../components/info-modal";
 
 interface PageHeaderProps {
   title: string;
@@ -8,25 +10,31 @@ interface PageHeaderProps {
   searchPlaceholder?: string;
 }
 
-export default function PageHeader({ 
-  title, 
-  onSearch, 
-  searchPlaceholder = "Search" 
-}: PageHeaderProps) {
+export default function PageHeader({ title, onSearch, searchPlaceholder = "Search" }: PageHeaderProps) {
+  const [openInfoModal, setOpenInfoModal] = useState(false);
+
   return (
     <div className="flex flex-row items-center justify-between mb-8 gap-2">
-      <h1 className="text-lg md:text-2xl text-white/50 font-medium text-left whitespace-nowrap">
-        {title}
-      </h1>
-      <div className="relative flex-shrink-0 w-[160px] sm:w-[220px] md:w-[300px] lg:w-[375px]">
-        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder={searchPlaceholder}
-          onChange={(e) => onSearch?.(e.target.value)}
-          className="w-full h-[40px] bg-[#212121] border border-white/[0.06] rounded-[8px] px-4 pr-12 text-white placeholder-gray-400  focus:outline-none focus:border-white/20"
-        />
+      <InfoModal open={openInfoModal} onClose={() => setOpenInfoModal(false)} />
+      <h1 className="text-lg md:text-2xl text-white/80 font-medium text-left whitespace-nowrap">{title}</h1>
+      <div className="flex gap-2">
+        <div className="relative flex-shrink-0 w-[160px] sm:w-[220px] md:w-[300px] lg:w-[375px]">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            onChange={(e) => onSearch?.(e.target.value)}
+            className="w-full h-[40px] bg-[#212121] border border-white/[0.06] rounded-[8px] px-4 pr-12 text-white placeholder-gray-400  focus:outline-none focus:border-white/20"
+          />
+        </div>
+
+        <button className="bg-primary p-2 rounded-lg text-xs text-black" onClick={() => setOpenInfoModal(true)}>
+          <span className="lg:hidden">
+            <BadgeQuestionMark size={16} />
+          </span>
+          <span className="hidden lg:block"> How to play ?</span>
+        </button>
       </div>
     </div>
-  )
+  );
 }

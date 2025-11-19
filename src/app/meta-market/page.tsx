@@ -1,8 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Search, TrendingUp, TrendingDown } from "lucide-react";
+import { MessageCircle, Search, TrendingUp, TrendingDown, Bookmark, ChartPie } from "lucide-react";
 import { fetchMarkets } from "../../lib/api";
+import BookmarkMarketsModal from "./components/bookmark-market-modal";
+import { useQuery } from "@tanstack/react-query";
+import PortfolioModal from "./components/portfolio-modal";
 
 const categories = ["All", "Politics", "Religion", "Sports"];
 const PAGE_SIZE = 8;
@@ -10,27 +13,24 @@ const PAGE_SIZE = 8;
 export default function MarketPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const router = useRouter();
-  const [markets, setMarkets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [openBookmarks, setOpenBookmarks] = useState(false);
+  const [openPortfolio, setOpenPortfolio] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    fetchMarkets()
-      .then((res) => {
-        const marketList = Array.isArray(res) ? res : res?.markets || [];
-        setMarkets(marketList);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("❌ Error fetching markets:", err);
-        setError(err.message || "Failed to load markets");
-        setLoading(false);
-      });
-  }, []);
+  const {
+    data: markets = [],
+    isLoading: loading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["markets"],
+    queryFn: async () => {
+      const res = await fetchMarkets();
+      return Array.isArray(res) ? res : res?.markets || [];
+    },
+    refetchOnWindowFocus: false,
+  });
 
   const paginatedMarkets = markets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.ceil(markets.length / PAGE_SIZE);
@@ -39,11 +39,34 @@ export default function MarketPage() {
   if (error) return <ErrorDisplay error={error} />;
 
   return (
-    <div className="p-4 sm:p-6 text-white min-h-screen lg:max-w-6xl mx-auto">
-      <h1 className="text-lg lg:text-2xl font-medium mb-1">Meta-Market</h1>
-      <p className="text-xs lg:text-base font-normal text-white/70 mb-6 max-w-xl">
-        Explore trending prediction markets.
-      </p>
+    <div className="p-4 sm:p-6 text-white min-h-screen container mx-auto">
+      <BookmarkMarketsModal open={openBookmarks} onClose={() => setOpenBookmarks(false)} />
+      <PortfolioModal open={openPortfolio} onClose={() => setOpenPortfolio(false)} />
+
+      <div className="flex justify-between">
+        <div className="wrap">
+          <h1 className="text-lg lg:text-2xl font-medium mb-1">Meta-Market</h1>
+          <p className="text-xs lg:text-base font-normal text-white/70 mb-6 max-w-xl">
+            Explore trending prediction markets.
+          </p>
+        </div>
+
+        <div className="wrap text-sm flex gap-5">
+          <span
+            className="flex gap-1 items-center hover:text-primary transition-all"
+            onClick={() => setOpenPortfolio(true)}
+          >
+            <span className="hidden lg:block">Portfolio </span>
+            <ChartPie className="lg:w-3 lg:h-4" />
+          </span>
+          <span
+            className="flex gap-1 items-center hover:text-primary transition-all"
+            onClick={() => setOpenBookmarks(true)}
+          >
+            <span className="hidden lg:block">Bookmarks </span> <Bookmark className="lg:w-3 lg:h-4" />
+          </span>
+        </div>
+      </div>
 
       {/* Search */}
       <div className="relative mb-6">
@@ -134,7 +157,7 @@ function MarketGrid({ markets, router }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
       {markets.map((market) => (
         <MarketCard key={market._id} market={market} router={router} />
       ))}

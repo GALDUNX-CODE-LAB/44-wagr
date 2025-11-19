@@ -298,10 +298,11 @@ export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
   return response.data;
 };
 
-export const createUserWithdrawal = async (amount: number, walletAddress: string) => {
+export const createUserWithdrawal = async (amount: number, walletAddress: string, passcode: string | null) => {
   const requestData = {
     amount: amount,
     walletAddress: walletAddress,
+    passcode,
   };
   const response = await apiHandler(`/user/withdrawals`, {
     method: "POST",
@@ -325,5 +326,50 @@ export const setupProfile = async (payload: { username: string; referralCode: st
     data: payload,
   });
 
+  return response;
+};
+
+export const redeemPoints = async (points: number) => {
+  const response = await apiHandler(`/user/convert-points`, {
+    method: "POST",
+    data: { points },
+  });
+  return response;
+};
+
+export const fetchRedemptionHistory = async () => {
+  const response = await apiHandler(`/user/transactions?type=Conversion`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const setUserPasscode = async (passcode: number) => {
+  const response = await apiHandler(`/user/set-passcode`, {
+    method: "POST",
+    data: { passcode },
+  });
+  return response;
+};
+
+export const getMarketsByIds = async (ids: string[]) => {
+  const response = await apiHandler(`/meta-market/markets/ids`, {
+    method: "POST",
+    data: { ids },
+  });
+  return response;
+};
+
+export const getUserPortfolios = async () => {
+  const response = await apiHandler(`/meta-market/user/portfolios`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const getPortfolioDetails = async (portfolioId: string) => {
+  const response = await apiHandler(`/meta-market/user/portfolio/${portfolioId}`, {
+    method: "GET",
+  });
   return response;
 };

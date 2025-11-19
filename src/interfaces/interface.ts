@@ -15,6 +15,7 @@ export interface TrendPoint {
 export interface Market {
   id: number;
   question: string;
+  summary?: string;
   volume: string;
   change: string;
   positive: boolean;
