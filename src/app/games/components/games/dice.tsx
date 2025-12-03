@@ -1,94 +1,165 @@
 "use client";
 
-import { Bitcoin } from "lucide-react";
 import DiceRoller from "../dice-roller";
 import { useState, useRef, useEffect } from "react";
 import LiveDiceWins from "../../../../components/live-wins-dice";
 import { placeDiceBet } from "../../../../lib/api";
 import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
+import { playDiceRoll } from "../../../../lib/sound-player";
+import { useQueryClient } from "@tanstack/react-query";
+import { FaQuestion, FaShieldAlt } from "react-icons/fa";
+import InfoModal from "../info-modal";
+import FairnessModal from "../fairness-modal";
+import CoinFlipHistoryTable from "../coin-history";
+
+interface DiceHistoryItem {
+  isWin: boolean;
+  roll: number;
+  [key: string]: any;
+}
 
 export default function DiceGame() {
   const [activeOdds, setActiveOdds] = useState(60.57);
   const [betAmount, setBetAmount] = useState(0);
   const [target, setTarget] = useState(50);
   const [betType, setBetType] = useState<"over" | "under">("over");
-  const [betHistory, setBetHistory] = useState([]);
+  const [betHistory, setBetHistory] = useState<DiceHistoryItem[]>([]);
   const [lastResult, setLastResult] = useState<any>(null);
   const [isBetting, setIsBetting] = useState(false);
+
+  const [autoMode, setAutoMode] = useState(false);
+  const [autoPlays, setAutoPlays] = useState<number | null>(5);
+  const [autoPlaysLeft, setAutoPlaysLeft] = useState(0);
+
+  const [activeTab, setActiveTab] = useState("my-bets");
+  const [howModal, setHowModal] = useState(false);
+  const [openFairness, setOpenFairness] = useState(false);
+
+  const tabs: { id: string; label: string }[] = [
+    { id: "my-bets", label: "My Bets" },
+    { id: "live-games", label: "Live Games" },
+  ];
+
   const oddsOptions = [60.57, 30.57, 70.57, 60.7];
   const diceRef = useRef<any>(null);
+  const queryClient = useQueryClient();
 
   const winnableAmount = betAmount * activeOdds;
+
   useEffect(() => {
     handleHistory();
   }, []);
 
-  const handlePlaceBet = async () => {
-    if (betAmount < 0) {
-      alert("Please enter a valid bet amount");
-      return;
-    }
+  const isLoggedIn = useIsLoggedIn();
 
-    if (diceRef.current) {
-      diceRef.current.rollDice();
-    }
+  const handleHistory = () => {
+    const stored: DiceHistoryItem[] = JSON.parse(sessionStorage.getItem("dice-history") || "[]");
+    setBetHistory(stored);
+  };
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const runSingleBet = async (): Promise<boolean> => {
+    // if (betAmount <= 0) {
+    //   alert("Please enter a valid bet amount");
+    //   return false;
+    // }
 
     try {
-      const response = await placeDiceBet({ betAmount, target, betType });
-      console.log("🎲 Full API Response:", response);
+      if (diceRef.current) {
+        playDiceRoll();
+        diceRef.current.rollDice();
+      }
 
-      const data = response.data;
+      const response = await placeDiceBet({ betAmount, target, betType });
+      const data = (response as any).data || response;
+
       setLastResult(data);
 
-      if (diceRef.current) {
+      if (diceRef.current && data && typeof data.roll === "number") {
         diceRef.current.rollToValue(data.roll, data.isWin);
       }
 
-      // ✅ Save result in sessionStorage
-      const stored = JSON.parse(sessionStorage.getItem("dice-history") || "[]");
-      // keep max 3 results (you can change 3 → N)
+      const stored: DiceHistoryItem[] = JSON.parse(sessionStorage.getItem("dice-history") || "[]");
       const updatedHistory = [...stored, data].slice(-7);
-
       sessionStorage.setItem("dice-history", JSON.stringify(updatedHistory));
+      handleHistory();
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
+
+      await sleep(1800);
+
+      return true;
     } catch (error: any) {
       console.error("🎲 Bet Error:", error);
-      alert(`Bet failed: ${error.message || error}`);
+      alert(`Bet failed: ${error?.message || error}`);
 
       if (diceRef.current) {
         diceRef.current.resetDice();
       }
+
+      return false;
     }
   };
 
-  // Update UI when bet type changes
+  const handlePlaceBet = async () => {
+    if (!isLoggedIn) return;
+
+    if (!autoMode) {
+      setIsBetting(true);
+      await runSingleBet();
+      setIsBetting(false);
+      return;
+    }
+
+    if (autoPlays <= 0) {
+      alert("Please enter how many times to auto play");
+      return;
+    }
+
+    setIsBetting(true);
+    setAutoPlaysLeft(autoPlays);
+
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    for (let i = 0; i < autoPlays; i++) {
+      const ok = await runSingleBet();
+      const remaining = autoPlays - (i + 1);
+      setAutoPlaysLeft(remaining);
+
+      if (!ok) {
+        break;
+      }
+
+      if (i < autoPlays - 1) {
+        await sleep(2000);
+      }
+    }
+
+    setIsBetting(false);
+    setAutoPlaysLeft(0);
+  };
+
   useEffect(() => {
     if (diceRef.current) {
       diceRef.current.resetDice();
     }
   }, [betType]);
 
-  const isLoggedIn = useIsLoggedIn();
-
-  const handleHistory = () => {
-    const stored = JSON.parse(sessionStorage.getItem("dice-history") || "[]");
-    setBetHistory(stored);
-  };
-
   return (
     <div className="p-4">
       <div className="lg:bg-[#212121] rounded-[20px] text-white flex flex-col lg:flex-row justify-between gap-8 lg:p-4 min-h-[400px]">
-        {/* Left Section */}
         <div className="flex-1 flex flex-col gap-8">
-          {/* Dice Animation */}
           <div className="flex-grow flex flex-col justify-center items-center mt-5 pt-10">
-            <DiceRoller ref={diceRef} onClick={() => handleHistory()} />
-            {/* {lastResult && (
-              <div className={`mt-4 text-lg font-semibold ${lastResult.isWin ? "text-green-400" : "text-red-400"}`}>
-                {lastResult.isWin ? "You Won!" : "You Lost"} (Roll: {lastResult.roll.toFixed(2)})
-              </div>
-            )} */}
+            <DiceRoller
+              betType={betType}
+              target={target}
+              ref={diceRef}
+              onClick={() => {
+                handleHistory();
+                queryClient.invalidateQueries({ queryKey: ["user-data"] });
+              }}
+            />
 
-            {/* Bet Type Toggle */}
             <div className="flex justify-center gap-4 mt-2">
               <button
                 className={`px-6 py-2 rounded-lg text-xs font-medium ${
@@ -97,47 +168,46 @@ export default function DiceGame() {
                     : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
                 }`}
                 onClick={() => setBetType("over")}
+                disabled={isBetting}
               >
                 Roll Over
               </button>
               <button
-                className={`px-6 py-2 rounded-lg text-xs  font-medium ${
+                className={`px-6 py-2 rounded-lg text-xs font-medium ${
                   betType === "under"
                     ? "bg-[#C8A2FF] text-black"
                     : "bg-[#212121] border border-white/10 text-white hover:bg-[#2A2A2A]"
                 }`}
                 onClick={() => setBetType("under")}
+                disabled={isBetting}
               >
                 Roll Under
               </button>
             </div>
 
             <div className="wrap mt-16">
-              <div className="flex flex-wrap gap-3 items-center w-full ">
+              <div className="flex flex-wrap gap-3 items-center w-full">
                 {betHistory.map((i, index) => (
                   <span
-                    className={` ${
-                      i.isWin ? "bg-primary text-secondary " : "bg-black/70 text-white/90"
+                    className={`${
+                      i.isWin ? "bg-primary text-secondary" : "bg-black/70 text-white/90"
                     } text-xs px-3 p-1 rounded-full`}
                     key={index}
                   >
-                    {i.roll.toFixed(2)}
+                    {typeof i.roll === "number" ? i.roll.toFixed(2) : i.roll}
                   </span>
                 ))}
               </div>
             </div>
-            {/* Bet Settings */}
+
             <div className="w-full grid grid-cols-3 bg-white/10 rounded-lg mt-3">
-              {/* Multiplier */}
               <div className="p-4 rounded-lg text-center">
                 <span className="text-xs text-white/60 text-center justify-center">Multiplier</span>
                 <p className="bg-[#212121] h-10 flex items-center justify-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
-                  {(0.99 / ((betType === "over" ? 100 - target : target) / 100)) // 0.99 = house edge (1%)
-                    .toFixed(3)}
+                  {(0.99 / ((betType === "over" ? 100 - target : target) / 100)).toFixed(3)}
                 </p>
               </div>
 
-              {/* Roll Over / Under */}
               <div className="p-4 rounded-lg text-center">
                 <span className="text-xs text-white/60 text-center">Roll {betType === "over" ? "Over" : "Under"}</span>
                 <div className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-1.5">
@@ -148,11 +218,11 @@ export default function DiceGame() {
                     value={target}
                     onChange={(e) => setTarget(Number(e.target.value) > 100 ? 0 : Number(e.target.value))}
                     className="w-full bg-transparent lg:text-base text-xs font-semibold text-center outline-none"
+                    disabled={isBetting}
                   />
                 </div>
               </div>
 
-              {/* Win Chance */}
               <div className="p-4 rounded-lg text-center">
                 <span className="text-xs text-white/60 text-center">Win Chance</span>
                 <p className="bg-[#212121] h-10 flex items-center justify-center border border-white/10 rounded-lg px-3 py-2 lg:text-base text-xs font-semibold">
@@ -163,10 +233,8 @@ export default function DiceGame() {
           </div>
         </div>
 
-        {/* Right Section (Bet Summary) */}
-        <div className="w-full lg:w-[375px]  p-4 gap-6 bg-[#1c1c1c] border border-white/10 rounded-lg">
+        <div className="w-full lg:w-[375px] p-4 gap-6 bg-[#1c1c1c] border border-white/10 rounded-lg">
           <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-            {/* Bet Amount Input */}
             <div className="flex flex-col">
               <p className="text-sm text-white/60 mb-1">Bet Amount</p>
               <div className="flex items-center bg-[#212121] rounded-lg p-3">
@@ -177,11 +245,11 @@ export default function DiceGame() {
                   value={betAmount}
                   onChange={(e) => setBetAmount(Number(e.target.value))}
                   className="w-full bg-transparent outline-none text-white text-sm"
+                  disabled={isBetting}
                 />
               </div>
             </div>
 
-            {/* Amount to Win */}
             <div className="flex flex-col">
               <p className="text-sm text-white/60 mb-1">Profit On Win</p>
               <div className="bg-[#212121] rounded-lg p-3 flex items-center justify-start">
@@ -194,20 +262,117 @@ export default function DiceGame() {
             </div>
           </div>
 
-          {/* Bet Button */}
+          <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-white/70">Automatic Mode</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isBetting) return;
+                  setAutoMode((prev) => !prev);
+                }}
+                className={`w-11 h-6 rounded-full flex items-center px-1 text-[10px] ${
+                  autoMode ? "bg-[#C8A2FF] justify-end" : "bg-[#212121] justify-start"
+                }`}
+              >
+                <span className="w-4 h-4 rounded-full bg-white" />
+              </button>
+            </div>
+
+            {autoMode && (
+              <div className="flex flex-col">
+                <p className="text-xs text-white/60 mb-1">Number of Plays</p>
+                <div className="flex items-center bg-[#212121] rounded-lg p-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={autoPlays}
+                    onChange={(e) => setAutoPlays(Number(e.target.value))}
+                    className="w-full bg-transparent outline-none text-white text-xs"
+                    disabled={isBetting}
+                  />
+                </div>
+                {isBetting && autoPlaysLeft > 0 && (
+                  <p className="text-[11px] text-white/60 mt-1">
+                    Auto playing... {autoPlays - autoPlaysLeft + 1}/{autoPlays}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handlePlaceBet}
             disabled={isBetting || !isLoggedIn}
             className="w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold bg-[#C8A2FF] text-black disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {!isLoggedIn ? "Login to Play" : isBetting ? "Placing Bet..." : "Play"}
+            {!isLoggedIn
+              ? "Login to Play"
+              : isBetting
+              ? autoMode
+                ? "Auto Playing..."
+                : "Placing Bet..."
+              : autoMode
+              ? "Start Auto Play"
+              : "Play"}
           </button>
         </div>
       </div>
 
-      {/* Live Wins Section */}
-      <div className="mt-12 lg:bg-[#212121] rounded-[20px] lg:p-6">
-        <LiveDiceWins />
+      <div className="w-full mt-10 space-y-4">
+        <div className="flex w-full justify-between items-center">
+          <div className=" inline-flex items-center rounded-full bg-black/40 p-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-5 py-2 text-xs md:text-sm font-semibold rounded-full transition ${
+                  activeTab === tab.id ? "bg-[#1d2023] text-white shadow-sm" : "text-white/60 hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="wrap flex items-center gap-3">
+            <button
+              className="rounded-lg text-sm flex justify-center items-center gap-2 px-4 p-2 bg-black/70 hover:bg-black/30 transition text-white/50 hover:text-white"
+              onClick={() => setOpenFairness(true)}
+            >
+              Fairness
+              <FaShieldAlt size={12} />
+            </button>
+
+            <button
+              className="rounded-full p-2 bg-primary/20 hover:bg-primary/30 transition text-white/50 hover:text-white"
+              onClick={() => setHowModal(true)}
+            >
+              <FaQuestion size={14} />
+            </button>
+            <InfoModal
+              open={howModal}
+              onClose={() => setHowModal(false)}
+              title="How To Play Dice"
+              text={
+                "Choose Roll Over or Roll Under\n" +
+                "Set your target number between 1 and 99\n" +
+                "Lower targets give a higher win chance but a lower multiplier; higher targets give lower win chance but bigger payouts\n\n" +
+                "Enter the amount you want to bet\n" +
+                "Press Play to roll a random number between 0.00 and 99.99\n\n" +
+                "If you chose Roll Over and the roll is greater than your target, you win\n" +
+                "If you chose Roll Under and the roll is less than your target, you win\n" +
+                "Your profit on win is shown in the Profit card and equals your bet multiplied by the displayed multiplier"
+              }
+            />
+            <FairnessModal open={openFairness} onClose={() => setOpenFairness(false)} />
+          </div>
+        </div>
+
+        {activeTab === "my-bets" && <CoinFlipHistoryTable />}
+
+        {activeTab === "live-games" && <LiveDiceWins />}
       </div>
     </div>
   );

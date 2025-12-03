@@ -11,6 +11,7 @@ export function useUser() {
   return {
     balance: data?.balance ?? 0,
     points: data?.points ?? 0,
+    passcode: data?.passcode,
     referralBalance: data?.referralBalance ?? 0,
     role: data?.role ?? "user",
     email: data?.walletAddress ?? "",

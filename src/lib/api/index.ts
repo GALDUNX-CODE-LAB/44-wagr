@@ -298,10 +298,11 @@ export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
   return response.data;
 };
 
-export const createUserWithdrawal = async (amount: number, walletAddress: string) => {
+export const createUserWithdrawal = async (amount: number, walletAddress: string, passcode: string | null) => {
   const requestData = {
     amount: amount,
     walletAddress: walletAddress,
+    passcode,
   };
   const response = await apiHandler(`/user/withdrawals`, {
     method: "POST",
@@ -327,3 +328,84 @@ export const setupProfile = async (payload: { username: string; referralCode: st
 
   return response;
 };
+
+export const redeemPoints = async (points: number) => {
+  const response = await apiHandler(`/user/convert-points`, {
+    method: "POST",
+    data: { points },
+  });
+  return response;
+};
+
+export const fetchRedemptionHistory = async () => {
+  const response = await apiHandler(`/user/transactions?type=Conversion`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const setUserPasscode = async (passcode: number) => {
+  const response = await apiHandler(`/user/set-passcode`, {
+    method: "POST",
+    data: { passcode },
+  });
+  return response;
+};
+
+export const getMarketsByIds = async (ids: string[]) => {
+  const response = await apiHandler(`/meta-market/markets/ids`, {
+    method: "POST",
+    data: { ids },
+  });
+  return response;
+};
+
+export const getUserPortfolios = async () => {
+  const response = await apiHandler(`/meta-market/user/portfolios`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const getPortfolioDetails = async (portfolioId: string) => {
+  const response = await apiHandler(`/meta-market/user/portfolio/${portfolioId}`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export interface CoinflipHistoryResponseItem {
+  id: string;
+  game: string;
+  createdAt: string;
+  betAmount: number;
+  multiplier: number;
+  payout: number;
+}
+
+export interface CoinflipHistoryResponse {
+  items: CoinflipHistoryResponseItem[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export async function getCoinflipHistory(page = 1, limit = 20) {
+  const res = await apiHandler("/coinflip/bet/history", { method: "GET", params: { page, limit } });
+  return res;
+}
+
+export async function getUserSeeds() {
+  const res = await apiHandler("/fairness/seeds", { method: "GET" });
+  return res as {
+    clientSeed: string;
+    serverSeedHash: string;
+    nextServerSeedHash?: string;
+    nonce: number;
+  };
+}
+
+export async function verifyFairness(body: any) {
+  const res = await apiHandler("/fairness/verify", { method: "POST", data: body });
+  return res;
+}

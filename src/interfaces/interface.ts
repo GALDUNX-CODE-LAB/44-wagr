@@ -15,6 +15,7 @@ export interface TrendPoint {
 export interface Market {
   id: number;
   question: string;
+  summary?: string;
   volume: string;
   change: string;
   positive: boolean;
@@ -230,3 +231,11 @@ export interface ExecuteMarketPayload {
   shares: number;
   action: "BUY" | "SELL";
 }
+
+export interface VerifyRequestBase {
+  game: FairnessGame;
+  clientSeed: string;
+  serverSeed: string;
+  nonce: number;
+}
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels";

@@ -72,11 +72,7 @@ export default function AuthCallback() {
 
           // Trigger auth state update
           window.dispatchEvent(new Event("auth-change"));
-
-          // Redirect to home page
-          setTimeout(() => {
-            // router.push('/');
-          }, 2000);
+          window.location.href = "/";
         } else {
           console.error("❌ No token found in cookies after login");
           throw new Error("Authentication failed - no tokens stored");
