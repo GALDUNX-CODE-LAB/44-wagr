@@ -231,3 +231,11 @@ export interface ExecuteMarketPayload {
   shares: number;
   action: "BUY" | "SELL";
 }
+
+export interface VerifyRequestBase {
+  game: FairnessGame;
+  clientSeed: string;
+  serverSeed: string;
+  nonce: number;
+}
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels";

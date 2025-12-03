@@ -373,3 +373,39 @@ export const getPortfolioDetails = async (portfolioId: string) => {
   });
   return response;
 };
+
+export interface CoinflipHistoryResponseItem {
+  id: string;
+  game: string;
+  createdAt: string;
+  betAmount: number;
+  multiplier: number;
+  payout: number;
+}
+
+export interface CoinflipHistoryResponse {
+  items: CoinflipHistoryResponseItem[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export async function getCoinflipHistory(page = 1, limit = 20) {
+  const res = await apiHandler("/coinflip/bet/history", { method: "GET", params: { page, limit } });
+  return res;
+}
+
+export async function getUserSeeds() {
+  const res = await apiHandler("/fairness/seeds", { method: "GET" });
+  return res as {
+    clientSeed: string;
+    serverSeedHash: string;
+    nextServerSeedHash?: string;
+    nonce: number;
+  };
+}
+
+export async function verifyFairness(body: any) {
+  const res = await apiHandler("/fairness/verify", { method: "POST", data: body });
+  return res;
+}

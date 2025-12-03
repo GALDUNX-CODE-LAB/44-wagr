@@ -73,69 +73,65 @@ export default function LiveCoinWins() {
   }, [queryClient]);
 
   return (
-    <section className="mb-20 w-full">
-      <div className="flex items-start gap-2 mb-4">
-        <Award className="text-[#c8a2ff]" />
-        <h2 className="text-xl font-bold text-white">Live Wins</h2>
-      </div>
+    <div className="w-full overflow-x-auto rounded-xl bg-[#212121] border border-white/5">
+      <table className="min-w-full table-auto text-sm text-white">
+        <thead>
+          <tr className="text-[11px] md:text-xs uppercase tracking-wide text-white/60">
+            <th className="whitespace-nowrap px-5 py-3 text-left">Game</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Time</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Bet Amount</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left">Multiplier</th>
+            <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
+          </tr>
+        </thead>
 
-      <div className="flex gap-2 mb-6">
-        {gameCategories.map((category) => (
-          <button
-            key={category}
-            onClick={() => {
-              setActiveCategory(category);
-              router.push(`/games/${category.toLowerCase()}`);
-            }}
-            className={`h-[30px] rounded-full flex items-center justify-center text-sm transition ${
-              activeCategory === category ? "bg-[#C8A2FF] text-black" : "bg-[#313131] text-white/70 hover:bg-[#2a2a2a]"
-            }`}
-            style={{ padding: "5px 23px", gap: "10px" }}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
+        <tbody>
+          {liveWins.map((win, index) => (
+            <tr
+              key={index}
+              className={`border-t border-white/5 ${
+                index % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"
+              } text-[13px] font-medium`}
+            >
+              {/* Game */}
+              <td className="whitespace-nowrap px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-white/5">
+                    <span className="h-2 w-2 rounded-full bg-white" />
+                  </span>
+                  <span>{win.game}</span>
+                </div>
+              </td>
 
-      <div className="w-full rounded-lg overflow-x-auto  overflow-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#212121]">
-            <tr className="text-[#ffffff]/60 text-[12px]">
-              <th className="whitespace-nowrap px-5 py-3 text-left">Game</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Time</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Bet Amount</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left">Multiplier</th>
-              <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
+              {/* User */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.user}</td>
+
+              {/* Time */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.time}</td>
+
+              {/* Bet */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
+                <div className="flex items-center gap-1">
+                  <span className="text-white/90">{win.bet}</span>
+                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
+                </div>
+              </td>
+
+              {/* Multiplier */}
+              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.multiplier}</td>
+
+              {/* Payout */}
+              <td className="whitespace-nowrap px-5 py-3 text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
+                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {liveWins.map((win, index) => (
-              <tr
-                key={index}
-                className={`${index % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"} text-white text-[13px] font-medium`}
-              >
-                <td className="whitespace-nowrap px-5 py-3">{win.game}</td>
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">{win.user}</td>
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">{win.time}</td>
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
-                  <div className="flex items-center gap-1">
-                    <span>{win.bet}</span>
-                    <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                  </div>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3">{win.multiplier}</td>
-                <td className="whitespace-nowrap px-5 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <span>{win.payout}</span>
-                    <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
