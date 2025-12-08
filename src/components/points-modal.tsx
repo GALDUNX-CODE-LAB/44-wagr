@@ -153,11 +153,11 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex lg:items-center items-end justify-center px-4"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex lg:items-center items-end justify-center px-0"
       onClick={onClose}
     >
       <div
-        className="bg-[#1C1C1C] text-white rounded-xl w-full max-w-[800px] max-h-[90vh] overflow-y-auto p-6 border border-white/10 relative"
+        className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full max-w-[800px] max-h-[90vh] overflow-y-auto p-6 border border-white/10 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/10">

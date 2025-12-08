@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
 import MarketDetails from "../components/market-details";
 import { fetchMarketById } from "../../../lib/api";
+import MarketPageSkeleton from "../components/market-skeleton";
 
 export default function MarketDetailsPage() {
   const params = useParams();
@@ -33,7 +34,10 @@ export default function MarketDetailsPage() {
       });
   }, [marketId]);
 
-  if (loading) return <div>Loading...</div>;
+  // if (loading) return <div>Loading...</div>;
+
+  if (loading) return <MarketPageSkeleton />;
+
   if (error) return <div>Error: {error}</div>;
   if (!data) return notFound();
 

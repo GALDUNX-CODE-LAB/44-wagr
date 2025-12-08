@@ -30,6 +30,7 @@ export default function DiceGame() {
   const [autoMode, setAutoMode] = useState(false);
   const [autoPlays, setAutoPlays] = useState<number | null>(5);
   const [autoPlaysLeft, setAutoPlaysLeft] = useState(0);
+  const stopAutoRef = useRef(false);
 
   const [activeTab, setActiveTab] = useState("my-bets");
   const [howModal, setHowModal] = useState(false);
@@ -60,11 +61,6 @@ export default function DiceGame() {
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const runSingleBet = async (): Promise<boolean> => {
-    // if (betAmount <= 0) {
-    //   alert("Please enter a valid bet amount");
-    //   return false;
-    // }
-
     try {
       if (diceRef.current) {
         playDiceRoll();
@@ -111,24 +107,24 @@ export default function DiceGame() {
       return;
     }
 
-    if (autoPlays <= 0) {
+    if (!autoPlays || autoPlays <= 0) {
       alert("Please enter how many times to auto play");
       return;
     }
 
+    stopAutoRef.current = false;
     setIsBetting(true);
     setAutoPlaysLeft(autoPlays);
 
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
     for (let i = 0; i < autoPlays; i++) {
+      if (stopAutoRef.current) break;
+
       const ok = await runSingleBet();
       const remaining = autoPlays - (i + 1);
       setAutoPlaysLeft(remaining);
 
-      if (!ok) {
-        break;
-      }
+      if (!ok) break;
+      if (stopAutoRef.current) break;
 
       if (i < autoPlays - 1) {
         await sleep(2000);
@@ -137,6 +133,11 @@ export default function DiceGame() {
 
     setIsBetting(false);
     setAutoPlaysLeft(0);
+  };
+
+  const handleStopAuto = () => {
+    // Signal the loop to stop after the current bet finishes
+    stopAutoRef.current = true;
   };
 
   useEffect(() => {
@@ -287,7 +288,7 @@ export default function DiceGame() {
                     type="number"
                     min="1"
                     max="1000"
-                    value={autoPlays}
+                    value={autoPlays ?? 0}
                     onChange={(e) => setAutoPlays(Number(e.target.value))}
                     className="w-full bg-transparent outline-none text-white text-xs"
                     disabled={isBetting}
@@ -295,7 +296,7 @@ export default function DiceGame() {
                 </div>
                 {isBetting && autoPlaysLeft > 0 && (
                   <p className="text-[11px] text-white/60 mt-1">
-                    Auto playing... {autoPlays - autoPlaysLeft + 1}/{autoPlays}
+                    Auto playing... {autoPlays! - autoPlaysLeft}/{autoPlays}
                   </p>
                 )}
               </div>
@@ -303,12 +304,16 @@ export default function DiceGame() {
           </div>
 
           <button
-            onClick={handlePlaceBet}
-            disabled={isBetting || !isLoggedIn}
-            className="w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold bg-[#C8A2FF] text-black disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={autoMode && isBetting ? handleStopAuto : handlePlaceBet}
+            disabled={!isLoggedIn || (!autoMode && isBetting)}
+            className={`w-full mt-5 rounded-[10px] p-2 text-sm lg:py-3 font-semibold ${
+              autoMode && isBetting ? "bg-red-500" : "bg-[#C8A2FF]"
+            } text-black disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {!isLoggedIn
               ? "Login to Play"
+              : autoMode && isBetting
+              ? "Stop Auto"
               : isBetting
               ? autoMode
                 ? "Auto Playing..."

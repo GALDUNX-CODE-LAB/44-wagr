@@ -1,4 +1,11 @@
-import { Market, CrashBetPayload, MarketPrice, UserPortfolio, ExecuteMarketPayload } from "../../interfaces/interface";
+import {
+  Market,
+  CrashBetPayload,
+  MarketPrice,
+  UserPortfolio,
+  ExecuteMarketPayload,
+  INotification,
+} from "../../interfaces/interface";
 import apiHandler from "../api-handler";
 
 export const fetchLiveWins = async () => {
@@ -407,5 +414,15 @@ export async function getUserSeeds() {
 
 export async function verifyFairness(body: any) {
   const res = await apiHandler("/fairness/verify", { method: "POST", data: body });
+  return res;
+}
+
+export async function getNotifications(): Promise<INotification[]> {
+  const res = await apiHandler(`/notifications`, { method: "GET" });
+  return res;
+}
+
+export async function markNotificationRead(id: string): Promise<INotification> {
+  const res = await apiHandler(`/notifications/${id}/read`, { method: "PATCH" });
   return res;
 }

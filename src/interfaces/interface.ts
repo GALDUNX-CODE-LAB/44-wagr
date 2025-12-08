@@ -239,3 +239,13 @@ export interface VerifyRequestBase {
   nonce: number;
 }
 export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels";
+
+export interface INotification {
+  _id: string;
+  user: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}

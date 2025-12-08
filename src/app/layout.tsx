@@ -8,6 +8,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import NavbarV2 from "../components/navbar-v2";
 import { Footer } from "../components/footer";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   weight: ["500"],
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </div>
             </div>
           </WalletProvider>
+          <Toaster />
         </Suspense>
       </body>
     </html>
