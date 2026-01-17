@@ -1,7 +1,7 @@
 "use client";
 
 import { Bitcoin, DollarSignIcon, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LiveWinsSection from "../../../../components/live-wins";
 import { useQueryClient } from "@tanstack/react-query";
 import { placeCoinflipBet } from "../../../../lib/api";
@@ -21,6 +21,7 @@ interface CoinHistoryItem {
   result: CoinSide;
   isWin: boolean;
 }
+
 type CoinflipTab = "my-bets" | "live-games";
 
 export default function CoinTossGame() {
@@ -41,6 +42,8 @@ export default function CoinTossGame() {
   const [activeTab, setActiveTab] = useState<CoinflipTab>("my-bets");
   const [howModal, setHowModal] = useState(false);
   const [openFairness, setOpenFairness] = useState(false);
+
+  const stopAutoRef = useRef(false);
 
   const tabs: { id: CoinflipTab; label: string }[] = [
     { id: "my-bets", label: "My Bets" },
@@ -63,8 +66,16 @@ export default function CoinTossGame() {
     setSelectedSide(randomSide);
   };
 
-  const playSingleFlip = async (): Promise<boolean> => {
-    if (!selectedSide) {
+  const playSingleFlip = async (opts?: { auto?: boolean }): Promise<boolean> => {
+    let sideForThisFlip = selectedSide;
+
+    if (opts?.auto) {
+      const rand: CoinSide = Math.random() < 0.5 ? "heads" : "tails";
+      sideForThisFlip = rand;
+      setSelectedSide(rand);
+    }
+
+    if (!sideForThisFlip) {
       setResultText("Please select a side before betting!");
       setShowResult(true);
       return false;
@@ -82,7 +93,7 @@ export default function CoinTossGame() {
     try {
       const response = await placeCoinflipBet({
         betAmount,
-        choice: selectedSide,
+        choice: sideForThisFlip,
       });
 
       const data = (response as any).data || response;
@@ -97,11 +108,15 @@ export default function CoinTossGame() {
       const normalizedResult: CoinSide = String(data.result).toLowerCase() === "heads" ? "heads" : "tails";
 
       const spins = 4;
-      const baseRotation = normalizedResult === "heads" ? 0 : 180;
-      const targetRotation = spins * 360 + baseRotation;
+      const desiredAngle = normalizedResult === "heads" ? 0 : 180;
+      setCoinRotation((prev) => {
+        const normalizedPrev = ((prev % 360) + 360) % 360;
+        const deltaToDesired = (desiredAngle - normalizedPrev + 360) % 360;
+        const extraRotation = spins * 360 + deltaToDesired;
+        return prev + extraRotation;
+      });
 
       playCoinFlipSound();
-      setCoinRotation((prev) => prev + targetRotation);
 
       setTimeout(() => {
         setIsFlipping(false);
@@ -139,25 +154,28 @@ export default function CoinTossGame() {
       return;
     }
 
+    stopAutoRef.current = false;
     setIsAutoPlaying(true);
     setAutoPlaysLeft(autoPlays);
 
     for (let i = 0; i < autoPlays; i++) {
-      const ok = await playSingleFlip();
+      if (stopAutoRef.current) break;
+
+      const ok = await playSingleFlip({ auto: true });
       const remaining = autoPlays - (i + 1);
       setAutoPlaysLeft(remaining);
 
       if (!ok) {
         break;
       }
-
-      if (i < autoPlays - 1) {
-        await delayer(1200);
-      }
     }
 
     setIsAutoPlaying(false);
     setAutoPlaysLeft(0);
+  };
+
+  const handleStopAuto = () => {
+    stopAutoRef.current = true;
   };
 
   const handleHistory = async () => {
@@ -318,23 +336,35 @@ export default function CoinTossGame() {
             </div>
 
             {autoMode && (
-              <div className="flex flex-col gap-1">
-                <p className="text-xs text-white/60">Number of Plays</p>
-                <div className="bg-[#212121] rounded-lg p-2 flex items-center">
-                  <input
-                    type="number"
-                    min="1"
-                    max="1000"
-                    value={autoPlays}
-                    onChange={(e) => setAutoPlays(Number(e.target.value))}
-                    className="w-full bg-transparent outline-none text-white text-xs"
-                    disabled={isFlipping || isAutoPlaying}
-                  />
+              <div className="flex flex-col gap-2">
+                <div>
+                  <p className="text-xs text-white/60">Number of Plays</p>
+                  <div className="bg-[#212121] rounded-lg p-2 flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={autoPlays}
+                      onChange={(e) => setAutoPlays(Number(e.target.value))}
+                      className="w-full bg-transparent outline-none text-white text-xs"
+                      disabled={isFlipping || isAutoPlaying}
+                    />
+                  </div>
+                  {isAutoPlaying && autoPlaysLeft >= 0 && (
+                    <p className="text-[11px] text-white/60">
+                      Auto playing... {autoPlays - autoPlaysLeft}/{autoPlays}
+                    </p>
+                  )}
                 </div>
-                {isAutoPlaying && autoPlaysLeft >= 0 && (
-                  <p className="text-[11px] text-white/60">
-                    Auto playing... {autoPlays - autoPlaysLeft}/{autoPlays}
-                  </p>
+
+                {isAutoPlaying && (
+                  <button
+                    type="button"
+                    onClick={handleStopAuto}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-red-500/80 hover:bg-red-500 text-white self-start"
+                  >
+                    Stop Auto
+                  </button>
                 )}
               </div>
             )}
@@ -342,7 +372,7 @@ export default function CoinTossGame() {
 
           <button
             onClick={handlePlaceBet}
-            disabled={isFlipping || isAutoPlaying || !selectedSide || !isLoggedIn}
+            disabled={isFlipping || isAutoPlaying || (!selectedSide && !autoMode) || !isLoggedIn}
             className={`bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black font-semibold rounded-[12px] py-2 transition ${
               isFlipping || isAutoPlaying ? "opacity-50 cursor-not-allowed" : ""
             } disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center`}
@@ -377,8 +407,6 @@ export default function CoinTossGame() {
           </div>
         </div>
       )}
-
-      {/* <FairnessModal /> */}
 
       <div className="w-full mt-10">
         <div className="flex w-full justify-between items-center">
@@ -416,10 +444,12 @@ export default function CoinTossGame() {
               onClose={() => setHowModal(false)}
               title="How To Play Coin Flip"
               text={
-                "Pick Heads or Tails\n" +
-                "Set your bet amount\n" +
-                "Press Play to flip the coin\n" +
-                "If the result matches your choice, you win the payout shown"
+                "Choose either Heads or Tails\n" +
+                "Enter the amount you want to bet\n" +
+                "Click Play to flip the coin and generate a provably fair result\n" +
+                "If the coin lands on the side you picked, you win your bet multiplied by the displayed payout\n" +
+                "If it lands on the opposite side, you lose the amount you staked\n" +
+                "You can use Auto Play to run multiple flips in a row, but remember every flip is an independent game"
               }
             />
             <FairnessModal open={openFairness} onClose={() => setOpenFairness(false)} />

@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Award } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchDiceWins, fetchLiveWins } from "../lib/api";
+import { fetchDiceWins } from "../lib/api";
 import { GameType } from "../interfaces/interface";
 
 interface Win {
@@ -17,13 +15,9 @@ interface Win {
 }
 
 export default function LiveDiceWins() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
-  // const [liveWins , setLiveWins ] = useState(second)
 
-  const gameCategories = ["Dice"];
-  const [activeCategory, setActiveCategory] = useState(gameCategories[0]);
   const { data: liveWins = [] } = useQuery<Win[]>({
     queryKey: ["live-wins-dice"],
     queryFn: fetchDiceWins,

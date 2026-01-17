@@ -7,6 +7,11 @@ const nextConfig = {
         hostname: "www.cryptologos.cc",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "gateway.pinata.cloud",
+        pathname: "/**",
+      },
     ],
   },
 };

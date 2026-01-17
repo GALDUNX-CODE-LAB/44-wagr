@@ -8,6 +8,7 @@ const WithdrawalFormCard = () => {
   const [address, setAddress] = useState("");
   const [userPasscode, setUserPasscode] = useState();
   const [amount, setAmount] = useState("");
+  const [chain, setChain] = useState<"ETH" | "BSC" | "SOL">("ETH");
   const [openPasscodeModal, setOpenPasscodeModal] = useState(false);
 
   const { balance, passcode } = useUser();
@@ -41,14 +42,14 @@ const WithdrawalFormCard = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!address || !amount) {
+    if (!address || !amount || !chain) {
       alert("Please fill in all fields");
       return;
     }
 
     try {
       const numAmount = parseFloat(amount);
-      const response = await createUserWithdrawal(numAmount, address, userPasscode);
+      const response = await createUserWithdrawal(numAmount, address, chain, userPasscode);
       console.log("Withdrawal successful:", response);
       alert("Your withdrawal request has been submitted successfully! It will be processed within 24 hours.");
 
@@ -87,6 +88,19 @@ const WithdrawalFormCard = () => {
               </button>
             </div>
             <p className="text-white/60 text-xs mt-2 ml-1">Available: {balance?.toFixed(2) || "0.00"}</p>
+          </div>
+
+          <div className="w-full">
+            <label className="text-white/60 text-xs mb-2 block">Chain</label>
+            <select
+              value={chain}
+              onChange={(e) => setChain(e.target.value as "ETH" | "BSC" | "SOL")}
+              className="w-full h-[40px] px-4 bg-[#1C1C1C] border border-white/10 rounded-[15px] text-white focus:outline-none focus:border-purple-500 text-sm mb-3"
+            >
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="BSC">Binance Smart Chain (BSC)</option>
+              <option value="SOL">Solana (SOL)</option>
+            </select>
           </div>
 
           <div className="w-full">
@@ -147,7 +161,7 @@ const WithdrawalFormCard = () => {
 
           <button
             onClick={handleWithdraw}
-            disabled={!address || !amount}
+            disabled={!address || !amount || !chain}
             className="px-4 py-2.5 bg-[#c8a2ff] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-normal rounded-[10px] transition-colors text-xs lg:text-sm whitespace-nowrap"
           >
             Withdraw

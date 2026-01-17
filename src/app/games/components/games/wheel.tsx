@@ -2,7 +2,6 @@
 
 import { Bitcoin, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
 import { HARD_CODED_SEGMENTS, SINGLE_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
@@ -12,7 +11,7 @@ import { useUser } from "../../../../hooks/useUserData";
 import { useQueryClient } from "@tanstack/react-query";
 import { playWheelsSound, playWheelsWins } from "../../../../lib/sound-player";
 import { delayer } from "../../../../lib/utils";
-import CoinFlipHistoryTable from "../coin-history";
+import WheelHistoryTable from "../wheel-history";
 import InfoModal from "../info-modal";
 import FairnessModal from "../fairness-modal";
 import { FaQuestion, FaShieldAlt } from "react-icons/fa";
@@ -26,6 +25,18 @@ const COLOR_MAPPING = {
   lightgray: "#FFFFFFB5",
 };
 
+type Segment = { color: keyof typeof COLOR_MAPPING; multiplier: number };
+
+const buildSegments = (count: number): Segment[] => {
+  const base = HARD_CODED_SEGMENTS as Segment[];
+  if (count <= base.length) return base.slice(0, count);
+  const result: Segment[] = [];
+  while (result.length < count) {
+    result.push(...base);
+  }
+  return result.slice(0, count);
+};
+
 export default function StakeRingWheelGame() {
   const [betAmount, setBetAmount] = useState(0.01);
   const [activeOdds, setActiveOdds] = useState(2);
@@ -34,9 +45,9 @@ export default function StakeRingWheelGame() {
   const [showResult, setShowResult] = useState(false);
   const [resultText, setResultText] = useState("");
   const [selectedRisk, setSelectedRisk] = useState("medium");
-  const [selectedSegments, setSelectedSegments] = useState(HARD_CODED_SEGMENTS.length);
+  const [selectedSegments, setSelectedSegments] = useState(8);
   const [recentResults, setRecentResults] = useState<Array<{ multiplier: number; color: string }>>([]);
-  const [fixedSegments, setFixedSegments] = useState(HARD_CODED_SEGMENTS);
+  const [fixedSegments, setFixedSegments] = useState<Segment[]>(() => buildSegments(8));
   const [isBetting, setIsBetting] = useState(false);
   const [inErr, setInErr] = useState<string | null>();
 
@@ -55,17 +66,18 @@ export default function StakeRingWheelGame() {
   ];
 
   const isLoggedIn = useIsLoggedIn();
-  const segmentAngle = 360 / selectedSegments;
-
   const { balance } = useUser();
   const queryClient = useQueryClient();
 
+  const displaySegment: Segment[] = buildSegments(8);
+
   useEffect(() => {
-    const trimmed = HARD_CODED_SEGMENTS.slice(0, selectedSegments);
-    setFixedSegments(trimmed);
+    setFixedSegments(buildSegments(selectedSegments));
   }, [selectedSegments]);
 
   const generateGradient = () => {
+    const count = fixedSegments.length || 1;
+    const segmentAngle = 360 / count;
     return `conic-gradient(from 90deg, ${fixedSegments
       .map((segment, i) => {
         const color = COLOR_MAPPING[segment.color] || "#FFFFFFB5";
@@ -90,7 +102,7 @@ export default function StakeRingWheelGame() {
     playWheelsSound();
 
     try {
-      const response = await placeWheelBet({ stake: betAmount });
+      const response = await placeWheelBet({ stake: betAmount, segments: selectedSegments });
 
       if (!response?.success) {
         throw new Error("Bet failed.");
@@ -113,13 +125,11 @@ export default function StakeRingWheelGame() {
       const rotationNeeded = (360 - segmentCenterInNormal) % 360;
       const SPIN_COUNT = 5;
 
-      // ✅ Use functional update so auto mode always sees the latest rotation
       setWheelRotation((prev) => {
         const currentBase = Math.floor(prev / 360) * 360;
         return currentBase + SPIN_COUNT * 360 + rotationNeeded;
       });
 
-      // ⏳ Wait for the CSS transition (4.5s) to complete
       await delayer(4500);
 
       const winAmount = Number(betAmount) * multiplier;
@@ -159,7 +169,6 @@ export default function StakeRingWheelGame() {
       const ok = await spinOnce();
       const remaining = autoPlays - (i + 1);
       setAutoPlaysLeft(remaining);
-
       if (!ok) break;
     }
 
@@ -176,7 +185,7 @@ export default function StakeRingWheelGame() {
               <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
                 {segment.multiplier}x
               </div>
-              <div style={{ backgroundColor: COLOR_MAPPING[segment.color], height: "20%" }} />
+              <div style={{ backgroundColor: COLOR_MAPPING[segment.color] as string, height: "20%" }} />
             </div>
           ))}
         </div>
@@ -208,7 +217,7 @@ export default function StakeRingWheelGame() {
               >
                 <div
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: COLOR_MAPPING[result.color] || "#FFFFFFB5" }}
+                  style={{ backgroundColor: COLOR_MAPPING[result.color as keyof typeof COLOR_MAPPING] || "#FFFFFFB5" }}
                 />
                 {result.multiplier}x
               </div>
@@ -216,7 +225,7 @@ export default function StakeRingWheelGame() {
           </div>
 
           <div className="flex lg:hidden flex-wrap gap-2 justify-center mt-6">
-            {fixedSegments.map((segment, idx) => (
+            {displaySegment.map((segment, idx) => (
               <div key={idx} className="w-[60px] h-[50px] rounded-[10px] border border-white/10 flex flex-col">
                 <div className="flex-1 bg-[#1C1C1C] flex items-center justify-center text-sm font-semibold">
                   {segment.multiplier}x
@@ -253,10 +262,10 @@ export default function StakeRingWheelGame() {
             <select
               value={selectedSegments}
               onChange={(e) => setSelectedSegments(parseInt(e.target.value))}
-              className="mt-2 bg-[#212121] text-white rounded-lg p-3  py-3.5 text-xs lg:text-base lg:p-4 w-full"
+              className="mt-2 bg-[#212121] text-white rounded-lg p-3 py-3.5 text-xs lg:text-base lg:p-4 w-full"
               disabled={isSpinning || isAutoPlaying}
             >
-              {[8].map((num) => (
+              {[8, 16, 32].map((num) => (
                 <option key={num} value={num}>
                   {num}
                 </option>
@@ -336,7 +345,7 @@ export default function StakeRingWheelGame() {
 
       <div className="w-full mt-10 space-y-4">
         <div className="flex w-full justify-between items-center">
-          <div className=" inline-flex items-center rounded-full bg-black/40 p-2">
+          <div className="inline-flex items-center rounded-full bg-black/40 p-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -384,7 +393,7 @@ export default function StakeRingWheelGame() {
           </div>
         </div>
 
-        {activeTab === "my-bets" && <CoinFlipHistoryTable />}
+        {activeTab === "my-bets" && <WheelHistoryTable />}
 
         {activeTab === "live-games" && <LiveWheelsWins />}
       </div>

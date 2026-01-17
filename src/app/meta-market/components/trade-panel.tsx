@@ -6,6 +6,7 @@ import { executeMarketTrade, fetchMarketPrices, fetchUserPorfolio } from "../../
 import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
 import { useUser } from "../../../hooks/useUserData";
 import { BiLoaderAlt } from "react-icons/bi";
+import { toast } from "sonner";
 
 interface TradePanelProps {
   market: Market;
@@ -83,6 +84,7 @@ export default function TradePanel({ market }: TradePanelProps) {
     } finally {
       await queryclient.invalidateQueries();
       setLoading(false);
+      toast.success("Market Trade Executed Successful");
     }
   };
 

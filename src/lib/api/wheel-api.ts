@@ -30,10 +30,7 @@ export const fetchSegments = async (): Promise<DynamicSegment[]> => {
   return HARD_CODED_SEGMENTS;
 };
 
-export const placeWheelBet = async ({ stake }: { stake: number }) => {
-  const payload = {
-    stake,
-  };
+export const placeWheelBet = async (payload: { stake: number; segments?: number }) => {
   console.log("[placeWheelBet] Payload being sent to backend:", payload);
 
   try {

@@ -6,7 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import NumberSelection from "../components/number-selection";
 import BettingPanel from "../components/betting-panel";
-import { fetchLotteryNumbers, placeLotteryBet, fetchLotteries } from "../../../lib/api";
+import EndedLotteryDisplay from "../components/ended-lottery-display";
+import { fetchLotteryNumbers, placeLotteryBet, fetchLotteries, fetchLotteryById } from "../../../lib/api";
 import { LotteryNumbersResponse, LotteryBetResponse, Lottery } from "../../../interfaces/interface";
 
 const MAX_SELECTIONS = 5;
@@ -73,17 +74,53 @@ export default function LotteryDetailsPage() {
         setLoading(true);
         setError(null);
 
-        const lotteriesResponse = await fetchLotteries();
-        const lottery = lotteriesResponse.lotteries?.find((l: Lottery) => l._id === lotteryId);
+        let loadedLottery: Lottery | null = null;
 
-        if (lottery) {
-          setLotteryData(lottery);
-          setBetAmount(lottery.ticketPrice.toString());
+        // Try to fetch full lottery details first (includes pool and winners)
+        try {
+          const fullLotteryResponse = await fetchLotteryById(lotteryId);
+          if (fullLotteryResponse) {
+            // fetchLotteryById already extracts the data, so fullLotteryResponse is the lottery object
+            loadedLottery = {
+              ...fullLotteryResponse,
+              isCompleted: fullLotteryResponse.isEnded || fullLotteryResponse.isCompleted,
+            };
+          }
+        } catch (err) {
+          // Fallback to fetching from list if detailed fetch fails
+          console.log("Detailed fetch failed, trying list:", err);
         }
 
-        const numbersResponse: LotteryNumbersResponse = await fetchLotteryNumbers(lotteryId);
-        setAvailableNumbers(numbersResponse.availableNumbers || []);
+        // If we don't have lottery data yet, try fetching from list
+        if (!loadedLottery) {
+          const lotteriesResponse = await fetchLotteries();
+          const lottery = lotteriesResponse.lotteries?.find((l: Lottery) => l._id === lotteryId);
+          if (lottery) {
+            loadedLottery = lottery;
+          }
+        }
+
+        if (loadedLottery) {
+          setLotteryData(loadedLottery);
+          setBetAmount(loadedLottery.ticketPrice.toString());
+
+          // Only fetch available numbers if lottery is not completed
+          if (!loadedLottery.isCompleted && !loadedLottery.isEnded) {
+            try {
+              const numbersResponse: LotteryNumbersResponse = await fetchLotteryNumbers(lotteryId);
+              setAvailableNumbers(numbersResponse.availableNumbers || []);
+            } catch (err) {
+              console.error("Error fetching numbers:", err);
+              setAvailableNumbers(Array.from({ length: 49 }, (_, i) => i + 1));
+            }
+          } else {
+            setAvailableNumbers([]);
+          }
+        } else {
+          setError("Lottery not found");
+        }
       } catch (error) {
+        console.error("Error loading lottery:", error);
         setError("Failed to load lottery data");
         setAvailableNumbers(Array.from({ length: 49 }, (_, i) => i + 1));
       } finally {
@@ -110,12 +147,19 @@ export default function LotteryDetailsPage() {
 
   const handlePlaceBet = async () => {
     if (selectedNumbers.length !== MAX_SELECTIONS || !lotteryData) {
+      setError(`Please select exactly ${MAX_SELECTIONS} numbers`);
+      return;
+    }
+
+    if (lotteryData.isCompleted || lotteryData.isEnded) {
+      setError("This lottery has already ended");
       return;
     }
 
     try {
       setBetting(true);
       setError(null);
+      setSuccess(null);
 
       const betData = {
         pickedNumbers: selectedNumbers.sort((a, b) => a - b),
@@ -126,12 +170,18 @@ export default function LotteryDetailsPage() {
       setError(null);
       setSuccess("Bet placed successfully! 🎉");
       setSelectedNumbers([]);
+      
+      // Refresh lottery data to update available numbers
+      const numbersResponse: LotteryNumbersResponse = await fetchLotteryNumbers(lotteryId);
+      setAvailableNumbers(numbersResponse.availableNumbers || []);
+      
       setTimeout(() => {
         router.push("/nft-lottery");
-      }, 1000);
-    } catch (error) {
+      }, 2000);
+    } catch (error: any) {
       console.error("Betting error:", error);
-      setError("Failed to place bet. Please try again.");
+      const errorMessage = error?.message || error?.response?.data?.message || "Failed to place bet. Please try again.";
+      setError(errorMessage);
     } finally {
       setBetting(false);
     }
@@ -202,7 +252,7 @@ export default function LotteryDetailsPage() {
           <div className="w-full max-w-[400px] font-medium flex items-center justify-between px-2">
             <span className="md:text-sm text-xs text-white/60">Next Draw Time Starts In</span>
             <span className="md:text-base text-sm text-[#c8a2ff] md:text-white whitespace-nowrap">
-              {lotteryData.isCompleted ? "Completed" : timeRemaining}
+              {lotteryData.isCompleted || lotteryData.isEnded ? "Completed" : timeRemaining}
             </span>
           </div>
 
@@ -210,6 +260,14 @@ export default function LotteryDetailsPage() {
             <span className="text-sm text-gray-300">Ticket Price</span>
             <span className="text-lg font-bold text-[#c8a2ff]">${lotteryData.ticketPrice.toLocaleString()}</span>
           </div>
+          {lotteryData.prizePool !== undefined && (
+            <div className="w-full h-[44px] max-w-[400px] bg-[#212121] border border-white/[0.1] rounded-[12px] flex items-center justify-between px-4">
+              <span className="text-sm text-gray-300">Prize Pool</span>
+              <span className="text-lg font-bold text-[#c8a2ff]">
+                ${lotteryData.prizePool.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -220,31 +278,8 @@ export default function LotteryDetailsPage() {
           <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">{success}</div>
         )}
 
-        {lotteryData.isCompleted ? (
-          <div className="text-center py-12">
-            <h2 className="text-xl font-medium mb-4">This lottery has ended</h2>
-            {lotteryData.winningNumbers && (
-              <div className="mb-6">
-                <p className="text-white/60 mb-2">Winning Numbers:</p>
-                <div className="flex justify-center gap-2">
-                  {lotteryData.winningNumbers.map((number) => (
-                    <div
-                      key={number}
-                      className="w-10 h-10 bg-[#C8A2FF] text-black rounded-full flex items-center justify-center font-bold"
-                    >
-                      {number}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => router.push("/nft-lottery")}
-              className="px-6 py-3 bg-[#C8A2FF] text-black cursor-pointer rounded-lg hover:bg-[#B891FF] transition-colors"
-            >
-              View Other Lotteries
-            </button>
-          </div>
+        {lotteryData.isCompleted || lotteryData.isEnded ? (
+          <EndedLotteryDisplay lottery={lotteryData} />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <NumberSelection

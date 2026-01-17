@@ -15,6 +15,7 @@ export function useUser() {
     referralBalance: data?.referralBalance ?? 0,
     role: data?.role ?? "user",
     email: data?.walletAddress ?? "",
+    username: data?.username ?? "",
     nonce: data?.nonceCounter ?? 0,
     clientSeed: data?.clientSeed ?? "",
     serverSeed: data?.serverSeed ?? "",
@@ -22,8 +23,6 @@ export function useUser() {
     createdAt: data?.createdAt ?? "",
     updatedAt: data?.updatedAt ?? "",
     id: data?._id ?? "",
-
-    // query helpers
     isLoading,
     error,
     refetch,

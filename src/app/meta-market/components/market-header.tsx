@@ -47,17 +47,31 @@ export default function MarketHeader({ market }: { market: Market }) {
   return (
     <div className="flex-1 flex flex-col gap-4">
       <h1 className="text-lg lg:text-2xl font-medium flex items-center gap-3">
-        <div className="lg:min-w-[60px] lg:min-h-[60px] min-w-[30px] min-h-[30px] bg-white rounded-[10px]" />
-        <div className="wrap">
+        {market.image && (
+          <img 
+            src={market.image} 
+            alt={market.question}
+            className="w-[30px] h-[30px] lg:w-[60px] lg:h-[60px] object-cover rounded-[10px] flex-shrink-0"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        )}
+        {!market.image && (
+          <div className="w-[30px] h-[30px] lg:w-[60px] lg:h-[60px] bg-white rounded-[10px] flex-shrink-0" />
+        )}
+        <div className="wrap flex-1">
           <div className="flex w-full items-center gap-2 justify-between">
             {market.question}
             <button onClick={handleBookmark} className="p-1 rounded-md hover:bg-white/10 transition">
               <Bookmark size={20} className={bookmarked ? "text-[#C8A2FF] fill-[#C8A2FF]" : "text-white/40"} />
             </button>
           </div>
-          <small className="text-xs">
-            {market.summary ?? "Market will be true if the question is true at the end of the event"}
-          </small>
+          {market.summary && (
+            <small className="text-xs text-white/70 block mt-1">
+              {market.summary}
+            </small>
+          )}
         </div>
       </h1>
 

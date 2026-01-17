@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Bitcoin } from "lucide-react";
-import { fetchLotteryWinners } from "../../../lib/api";
+import { fetchRecentLotteryWinners } from "../../../lib/api";
 
 interface LotteryWinner {
   username: string;
@@ -21,8 +21,14 @@ export default function RecentWinners() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetchLotteryWinners();
-        setWinners(response);
+        const response = await fetchRecentLotteryWinners(10);
+        const winnersData = Array.isArray(response) ? response : [];
+        const formatted = winnersData.map((winner: any) => ({
+          username: winner.userId?.username || "Unknown User",
+          payout: winner.payout ? `$${winner.payout.toLocaleString()}` : "$0",
+          userImage: winner.userId?.imageUrl || "/assets/user.png",
+        }));
+        setWinners(formatted);
       } catch (err) {
         console.error("Error fetching lottery winners:", err);
         setError("Failed to load recent winners");
@@ -36,19 +42,15 @@ export default function RecentWinners() {
   }, []);
 
   return (
-    <div className="w-full max-w-[600px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
+    <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-xl font-bold">Recent Winners</h2>
+        <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+          <Bitcoin className="w-4 h-4 text-green-400" />
+        </div>
+        <h2 className="text-xl font-bold text-white">Recent Winners</h2>
       </div>
 
-      <div className="bg-[#c8a2ff]/50 rounded-[5px] h-[40px] w-full mb-5" />
-
-      <div className="space-y-4 flex-grow overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-2 py-1">
-          <span className="text-sm font-medium text-white/65">Player</span>
-          <span className="text-sm font-medium text-white/65">Price</span>
-        </div>
+      <div className="space-y-3 flex-grow overflow-y-auto max-h-[450px]">
 
         {/* Loading State */}
         {loading && (
@@ -69,14 +71,14 @@ export default function RecentWinners() {
           winners.map((winner, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-2 bg-[#1C1C1C]/50 rounded-lg"
+              className="flex items-center justify-between p-4 bg-[#1C1C1C]/50 rounded-xl border border-white/5 hover:border-[#C8A2FF]/30 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-[#C8A2FF]/50 transition-colors flex-shrink-0">
                   <Image
                     src={winner.userImage || "/assets/user.png"}
-                    width={32}
-                    height={32}
+                    width={40}
+                    height={40}
                     className="object-cover"
                     alt={winner.username}
                     unoptimized
@@ -85,15 +87,16 @@ export default function RecentWinners() {
                     }}
                   />
                 </div>
-                <div>
-                  <p className="font-medium">{winner.username}</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-white truncate">{winner.username}</p>
+                  <p className="text-xs text-white/50 mt-0.5">Winner</p>
                 </div>
               </div>
 
-              <div className="text-right flex gap-2">
-                <p className="font-bold text-white">{winner.payout}</p>
-                <div className="bg-yellow-400 rounded-full w-5 h-5 flex mt-0.5 items-center justify-center">
-                  <Bitcoin className="w-3 h-3 text-white" />
+              <div className="text-right flex items-center gap-2 flex-shrink-0">
+                <p className="font-bold text-base text-[#C8A2FF]">{winner.payout}</p>
+                <div className="w-6 h-6 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                  <Bitcoin className="w-3 h-3 text-green-400" />
                 </div>
               </div>
             </div>

@@ -70,8 +70,8 @@ export default function GameSearch() {
             <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 lg:gap-4">
               {filtered.map((game, i) => (
                 <div key={i} className="rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition">
-                  <div className="relative w-full h-40">
-                    <Image src={game.image} alt={game.name} fill className="object-cover" />
+                  <div className="relative w-full aspect-square">
+                    <Image src={game.image} alt={game.name} fill className="object-contain" />
                   </div>
                   <div className="p-2 text-white/70">
                     {/* <p className="text-white text-xs font-semibold">{game.name}</p> */}
