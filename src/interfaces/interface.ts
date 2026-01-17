@@ -66,6 +66,8 @@ export interface AuthResponse {
 export interface Market {
   _id: string;
   question: string;
+  summary?: string;
+  image?: string;
   b: number;
   qYes: number;
   qNo: number;
@@ -194,6 +196,18 @@ export interface LotteryBetResponse {
   message: string;
 }
 
+export interface LotteryWinner {
+  user: string | {
+    _id: string;
+    username?: string;
+    imageUrl?: string;
+  };
+  amountWon: number;
+  rank?: number;
+  correctCount?: number;
+  percentage?: number;
+}
+
 export interface Lottery {
   _id: string;
   name: string;
@@ -203,8 +217,11 @@ export interface Lottery {
   startTime: string;
   endTime: string;
   isCompleted: boolean;
+  isEnded?: boolean;
   winningNumbers?: number[];
   pickCount?: number;
+  prizePool?: number;
+  winners?: LotteryWinner[];
 }
 export interface BetData {
   pickedNumbers: number[];

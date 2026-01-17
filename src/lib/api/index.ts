@@ -64,6 +64,13 @@ export const claimDailyStreak = async () => {
   return response;
 };
 
+export const getCurrentStreak = async () => {
+  const response = await apiHandler("/streak/current", {
+    method: "GET",
+  });
+  return response;
+};
+
 export const fetchUserPoints = async () => {
   const response = await apiHandler("/user/points", {
     method: "GET",
@@ -169,6 +176,13 @@ export const placeDiceBet = async ({
   return response;
 };
 
+export const fetchBanners = async (type: "home" | "game") => {
+  const response = await apiHandler(`/banner/public?type=${type}`, {
+    method: "GET",
+  });
+  return response?.data || response || [];
+};
+
 export const fetchMarkets = async () => {
   const data = await apiHandler<any>("/meta-market", {
     method: "GET",
@@ -256,11 +270,34 @@ export const fetchLotteryWinners = async () => {
   return response;
 };
 
+export const fetchTopWinningLotteries = async (limit: number = 5) => {
+  const response = await apiHandler(`/lottery/winners?limit=${limit}`, {
+    method: "GET",
+  });
+  return response;
+};
+
+export const fetchRecentLotteryWinners = async (limit: number = 10) => {
+  const response = await apiHandler(`/lottery/stats/recent-winners?limit=${limit}`, {
+    method: "GET",
+  });
+  return response;
+};
+
 export const fetchLotteryNumbers = async (roundId: string) => {
   const response = await apiHandler(`/lottery/${roundId}/numbers`, {
     method: "GET",
   });
   return response;
+};
+
+export const fetchLotteryById = async (roundId: string) => {
+  const response = await apiHandler(`/lottery/rounds/${roundId}`, {
+    method: "GET",
+  });
+  // Backend returns { data: lottery, success: true, message: "..." }
+  // Return the data directly or the response if data doesn't exist
+  return response.data || response;
 };
 
 export const placeLotteryBet = async (
@@ -276,11 +313,16 @@ export const placeLotteryBet = async (
 
   console.log("Actual request data being sent:", requestData);
 
-  const response = await apiHandler(`/lottery/bet`, {
-    method: "POST",
-    data: requestData,
-  });
-  return response;
+  try {
+    const response = await apiHandler(`/lottery/bet`, {
+      method: "POST",
+      data: requestData,
+    });
+    return response;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || "Failed to place bet. Please try again.";
+    throw new Error(errorMessage);
+  }
 };
 
 export const fetchMarketPrices = async (id: string): Promise<MarketPrice> => {
@@ -305,10 +347,11 @@ export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
   return response.data;
 };
 
-export const createUserWithdrawal = async (amount: number, walletAddress: string, passcode: string | null) => {
+export const createUserWithdrawal = async (amount: number, walletAddress: string, chain: "ETH" | "BSC" | "SOL", passcode: string | null) => {
   const requestData = {
     amount: amount,
     walletAddress: walletAddress,
+    chain: chain,
     passcode,
   };
   const response = await apiHandler(`/user/withdrawals`, {
@@ -424,5 +467,53 @@ export async function getNotifications(): Promise<INotification[]> {
 
 export async function markNotificationRead(id: string): Promise<INotification> {
   const res = await apiHandler(`/notifications/${id}/read`, { method: "PATCH" });
+  return res;
+}
+
+// Ticket API functions
+export interface Ticket {
+  _id: string;
+  user: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: "open" | "responded" | "closed" | "unread";
+  responses: Array<{
+    sender: "user" | "admin";
+    message: string;
+    date: Date | string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTicketPayload {
+  subject: string;
+  message: string;
+  email: string;
+}
+
+export async function getUserTickets(): Promise<Ticket[]> {
+  const res = await apiHandler<Ticket[]>(`/ticket`, { method: "GET" });
+  return res;
+}
+
+export async function createTicket(payload: CreateTicketPayload): Promise<Ticket> {
+  const res = await apiHandler<Ticket>(`/ticket`, {
+    method: "POST",
+    data: payload,
+  });
+  return res;
+}
+
+export interface UpdateProfilePayload {
+  username?: string;
+}
+
+export async function updateProfile(payload: UpdateProfilePayload) {
+  const res = await apiHandler(`/user/profile`, {
+    method: "PATCH",
+    data: payload,
+  });
   return res;
 }

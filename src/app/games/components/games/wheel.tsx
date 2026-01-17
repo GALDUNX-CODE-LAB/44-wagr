@@ -2,7 +2,6 @@
 
 import { Bitcoin, DollarSignIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import LiveWinsSection from "../../../../components/live-wins";
 import { TfiLocationPin } from "react-icons/tfi";
 import { HARD_CODED_SEGMENTS, SINGLE_CODED_SEGMENTS } from "../../../../lib/api/wheel-api";
 import LiveWheelsWins from "../../../../components/live-wins-wheels";
@@ -12,7 +11,7 @@ import { useUser } from "../../../../hooks/useUserData";
 import { useQueryClient } from "@tanstack/react-query";
 import { playWheelsSound, playWheelsWins } from "../../../../lib/sound-player";
 import { delayer } from "../../../../lib/utils";
-import CoinFlipHistoryTable from "../coin-history";
+import WheelHistoryTable from "../wheel-history";
 import InfoModal from "../info-modal";
 import FairnessModal from "../fairness-modal";
 import { FaQuestion, FaShieldAlt } from "react-icons/fa";
@@ -394,7 +393,7 @@ export default function StakeRingWheelGame() {
           </div>
         </div>
 
-        {activeTab === "my-bets" && <CoinFlipHistoryTable />}
+        {activeTab === "my-bets" && <WheelHistoryTable />}
 
         {activeTab === "live-games" && <LiveWheelsWins />}
       </div>

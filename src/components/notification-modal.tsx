@@ -25,9 +25,10 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
   const userId = user?._id || user?.id;
 
   const { data, isLoading } = useQuery<INotification[]>({
-    queryKey: ["notifications", userId],
-    queryFn: () => getNotifications(userId),
-    enabled: open && !!userId,
+    queryKey: ["notifications"],
+    queryFn: () => getNotifications(),
+    enabled: open,
+    refetchInterval: 30000,
   });
 
   const notifications = data ?? [];
@@ -35,7 +36,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
   const markReadMutation = useMutation({
     mutationFn: (id: string) => markNotificationRead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 
@@ -107,7 +108,7 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
                 No notifications yet. We’ll let you know when something happens.
               </div>
             ) : (
-              <div className="max-h-[380px] overflow-y-auto divide-y divide-white/5">
+              <div className="h-[400px] overflow-y-auto divide-y divide-white/5">
                 {notifications.map((n) => (
                   <button
                     key={n._id}

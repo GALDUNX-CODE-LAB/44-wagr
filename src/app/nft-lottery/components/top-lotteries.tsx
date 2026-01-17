@@ -1,79 +1,116 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { LotteryItem } from "../../../interfaces/interface"
+import { useRouter } from "next/navigation"
+import { Trophy, Medal } from "lucide-react"
+import { fetchTopWinningLotteries } from "../../../lib/api"
 
-interface TopWinningLotteriesProps {
-  lotteries?: LotteryItem[];
-  onBetNow?: (rank: number) => void;
+interface TopWinner {
+  payout: number;
+  username: string;
+  userImage: string;
 }
 
-const defaultLotteries: LotteryItem[] = [
-  { rank: 1, name: "Premium NFT #1", image: "/assets/nft4.png", price: "$500,000", nextDraw: "00h-00m-00s" },
-  { rank: 2, name: "Premium NFT #2", image: "/assets/nft4.png", price: "$500,000", nextDraw: "00h-00m-00s" },
-  { rank: 3, name: "Premium NFT #3", image: "/assets/nft4.png", price: "$500,000", nextDraw: "00h-00m-00s" },
-  { rank: 4, name: "Premium NFT #4", image: "/assets/nft4.png", price: "$500,000", nextDraw: "00h-00m-00s" },
-  { rank: 5, name: "Premium NFT #5", image: "/assets/nft4.png", price: "$500,000", nextDraw: "00h-00m-00s" },
-]
+export default function TopWinningLotteries() {
+  const router = useRouter();
+  const [winners, setWinners] = useState<TopWinner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function TopWinningLotteries({ 
-  lotteries = defaultLotteries,
-  onBetNow 
-}: TopWinningLotteriesProps) {
+  useEffect(() => {
+    const loadTopWinners = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetchTopWinningLotteries(5);
+        setWinners(Array.isArray(response) ? response : []);
+      } catch (err) {
+        console.error("Error fetching top winners:", err);
+        setError("Failed to load top winners");
+        setWinners([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTopWinners();
+  }, []);
+
+  const getRankIcon = (rank: number) => {
+    if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-400 fill-yellow-400" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-gray-300 fill-gray-300" />;
+    if (rank === 3) return <Medal className="w-5 h-5 text-amber-600 fill-amber-600" />;
+    return null;
+  };
+
+  const formatPayout = (payout: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(payout);
+  };
+
   return (
-    <div className="w-full max-w-[600px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
+    <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-xl font-bold">Top Winning Lotteries</h2>
+        <Trophy className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+        <h2 className="text-xl font-bold text-white">Top Winners</h2>
       </div>
 
-      <div className="space-y-4 flex-grow overflow-y-auto">
-        {lotteries.map((lottery) => (
-          <div
-            key={lottery.rank}
-            className="flex items-center justify-between py-4 rounded-lg"
-          >
-            {/* Left: Rank */}
-            <span className="text-3xl md:text-[45px] font-bold text-white w-10 md:w-12 text-left">
-              {lottery.rank}
-            </span>
-
-            {/* Middle: Image + Info */}
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full mt-1 overflow-hidden flex-shrink-0">
-                <Image
-                  src={lottery.image}
-                  width={24}
-                  height={24}
-                  className="object-cover"
-                  alt={lottery.name}
-                />
-              </div>
-              <div className="min-w-0">
-                <p className="font-medium truncate">{lottery.name}</p>
-                {/* Mobile next draw */}
-                <p className="text-[10px] md:hidden text-white/65 whitespace-nowrap">
-                  Next Draw: {lottery.nextDraw}
-                </p>
-                <p className="font-bold text-base md:text-lg text-white mt-1">
-                  {lottery.price}
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Next Draw + Button */}
-            <div className="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
-              <p className="text-xs hidden md:block text-white whitespace-nowrap">
-                Next Draw: {lottery.nextDraw}
-              </p>
-              <button 
-                onClick={() => onBetNow?.(lottery.rank)}
-                className="px-3 py-1.5 text-sm font-medium bg-[#C8A2FF] text-black rounded-[8px] hover:bg-[#B891FF] transition-colors"
-              >
-                Bet Now
-              </button>
-            </div>
+      <div className="space-y-3 flex-grow overflow-y-auto max-h-[450px]">
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A2FF]"></div>
           </div>
-        ))}
+        ) : error ? (
+          <div className="text-center py-4 text-red-400 text-sm">{error}</div>
+        ) : winners.length === 0 ? (
+          <div className="text-center py-8 text-white/50 text-sm">No winners yet</div>
+        ) : (
+          winners.map((winner, index) => {
+            const rank = index + 1;
+            return (
+              <div
+                key={index}
+                className="flex items-center gap-4 p-4 bg-[#1C1C1C]/50 rounded-xl border border-white/5 hover:border-[#C8A2FF]/30 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-center w-10 h-10 flex-shrink-0">
+                  {getRankIcon(rank) || (
+                    <span className="text-lg font-bold text-white/60">#{rank}</span>
+                  )}
+                </div>
+
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10 flex-shrink-0 group-hover:border-[#C8A2FF]/50 transition-colors">
+                  <Image
+                    src={winner.userImage || "/assets/user.png"}
+                    width={40}
+                    height={40}
+                    className="object-cover"
+                    alt={winner.username}
+                    unoptimized
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/user.png";
+                    }}
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-white truncate">{winner.username}</p>
+                  <p className="text-xs text-white/50 mt-0.5">Winner #{rank}</p>
+                </div>
+
+                <div className="text-right flex-shrink-0">
+                  <p className="font-bold text-base text-[#C8A2FF]">
+                    {formatPayout(winner.payout)}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   )

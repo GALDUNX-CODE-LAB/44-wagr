@@ -1,20 +1,17 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Award } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCrashWins } from "../lib/api";
 import { GameType } from "../interfaces/interface";
 
-interface WinRow {
+interface Win {
   game: string;
   user: string;
   time: string;
-  bet: number;
-  target: number;
-  payout: number;
-  won: boolean;
+  bet: string;
+  multiplier: string;
+  payout: string;
 }
 
 interface LiveCrashProp {
@@ -24,12 +21,11 @@ interface LiveCrashProp {
 }
 
 export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashProp) {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
   const prevRoundRef = useRef<string | null>(null);
 
-  const { data: liveWins = [] } = useQuery<WinRow[]>({
+  const { data: liveWins = [] } = useQuery<Win[]>({
     queryKey: ["live-wins-crash"],
     queryFn: async () => {
       const seed = await fetchCrashWins();
@@ -37,10 +33,9 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
         game: w.game,
         user: String(w.user),
         time: new Date(w.time).toLocaleTimeString(),
-        bet: Number(w.betAmount) || 0,
-        target: Number(w.multiplier) || 1,
-        payout: Number(w.payout) || 0,
-        won: false,
+        bet: String(w.betAmount || 0),
+        multiplier: String(w.multiplier || 1),
+        payout: String(w.payout || 0),
       }));
     },
     staleTime: 15_000,
@@ -51,99 +46,112 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
     if (!roundId) return;
     if (prevRoundRef.current !== roundId) {
       prevRoundRef.current = roundId;
-      queryClient.setQueryData<WinRow[]>(["live-wins-crash"], () => []);
+      queryClient.setQueryData<Win[]>(["live-wins-crash"], () => []);
     }
   }, [roundId, queryClient]);
 
-  // Mark winners live during flight
-  useEffect(() => {
-    queryClient.setQueryData<WinRow[]>(["live-wins-crash"], (old = []) =>
-      old.map((row) => ({ ...row, won: !betEnd && multiplier >= row.target }))
-    );
-  }, [multiplier, betEnd, queryClient]);
-
   // WebSocket: ingest per-bet broadcasts
   useEffect(() => {
-    const raw = process.env.NEXT_PUBLIC_WS || "";
-    if (!raw) return;
-    const url = raw.startsWith("http") ? raw.replace(/^http/, "ws") : raw;
-    const socket = new WebSocket(url);
+    const wsUrl = process.env.NEXT_PUBLIC_WS;
+    if (!wsUrl) return;
+
+    const socket = new WebSocket(wsUrl);
     ws.current = socket;
+
+    socket.onopen = () => {
+      console.log("WebSocket connected to", wsUrl);
+    };
 
     socket.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
         if (msg?.event === "liveWin" && msg?.data?.game === GameType.Crash) {
-          const entry: WinRow = {
+          const win: Win = {
             game: msg.data.game,
-            user: String(msg.data.user),
+            user: msg.data.user,
             time: new Date(msg.data.time).toLocaleTimeString(),
-            bet: Number(msg.data.betAmount) || 0,
-            target: Number(msg.data.multiplier) || 1,
-            payout: Number(msg.data.payout) || 0,
-            won: !betEnd && multiplier >= (Number(msg.data.multiplier) || 1),
+            bet: String(msg.data.betAmount),
+            multiplier: String(msg.data.multiplier),
+            payout: String(msg.data.payout),
           };
-          queryClient.setQueryData<WinRow[]>(["live-wins-crash"], (old = []) => [entry, ...old].slice(0, 20));
+          queryClient.setQueryData<Win[]>(["live-wins-crash"], (old = []) => {
+            return [win, ...old].slice(0, 10);
+          });
         }
-      } catch {}
+      } catch (error) {
+        console.error("WebSocket message parse error:", error);
+      }
     };
 
-    return () => socket.close();
-  }, [multiplier, betEnd, queryClient]);
+    socket.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [queryClient]);
 
   return (
-    <section className="w-full">
-      <div className="flex items-start gap-2 mb-4">
-        <Award className="text-[#c8a2ff]" />
-        <h2 className="text-xl font-bold text-white">Live Wins</h2>
-      </div>
+    <div className="w-full overflow-x-auto rounded-xl bg-[#212121] border border-white/5">
+      <table className="min-w-full table-auto text-sm text-white">
+        <thead>
+          <tr className="text-[11px] md:text-xs uppercase tracking-wide text-white/60">
+            <th className="whitespace-nowrap px-5 py-3 text-left">Game</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Time</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Bet Amount</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left">Multiplier</th>
+            <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
+          </tr>
+        </thead>
 
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => router.push(`/games/crash`)}
-          className="w-[92px] h-[30px] rounded-full flex items-center justify-center text-sm transition bg-[#C8A2FF] text-black"
-        >
-          Crash
-        </button>
-      </div>
+        <tbody>
+          {liveWins.map((win, index) => (
+            <tr
+              key={index}
+              className={`border-t border-white/5 ${
+                index % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"
+              } text-[13px] font-medium`}
+            >
+              {/* Game */}
+              <td className="whitespace-nowrap px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-white/5">
+                    <span className="h-2 w-2 rounded-full bg-white" />
+                  </span>
+                  <span>{win.game}</span>
+                </div>
+              </td>
 
-      <div className="w-full rounded-lg overflow-x-auto h-[40vh] overflow-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#212121]">
-            <tr className="text-[#ffffff]/60 text-[12px]">
-              <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
-              <th className="whitespace-nowrap px-5 py-3 text-left">Target</th>
-              <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
+              {/* User */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.user}</td>
+
+              {/* Time */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.time}</td>
+
+              {/* Bet */}
+              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
+                <div className="flex items-center gap-1">
+                  <span className="text-white/90">{win.bet}</span>
+                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
+                </div>
+              </td>
+
+              {/* Multiplier */}
+              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.multiplier}</td>
+
+              {/* Payout */}
+              <td className="whitespace-nowrap px-5 py-3 text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
+                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {liveWins.map((row, idx) => (
-              <tr
-                key={`${row.user}-${row.time}-${idx}`}
-                className={`${idx % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"} text-white text-[13px] font-medium`}
-              >
-                <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell truncate max-w-[140px]">{row.user}</td>
-                <td className={`whitespace-nowrap px-5 py-3 ${row.won ? "text-green-400" : ""}`}>
-                  {row.target.toFixed(2)}x
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 text-right">
-                  <div className={`flex items-center justify-end gap-1 ${row.won ? "text-green-400" : ""}`}>
-                    <span>{row.payout.toFixed(3)}</span>
-                    <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {liveWins.length === 0 && (
-              <tr>
-                <td className="px-5 py-6 text-center text-white/50" colSpan={3}>
-                  Waiting for bets…
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

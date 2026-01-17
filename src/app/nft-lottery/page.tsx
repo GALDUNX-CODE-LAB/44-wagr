@@ -46,32 +46,34 @@ export default function NFTLotteryPage() {
     setSearchQuery(query);
   };
 
-  const handleTopLotteryBet = (rank: number) => {
-    console.log(`Betting on top lottery rank ${rank}`);
-  };
-
   return (
-    <div className="text-white p-6">
+    <div className="text-white px-4 md:px-6 py-6">
       <div className="max-w-7xl mx-auto">
-        <BannerSlider />
-        <PageHeader title="Lottery Draw" onSearch={handleSearch} searchPlaceholder="    Search " />
+        <BannerSlider type="game" />
+        
+        <div className="mb-8">
+          <PageHeader title="Lottery Draw" onSearch={handleSearch} searchPlaceholder="    Search " />
+        </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C8A2FF] mx-auto mb-4"></div>
             <p className="text-white/70">Loading lotteries...</p>
           </div>
         ) : filteredCards.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-white/70">
+          <div className="text-center py-16">
+            <p className="text-white/70 text-lg">
               {searchQuery ? "No lotteries found matching your search." : "No lotteries available at the moment."}
             </p>
           </div>
         ) : (
-          <LotteryGrid cards={filteredCards} onCardClick={handleCardClick} onBetNow={handleBetNow} />
+          <div className="mb-12">
+            <LotteryGrid cards={filteredCards} onCardClick={handleCardClick} onBetNow={handleBetNow} />
+          </div>
         )}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <TopWinningLotteries onBetNow={handleTopLotteryBet} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
+          <TopWinningLotteries />
           <RecentWinners />
         </div>
       </div>

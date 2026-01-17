@@ -152,11 +152,11 @@ export default function TrendingGames() {
         </div>
       </div>
 
-      <div className="relative h-40">
+      <div className="relative">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={startIndex}
-            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
+            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
@@ -173,10 +173,16 @@ export default function TrendingGames() {
             {trendingGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
               <div
                 key={index}
-                className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
+                className="w-full aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
                 draggable={false}
               >
-                <Image src={game.image} fill alt={game.name} draggable={false} />
+                <Image 
+                  src={game.image} 
+                  fill 
+                  alt={game.name} 
+                  className="object-contain"
+                  draggable={false} 
+                />
               </div>
 
               // <div

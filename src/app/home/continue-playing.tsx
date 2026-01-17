@@ -81,7 +81,7 @@ export default function ContinuePlaying() {
           </button>
         </div>
       </div>
-      <div className="relative h-40">
+      <div className="relative">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={startIndex}
@@ -90,12 +90,17 @@ export default function ContinuePlaying() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
+            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
           >
             {cachedGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
               <div className="wrap" key={index}>
-                <div className="h-40 relative bg-black rounded-md flex items-center justify-center text-white">
-                  <Image src={game.image} fill alt={game.name} className="object-cover rounded-md" />
+                <div className="w-full aspect-square relative bg-black rounded-md flex items-center justify-center text-white">
+                  <Image 
+                    src={game.image} 
+                    fill 
+                    alt={game.name} 
+                    className="object-contain rounded-md" 
+                  />
                 </div>
                 <div className="wrap text-xs flex items-center gap-2 text-white/70 mt-1">
                   <FaCircle size={10} className="text-green-600" />

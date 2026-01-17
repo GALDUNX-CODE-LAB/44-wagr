@@ -26,7 +26,7 @@ import { logout } from "../lib/api/auth";
 import { getCookie } from "../lib/api/cookie";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getUserData } from "../lib/api";
+import { getUserData, getNotifications } from "../lib/api";
 import { useUser } from "../hooks/useUserData";
 import NotificationsModal from "./notification-modal";
 
@@ -67,6 +67,15 @@ export default function NavbarV2() {
 
   const { balance } = useUser();
 
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
+    enabled: isLoggedIn,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
+
   return (
     <>
       <div className="wrap relative h-[65px] w-full" />
@@ -105,10 +114,17 @@ export default function NavbarV2() {
 
               <Coins className="w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
 
-              <Bell
-                className="w-5 h-5 text-white/70 cursor-pointer hover:text-white transition"
-                onClick={() => setNotificationsModalOpen(true)}
-              />
+              <div className="relative">
+                <Bell
+                  className="w-5 h-5 text-white/70 cursor-pointer hover:text-white transition"
+                  onClick={() => setNotificationsModalOpen(true)}
+                />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#212121]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
 
               <div className="relative">
                 <User className="w-5 h-5 cursor-pointer" onClick={() => setUserDropdownOpen(!userDropdownOpen)} />

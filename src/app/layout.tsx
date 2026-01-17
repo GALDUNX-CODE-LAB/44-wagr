@@ -36,6 +36,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Peejayy Gaming App",
   description: "Gaming platform built with Next.js",
+  icons: {
+    icon: "/assets/icon.svg",
+    apple: "/assets/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -118,9 +118,33 @@ export default function MarketPage() {
 // Sub-components
 function MarketSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6 p-3">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-[232px] bg-[#212121] rounded-[20px] animate-pulse" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
+      {[...Array(8)].map((_, i) => (
+        <div
+          key={i}
+          className="cursor-pointer bg-[#212121] rounded-[20px] border border-white/6 p-4 flex flex-col gap-3"
+        >
+          {/* Image placeholder */}
+          <div className="flex gap-3 items-center lg:items-start">
+            <div className="lg:w-10 lg:h-10 w-10 h-10 bg-white/10 rounded-[10px] mt-2 animate-pulse flex-shrink-0" />
+            <div className="flex-1 space-y-2 mt-2">
+              <div className="h-4 bg-white/10 rounded animate-pulse w-3/4" />
+              <div className="h-4 bg-white/10 rounded animate-pulse w-1/2" />
+            </div>
+          </div>
+          {/* Summary placeholder */}
+          <div className="h-3 bg-white/10 rounded animate-pulse w-full" />
+          {/* Buttons placeholder */}
+          <div className="flex gap-3 items-center my-3">
+            <div className="h-8 bg-white/10 rounded-lg animate-pulse flex-1" />
+            <div className="h-8 bg-white/10 rounded-lg animate-pulse flex-1" />
+          </div>
+          {/* Stats placeholder */}
+          <div className="flex justify-between items-center mt-2">
+            <div className="h-4 bg-white/10 rounded animate-pulse w-20" />
+            <div className="h-4 bg-white/10 rounded animate-pulse w-12" />
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -171,12 +195,26 @@ function MarketCard({ market, router }) {
       onClick={() => router.push(`/meta-market/${market._id}`)}
       className="cursor-pointer bg-[#212121] rounded-[20px] border border-white/6 p-4 flex flex-col gap-3 transition hover:border-[#C8A2FF]/30"
     >
-      <div className="flex  gap-3 items-center lg:items-start">
-        <div className="lg:min-w-10 lg:min-h-10 min-w-10 min-h-10 bg-white rounded-[10px] mt-2" />
-        <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2">
+      <div className="flex gap-3 items-center lg:items-start">
+        {market.image ? (
+          <img
+            src={market.image}
+            alt={market.question}
+            className="lg:w-10 lg:h-10 w-10 h-10 rounded-[10px] mt-2 object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="lg:w-10 lg:h-10 w-10 h-10 bg-white/10 rounded-[10px] mt-2 flex-shrink-0" />
+        )}
+        <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2 flex-1">
           {market.question}
         </h2>
       </div>
+
+      {market.summary && (
+        <p className="text-xs lg:text-sm text-white/70 line-clamp-1 overflow-hidden">
+          {market.summary}
+        </p>
+      )}
 
       <div className="flex gap-3 items-center my-3">
         <button className="p-2 rounded-lg text-xs font-medium lg:text-sm bg-primary text-black w-full">Yes</button>

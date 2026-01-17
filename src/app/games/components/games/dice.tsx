@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FaQuestion, FaShieldAlt } from "react-icons/fa";
 import InfoModal from "../info-modal";
 import FairnessModal from "../fairness-modal";
-import CoinFlipHistoryTable from "../coin-history";
+import DiceHistoryTable from "../dice-history";
 
 interface DiceHistoryItem {
   isWin: boolean;
@@ -375,7 +375,7 @@ export default function DiceGame() {
           </div>
         </div>
 
-        {activeTab === "my-bets" && <CoinFlipHistoryTable />}
+        {activeTab === "my-bets" && <DiceHistoryTable />}
 
         {activeTab === "live-games" && <LiveDiceWins />}
       </div>

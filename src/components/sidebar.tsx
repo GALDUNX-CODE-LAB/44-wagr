@@ -30,6 +30,7 @@ export default function Sidebar() {
     else if (pathname.startsWith("/bets")) setActiveItem("My Bets");
     else if (pathname.startsWith("/nft-lottery")) setActiveItem("Nft Lottery");
     else if (pathname.startsWith("/meta-market")) setActiveItem("Meta Market");
+    else if (pathname.startsWith("/support")) setActiveItem("Support");
     else setActiveItem("Home page");
   }, [pathname]);
 
@@ -143,7 +144,10 @@ export default function Sidebar() {
         </div>
         <div className="wrap relative p-2 flex flex-col justify-end">
           <ul className="bg-black/20 rounded-lg space-y-2 p-3 mb-3">
-            <li className=" p-2 rounded-lg text-white/70 text-sm flex items-center gap-3 cursor-pointer">
+            <li
+              className=" p-2 rounded-lg text-white/70 text-sm flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+              onClick={() => router.push("/support")}
+            >
               <FaEnvelope /> Contact Support
             </li>
             <li

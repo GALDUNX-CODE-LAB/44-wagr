@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { X, ArrowRight, Coins, LoaderCircle, History } from "lucide-react";
-import { claimDailyStreak, fetchUserPoints, redeemPoints, fetchRedemptionHistory } from "../lib/api";
+import { claimDailyStreak, fetchUserPoints, redeemPoints, fetchRedemptionHistory, getCurrentStreak } from "../lib/api";
 import { motion } from "framer-motion";
 import { useUser } from "../hooks/useUserData";
 import { useQuery } from "@tanstack/react-query";
@@ -56,14 +56,34 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
   const [redeemError, setRedeemError] = useState<string | null>(null);
   // const [redeemHistory, setRedeemHistory] = useState<RedeemHistory[]>([]);
 
-  const initializeStreakData = (streakPoints: number, hasClaimedToday: boolean) => {
-    const daysClaimed = Math.floor(streakPoints / 20);
+  const initializeStreakData = (currentStreak: number, lastClaimed: string | Date, hasClaimedToday: boolean) => {
     const result: PointEntry[] = [];
+    const streakPointsList = [20, 50, 80, 100, 120, 150, 180];
+    
+    // Check if user missed a day (streak should reset)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastClaimDate = new Date(lastClaimed);
+    lastClaimDate.setHours(0, 0, 0, 0);
+    const daysSinceLastClaim = Math.floor((today.getTime() - lastClaimDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // If more than 1 day passed, streak should be reset (but backend handles this)
+    // We use currentStreak from backend which is the source of truth
+    const effectiveStreak = daysSinceLastClaim > 1 ? 0 : currentStreak;
+    
     for (let i = 1; i <= 7; i++) {
       let status: PointEntry["status"] = "date";
-      if (i <= daysClaimed) status = "claimed";
-      else if (i === daysClaimed + 1) status = hasClaimedToday ? "claimed" : "claim";
-      result.push({ day: i, points: i === 8 ? 50 : i >= 6 ? 30 : i === 5 ? 25 : 20, status });
+      const points = streakPointsList[Math.min(i - 1, streakPointsList.length - 1)];
+      
+      if (i < effectiveStreak) {
+        status = "claimed";
+      } else if (i === effectiveStreak) {
+        status = hasClaimedToday ? "claimed" : "claim";
+      } else {
+        status = "date";
+      }
+      
+      result.push({ day: i, points, status });
     }
     setStreakData(result);
   };
@@ -72,12 +92,36 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
     try {
       const res = await fetchUserPoints();
       if (res.success) {
-        console.log(res);
-        setUserPoints(res.userPoint);
-        const daysClaimed = Math.floor(res.breakdown.streakPoints / 20);
-        const claimedToday = daysClaimed > 0 && res.breakdown.streakPoints % 20 === 0;
-        setHasClaimedToday(claimedToday);
-        initializeStreakData(res.breakdown.streakPoints, claimedToday);
+        console.log("Points response:", res);
+        setUserPoints(res.userPoint || 0);
+        
+        // Get streak data from backend
+        try {
+          const streakData = await getCurrentStreak();
+          let currentStreak = 0;
+          let lastClaimed = new Date();
+          let claimedToday = false;
+          
+          if (streakData.success && streakData.streak) {
+            currentStreak = streakData.streak.currentStreak || 0;
+            lastClaimed = streakData.streak.lastClaimed ? new Date(streakData.streak.lastClaimed) : new Date();
+            
+            // Check if claimed today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const lastClaimDate = new Date(lastClaimed);
+            lastClaimDate.setHours(0, 0, 0, 0);
+            claimedToday = today.getTime() === lastClaimDate.getTime();
+          }
+          
+          setHasClaimedToday(claimedToday);
+          initializeStreakData(currentStreak, lastClaimed, claimedToday);
+        } catch (streakErr) {
+          console.error("Failed to load streak data", streakErr);
+          // Fallback: try to infer from streakPoints (old method)
+          const daysClaimed = Math.floor((res.breakdown?.streakPoints || 0) / 20);
+          initializeStreakData(daysClaimed, new Date(), false);
+        }
       }
     } catch (err) {
       console.error("Failed to load user points", err);
@@ -109,10 +153,13 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
       setClaiming(true);
       const res = await claimDailyStreak();
       if (res.success) {
-        const newStreakPoints = userPoints + res.points;
-        setUserPoints(newStreakPoints);
+        // Update user points with the awarded points
+        const pointsAwarded = res.pointsAwarded || res.points || 0;
+        setUserPoints((prev) => prev + pointsAwarded);
         setHasClaimedToday(true);
-        initializeStreakData(newStreakPoints, true);
+        
+        // Reload streak data to get updated currentStreak from backend
+        await loadUserPoints();
       }
     } catch (err) {
       console.error("Claim failed", err);
@@ -157,7 +204,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full max-w-[800px] max-h-[90vh] overflow-y-auto p-6 border border-white/10 relative"
+        className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full max-w-[800px] h-[90vh] flex flex-col p-6 border border-white/10 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/10">
@@ -171,7 +218,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </button>
         </div>
 
-        <div className="w-full h-[40px] bg-[#212121] border border-white/10 rounded-full flex mb-6 overflow-hidden">
+        <div className="w-full h-[40px] bg-[#212121] border border-white/10 rounded-full flex mb-6 overflow-hidden flex-shrink-0">
           <button
             onClick={() => setActiveTab("daily")}
             className={`w-1/3 rounded-full text-xs sm:text-sm font-medium transition ${
@@ -198,6 +245,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </button>
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         {activeTab === "daily" && (
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
             {streakData.map((entry, index) => (
@@ -358,6 +406,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
             </div>
           </motion.div>
         )}
+        </div>
       </div>
     </div>
   );
