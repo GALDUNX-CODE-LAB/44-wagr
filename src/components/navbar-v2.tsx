@@ -103,16 +103,16 @@ export default function NavbarV2() {
                 <div className="relative rounded-lg w-4 h-4 flex items-center justify-center ml-2">
                   <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
                 </div>
-                <span className="truncate">{balance?.toFixed(2)}</span>
+                <span className="truncate pr-2">{balance?.toFixed(2)}</span>
                 <button
-                  className="bg-primary text-black p-1 px-2 rounded-lg text-l"
+                  className="hidden lg:block bg-primary text-black p-1 px-2 rounded-lg text-l"
                   onClick={() => setWalletModalOpen(true)}
                 >
                   <small>Wallet</small>
                 </button>
               </div>
 
-              <Coins className="w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
+              <Coins className="hidden lg:block w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
 
               <div className="relative">
                 <Bell
@@ -144,6 +144,16 @@ export default function NavbarV2() {
                           </div>
                         )}
                       </div>
+                      <button
+                        className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
+                        onClick={() => {
+                          setPointsModalOpen(true);
+                          setUserDropdownOpen(false);
+                        }}
+                      >
+                        <Coins className="w-3 h-3" />
+                        Points
+                      </button>
                       <button
                         className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
                         onClick={() => setAccountSettingsModalOpen(true)}

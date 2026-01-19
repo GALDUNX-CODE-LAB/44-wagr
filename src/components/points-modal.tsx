@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { X, ArrowRight, Coins, LoaderCircle, History } from "lucide-react";
 import { claimDailyStreak, fetchUserPoints, redeemPoints, fetchRedemptionHistory, getCurrentStreak } from "../lib/api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "../hooks/useUserData";
 import { useQuery } from "@tanstack/react-query";
 
@@ -196,17 +196,21 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
     setSocialPoints((prev) => prev.map((entry, i) => (i === index ? { ...entry, visited: true } : entry)));
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex lg:items-center items-end justify-center px-0"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full max-w-[800px] h-[90vh] flex flex-col p-6 border border-white/10 relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex lg:items-center items-end justify-center px-0"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full h-[60vh] flex flex-col p-6 border border-white/10 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
         <button onClick={onClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/10">
           <X className="w-5 h-5" />
         </button>
@@ -407,7 +411,9 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
           </motion.div>
         )}
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

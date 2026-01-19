@@ -1,53 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { FaCircle } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/free-mode";
 
 export default function ContinuePlaying() {
   const [cachedGames, setCachedGames] = useState<any[]>([]);
-  const [startIndex, setStartIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(8);
-  const [direction, setDirection] = useState(0);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
+  const swiperRef = useRef<SwiperType | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const stored = localStorage.getItem("continue-playing");
     if (stored) {
       try {
-        setCachedGames(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setCachedGames(parsed);
       } catch {
         setCachedGames([]);
       }
     }
   }, []);
 
-  const updateVisibleCount = () => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 768) setVisibleCount(3);
-      else if (window.innerWidth < 1024) setVisibleCount(5);
-      else setVisibleCount(8);
-    }
-  };
-
-  useEffect(() => {
-    updateVisibleCount();
-    window.addEventListener("resize", updateVisibleCount);
-    return () => window.removeEventListener("resize", updateVisibleCount);
-  }, []);
-
-  const handleNext = () => {
-    if (startIndex < cachedGames.length - visibleCount) {
-      setDirection(1);
-      setStartIndex(startIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (startIndex > 0) {
-      setDirection(-1);
-      setStartIndex(startIndex - 1);
+  const handleGameClick = (game: any) => {
+    if (game.link) {
+      router.push(game.link);
     }
   };
 
@@ -61,55 +48,96 @@ export default function ContinuePlaying() {
   }
 
   return (
-    <div className="py-6 rounded-lg relative overflow-hidden">
+    <div className="py-6 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">Continue Playing</h2>
         <div className="flex gap-2">
           <button
-            onClick={handlePrev}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex === 0}
+            onClick={() => swiperRef.current?.slidePrev()}
+            disabled={isBeginning}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={handleNext}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex >= cachedGames.length - visibleCount}
+            onClick={() => {
+              if (swiperRef.current && !swiperRef.current.isEnd) {
+                swiperRef.current.slideNext();
+              }
+            }}
+            disabled={isEnd}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
-      <div className="relative">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={startIndex}
-            custom={direction}
-            initial={{ x: direction > 0 ? 300 : -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
-          >
-            {cachedGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
-              <div className="wrap" key={index}>
-                <div className="w-full aspect-square relative bg-black rounded-md flex items-center justify-center text-white">
+
+      <div className="overflow-hidden -mx-2 px-2">
+        <Swiper
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+            setTimeout(() => {
+              setIsBeginning(swiper.isBeginning);
+              setIsEnd(swiper.isEnd);
+            }, 100);
+          }}
+          onSlideChange={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          onReachBeginning={(swiper) => {
+            setIsBeginning(true);
+            setIsEnd(false);
+          }}
+          onReachEnd={(swiper) => {
+            setIsBeginning(false);
+            setIsEnd(true);
+          }}
+          onUpdate={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          modules={[Navigation, FreeMode, Mousewheel]}
+          spaceBetween={8}
+          slidesPerView="auto"
+          freeMode={false}
+          watchOverflow={true}
+          watchSlidesProgress={true}
+          resistance={true}
+          resistanceRatio={0.5}
+          allowSlideNext={!isEnd}
+          allowSlidePrev={!isBeginning}
+          mousewheel={{ 
+            forceToAxis: true,
+            sensitivity: 1,
+            releaseOnEdges: true,
+          }}
+        >
+          {cachedGames.map((game: any, index: number) => (
+            <SwiperSlide key={index} style={{ width: 'auto' }}>
+              <div 
+                onClick={() => handleGameClick(game)}
+                className="cursor-pointer"
+              >
+                <div className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white hover:scale-105 transition-transform duration-200">
                   <Image 
                     src={game.image} 
                     fill 
                     alt={game.name} 
-                    className="object-contain rounded-md" 
+                    className="object-contain" 
+                    draggable={false}
+                    unoptimized
                   />
                 </div>
-                <div className="wrap text-xs flex items-center gap-2 text-white/70 mt-1">
-                  <FaCircle size={10} className="text-green-600" />
-                  <span>{game.name}</span>
+                <div className="text-xs flex items-center gap-2 text-white/70 mt-1 justify-center">
+                  <FaCircle size={8} className="text-green-600" />
+                  <span className="truncate max-w-[100px] md:max-w-[120px] lg:max-w-[140px]">{game.name}</span>
                 </div>
               </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   );
