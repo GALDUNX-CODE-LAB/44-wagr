@@ -120,8 +120,7 @@ export default function useCrashSocket(
   useEffect(() => {
     connect();
     return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connect, cleanup]);
 
   const manualReconnect = useCallback(() => {
     setRetries(0);

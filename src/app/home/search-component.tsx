@@ -8,14 +8,14 @@ import { FaCircle } from "react-icons/fa";
 const categories = ["Originals", "Trending", "Slots", "Dice"];
 
 const mockResults = [
-  { name: "Roulette Royale", players: 1248, image: "/assets/games/crash.png" },
+  { name: "Roulette Royale", players: 1248, image: "/assets/games/crash2.png" },
   { name: "Blackjack Pro", players: 1248, image: "/assets/games/coin-flip.png" },
   { name: "Slots Mania", players: 1248, image: "/assets/games/Dice.png" },
-  { name: "Poker Stars", players: 1248, image: "/assets/games/glass-bridge.png" },
+  { name: "Poker Stars", players: 1248, image: "/assets/games/glass-bridge2.png" },
   { name: "Baccarat Elite", players: 1248, image: "/assets/games/mine.png" },
   { name: "Craps Champion", players: 1248, image: "/assets/games/Plinko.png" },
   { name: "Texas Holdem", players: 1248, image: "/assets/games/pump.png" },
-  { name: "Dice Master", players: 1248, image: "/assets/games/red-light.png" },
+  { name: "Dice Master", players: 1248, image: "/assets/games/red-light2.png" },
   { name: "Virtual Sports", players: 1248, image: "/assets/games/rock.png" },
   { name: "Wheel of Fortune", players: 1248, image: "/assets/games/wheels.png" },
 ];

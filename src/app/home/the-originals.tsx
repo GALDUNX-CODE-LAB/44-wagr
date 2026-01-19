@@ -1,53 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TbNumber44Small } from "react-icons/tb";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/free-mode";
 
 export default function TheOriginals() {
   const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/gamesV2/crash.png", link: "/games/crash" },
-    { name: "Dice", players: 892, image: "/assets/gamesV2/dice.png", link: "/games/dice" },
-    { name: "Coin", players: 1532, image: "/assets/gamesV2/coinflip.png", link: "/games/coin" },
-    { name: "Wheel", players: 721, image: "/assets/gamesV2/wheels.png", link: "/games/wheel" },
+    { name: "Crash", players: 1248, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
+    { name: "Dice", players: 892, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
+    { name: "Coin", players: 1532, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
+    { name: "Wheel", players: 721, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
   ];
 
-  const [startIndex, setStartIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(8);
-  const [direction, setDirection] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-
-  useEffect(() => {
-    const updateVisibleCount = () => {
-      if (window.innerWidth < 768) setVisibleCount(3);
-      else if (window.innerWidth < 1024) setVisibleCount(5);
-      else setVisibleCount(8);
-    };
-
-    updateVisibleCount();
-    window.addEventListener("resize", updateVisibleCount);
-    return () => window.removeEventListener("resize", updateVisibleCount);
-  }, []);
-
-  const handleNext = () => {
-    if (startIndex < availableGames.length - visibleCount) {
-      setDirection(1);
-      setStartIndex(startIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (startIndex > 0) {
-      setDirection(-1);
-      setStartIndex(startIndex - 1);
-    }
-  };
-
   const router = useRouter();
+  const swiperRef = useRef<SwiperType | null>(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
+  const [canScroll, setCanScroll] = useState(false);
 
   const handleSelectGame = (game: any) => {
     try {
@@ -62,157 +40,95 @@ export default function TheOriginals() {
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = startX - x;
-
-    if (Math.abs(walk) > 50) {
-      if (walk > 0 && startIndex < availableGames.length - visibleCount) {
-        setDirection(1);
-        setStartIndex(startIndex + 1);
-        setIsDragging(false);
-      } else if (walk < 0 && startIndex > 0) {
-        setDirection(-1);
-        setStartIndex(startIndex - 1);
-        setIsDragging(false);
-      }
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX;
-    const walk = startX - x;
-
-    if (Math.abs(walk) > 50) {
-      if (walk > 0 && startIndex < availableGames.length - visibleCount) {
-        setDirection(1);
-        setStartIndex(startIndex + 1);
-        setIsDragging(false);
-      } else if (walk < 0 && startIndex > 0) {
-        setDirection(-1);
-        setStartIndex(startIndex - 1);
-        setIsDragging(false);
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0 && startIndex < availableGames.length - visibleCount) {
-      setDirection(1);
-      setStartIndex(startIndex + 1);
-    } else if (e.deltaY < 0 && startIndex > 0) {
-      setDirection(-1);
-      setStartIndex(startIndex - 1);
-    }
-  };
-
   return (
     <div className="py-6 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex items-center gap-1">
           <TbNumber44Small className="text-primary bg-primary/20 rounded" />
-          The Originals
+          44 Originals
         </h2>
         <div className="flex gap-2">
           <button
-            onClick={handlePrev}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex === 0}
+            onClick={() => swiperRef.current?.slidePrev()}
+            disabled={isBeginning}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={handleNext}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex >= availableGames.length - visibleCount}
+            onClick={() => {
+              if (swiperRef.current && !swiperRef.current.isEnd) {
+                swiperRef.current.slideNext();
+              }
+            }}
+            disabled={isEnd}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="relative">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={startIndex}
-            custom={direction}
-            initial={{ x: direction > 0 ? 300 : -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onWheel={handleWheel}
-            style={{
-              userSelect: "none",
-              cursor: isDragging ? "grabbing" : "grab",
-            }}
-          >
-            {availableGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
+      <div className="overflow-hidden -mx-2 px-2">
+        <Swiper
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+            // Update state after a brief delay to ensure Swiper has calculated properly
+            setTimeout(() => {
+              setIsBeginning(swiper.isBeginning);
+              setIsEnd(swiper.isEnd);
+            }, 100);
+          }}
+          onSlideChange={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          onReachBeginning={(swiper) => {
+            setIsBeginning(true);
+            setIsEnd(false);
+          }}
+          onReachEnd={(swiper) => {
+            setIsBeginning(false);
+            setIsEnd(true);
+          }}
+          onUpdate={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          modules={[Navigation, FreeMode, Mousewheel]}
+          spaceBetween={8}
+          slidesPerView="auto"
+          freeMode={false}
+          watchOverflow={true}
+          watchSlidesProgress={true}
+          resistance={true}
+          resistanceRatio={0.5}
+          allowSlideNext={!isEnd}
+          allowSlidePrev={!isBeginning}
+          mousewheel={{
+            forceToAxis: true,
+            sensitivity: 1,
+            releaseOnEdges: true,
+          }}
+        >
+          {availableGames.map((game: any, index: number) => (
+            <SwiperSlide key={index} style={{ width: 'auto' }}>
               <div
-                key={index}
                 onClick={() => handleSelectGame(game)}
-                className="w-full aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
-                draggable={false}
+                className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform duration-200"
               >
-                <Image 
-                  src={game.image} 
-                  fill 
-                  alt={game.name} 
+                <Image
+                  src={game.image}
+                  fill
+                  alt={game.name}
                   className="object-contain"
-                  draggable={false} 
+                  draggable={false}
+                  unoptimized
                 />
               </div>
-
-              // <div
-              //   key={index}
-              //   onClick={() => handleSelectGame(game)}
-              //   className="h-40 relative bg-black rounded-md flex items-center justify-center text-white cursor-pointer hover:opacity-80 transition select-none"
-              //   draggable={false}
-              // >
-              //   <Image
-              //     src={game.image}
-              //     fill
-              //     alt={game.name}
-              //     className="object-cover rounded-md pointer-events-none"
-              //     draggable={false}
-              //   />
-              // </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   );
