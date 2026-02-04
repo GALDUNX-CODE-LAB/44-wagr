@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Gamepad2, ArrowRightLeft, RefreshCcw, Rocket, ChevronDown, ChevronUp } from "lucide-react";
-import { TbCards, TbGraph } from "react-icons/tb";
+import { TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
 import { RiNftLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
@@ -27,7 +27,6 @@ export default function Sidebar() {
     }
 
     if (pathname.startsWith("/games")) setActiveItem("Games");
-    else if (pathname.startsWith("/bets")) setActiveItem("My Bets");
     else if (pathname.startsWith("/nft-lottery")) setActiveItem("Nft Lottery");
     else if (pathname.startsWith("/meta-market")) setActiveItem("Meta Market");
     else if (pathname.startsWith("/support")) setActiveItem("Support");
@@ -70,14 +69,9 @@ export default function Sidebar() {
       hasDropdown: true,
     },
     {
-      href: "/bets",
-      icon: <TbCards className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
-      key: "My Bets",
-    },
-    {
       href: "/nft-lottery",
       icon: <RiNftLine className="lg:w-[16px] lg:h-[16px] w-[28px] h-[18px]" />,
-      key: "Nft Lottery",
+      key: "Lottery",
     },
     {
       href: "/meta-market",

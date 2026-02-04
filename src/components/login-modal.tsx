@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
 import { getGoogleLink, requestNonce, setupProfile, verifySignature } from "../lib/api";
+import { getStoredRefCode } from "../lib/referral-utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from "wagmi";
 import { useEffect, useState } from "react";
@@ -44,7 +45,8 @@ export default function LoginModal({ open, onClose, switchMode = false }: LoginM
 
   const nounceHandler = async () => {
     try {
-      const { message } = await requestNonce(address);
+      const refCode = getStoredRefCode();
+      const { message } = await requestNonce(address, refCode);
       const signature = await signMessageAsync({
         account: address as `0x${string}`,
         message,

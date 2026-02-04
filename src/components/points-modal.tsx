@@ -34,6 +34,41 @@ interface RedeemHistory {
 }
 
 export default function PointsModal({ open, onClose }: PointsModalProps) {
+  useEffect(() => {
+    if (open) {
+      const scrollY = window.scrollY;
+      const html = document.documentElement;
+      const body = document.body;
+      const prevHtmlOverflow = html.style.overflow;
+      const prevBodyOverflow = body.style.overflow;
+      const prevBodyTouchAction = body.style.touchAction;
+      const prevBodyPosition = body.style.position;
+      const prevBodyTop = body.style.top;
+      const prevBodyLeft = body.style.left;
+      const prevBodyRight = body.style.right;
+      const prevBodyWidth = body.style.width;
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.touchAction = "none";
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.left = "0";
+      body.style.right = "0";
+      body.style.width = "100%";
+      return () => {
+        html.style.overflow = prevHtmlOverflow;
+        body.style.overflow = prevBodyOverflow;
+        body.style.touchAction = prevBodyTouchAction;
+        body.style.position = prevBodyPosition;
+        body.style.top = prevBodyTop;
+        body.style.left = prevBodyLeft;
+        body.style.right = prevBodyRight;
+        body.style.width = prevBodyWidth;
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [open]);
+
   const [activeTab, setActiveTab] = useState<"daily" | "social" | "redeem">("daily");
   const [claiming, setClaiming] = useState(false);
   const [streakData, setStreakData] = useState<PointEntry[]>([]);
@@ -59,30 +94,30 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
   const initializeStreakData = (currentStreak: number, lastClaimed: string | Date, hasClaimedToday: boolean) => {
     const result: PointEntry[] = [];
     const streakPointsList = [20, 50, 80, 100, 120, 150, 180];
-    
-    // Check if user missed a day (streak should reset)
+
+    // If user missed a day, streak resets to the beginning (day 1)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const lastClaimDate = new Date(lastClaimed);
     lastClaimDate.setHours(0, 0, 0, 0);
     const daysSinceLastClaim = Math.floor((today.getTime() - lastClaimDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // If more than 1 day passed, streak should be reset (but backend handles this)
-    // We use currentStreak from backend which is the source of truth
     const effectiveStreak = daysSinceLastClaim > 1 ? 0 : currentStreak;
-    
+
+    // Next day to claim: day 1 when streak reset (missed a day), otherwise effectiveStreak + 1
+    const nextDayToClaim = effectiveStreak + 1;
+
     for (let i = 1; i <= 7; i++) {
       let status: PointEntry["status"] = "date";
       const points = streakPointsList[Math.min(i - 1, streakPointsList.length - 1)];
-      
-      if (i < effectiveStreak) {
+
+      if (i < nextDayToClaim) {
         status = "claimed";
-      } else if (i === effectiveStreak) {
+      } else if (i === nextDayToClaim) {
         status = hasClaimedToday ? "claimed" : "claim";
       } else {
         status = "date";
       }
-      
+
       result.push({ day: i, points, status });
     }
     setStreakData(result);
@@ -208,7 +243,7 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full h-[60vh] flex flex-col p-6 border border-white/10 relative"
+            className="bg-[#1C1C1C] text-white rounded-t-xl lg:rounded-xl w-full lg:max-w-4xl h-[60vh] flex flex-col p-6 border border-white/10 relative"
             onClick={(e) => e.stopPropagation()}
           >
         <button onClick={onClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/10">

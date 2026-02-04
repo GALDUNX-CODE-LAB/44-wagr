@@ -1,5 +1,6 @@
 import {
   Market,
+  MetaMarketCategory,
   CrashBetPayload,
   MarketPrice,
   UserPortfolio,
@@ -30,6 +31,13 @@ export const fetchCrashWins = async () => {
 
 export const fetchWheelsWins = async () => {
   const response = await apiHandler("/live-wins/wheels", { method: "GET" });
+  return response;
+};
+
+export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
+
+export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {
+  const response = await apiHandler<OriginalsPlayerCounts>("/originals/player-counts", { method: "GET" });
   return response;
 };
 
@@ -78,8 +86,16 @@ export const fetchUserPoints = async () => {
   return response;
 };
 
-export const fetchUserBets = async (page = 1, game = "all") => {
-  const response = await apiHandler(`/user/my-bets?page=${page}&game=${game}`, {
+export const fetchUserBets = async (
+  page = 1,
+  game = "all",
+  outcome?: "win" | "loss",
+  limit = 12
+) => {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (game && game !== "all") params.set("game", game);
+  if (outcome) params.set("outcome", outcome);
+  const response = await apiHandler(`/user/my-bets?${params.toString()}`, {
     method: "GET",
   });
   return response;
@@ -141,6 +157,24 @@ export const fetchReferralStats = async () => {
   return response;
 };
 
+export const fetchReferralHistory = async () => {
+  const response = await apiHandler<{ success?: boolean; referrals?: Array<{
+    username: string;
+    date: string;
+    totalBets: number;
+    totalEarnings: number;
+  }> }>("/referral/history", { method: "GET" });
+  return response;
+};
+
+export const getReferralLink = async () => {
+  const response = await apiHandler<{ success: boolean; referralCode: string; referralUrl: string }>(
+    "/user/referral-link",
+    { method: "GET" }
+  );
+  return response;
+};
+
 export const fetchUserTransactions = async () => {
   const response = await apiHandler("/transactions/user/transactions", {
     method: "GET",
@@ -192,6 +226,71 @@ export const fetchMarkets = async () => {
   return Array.isArray(data) ? { success: true, markets: data } : data;
 };
 
+/** Fetch all meta market categories (public). */
+export const fetchMetaMarketCategories = async (): Promise<MetaMarketCategory[]> => {
+  const res = await apiHandler<{ data?: MetaMarketCategory[]; message?: MetaMarketCategory[] }>(
+    "/meta-market/categories",
+    { method: "GET" }
+  );
+  if (Array.isArray(res)) return res;
+  return res?.data ?? res?.message ?? [];
+};
+
+/** Create a meta market category (admin). */
+export const createMetaMarketCategory = async (payload: {
+  name: string;
+  slug?: string;
+  order?: number;
+}): Promise<MetaMarketCategory> => {
+  const res = await apiHandler<{ data: MetaMarketCategory }>("/meta-market/categories", {
+    method: "POST",
+    data: payload,
+  });
+  return (res as any)?.data ?? res;
+};
+
+/** Update a meta market category (admin). */
+export const updateMetaMarketCategory = async (
+  categoryId: string,
+  payload: { name?: string; slug?: string; order?: number }
+): Promise<MetaMarketCategory> => {
+  const res = await apiHandler<{ data: MetaMarketCategory }>(
+    `/meta-market/categories/${categoryId}`,
+    { method: "PATCH", data: payload }
+  );
+  return (res as any)?.data ?? res;
+};
+
+/** Delete a meta market category (admin). */
+export const deleteMetaMarketCategory = async (categoryId: string): Promise<void> => {
+  await apiHandler(`/meta-market/categories/${categoryId}`, { method: "DELETE" });
+};
+
+/** Create a meta market (admin). Pass categories as array of category IDs. */
+export const createMetaMarket = async (formData: {
+  question: string;
+  summary: string;
+  image: File;
+  b?: number;
+  feePercent?: number;
+  categories?: string[];
+}): Promise<{ market: Market }> => {
+  const body = new FormData();
+  body.append("question", formData.question);
+  body.append("summary", formData.summary);
+  body.append("image", formData.image);
+  if (formData.b != null) body.append("b", String(formData.b));
+  if (formData.feePercent != null) body.append("feePercent", String(formData.feePercent));
+  if (formData.categories?.length) {
+    body.append("categories", JSON.stringify(formData.categories));
+  }
+  const res = await apiHandler<{ market: Market }>("/meta-market/create", {
+    method: "POST",
+    data: body,
+  });
+  return res as { market: Market };
+};
+
 export const fetchMarketById = async (id: string): Promise<Market> => {
   const data = await apiHandler<{ market: Market }>(`/meta-market/${id}`, {
     method: "GET",
@@ -231,9 +330,9 @@ export const getGoogleCallback = async (code: string) => {
   return response;
 };
 
-export const requestNonce = async (walletAddress: string) => {
-  console.log(walletAddress, "ddoee03030");
-  return await apiHandler("/auth/nonce", {
+export const requestNonce = async (walletAddress: string, refCode?: string | null) => {
+  const url = refCode ? `/auth/nonce?ref=${encodeURIComponent(refCode)}` : "/auth/nonce";
+  return await apiHandler(url, {
     method: "POST",
     data: { walletAddress },
   });

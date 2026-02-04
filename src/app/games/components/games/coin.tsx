@@ -24,8 +24,15 @@ interface CoinHistoryItem {
 
 type CoinflipTab = "my-bets" | "live-games";
 
+// Allow empty or numeric string so user can clear and type (e.g. "1" without "01")
+function parseNumInput(s: string): number {
+  if (s === "" || s === ".") return 0;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function CoinTossGame() {
-  const [betAmount, setBetAmount] = useState(0);
+  const [betAmountInput, setBetAmountInput] = useState("");
   const [selectedSide, setSelectedSide] = useState<CoinSide | null>(null);
   const [activeOdds, setActiveOdds] = useState(2);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -35,7 +42,9 @@ export default function CoinTossGame() {
   const [betHistory, setBetHistory] = useState<CoinHistoryItem[]>([]);
 
   const [autoMode, setAutoMode] = useState(false);
-  const [autoPlays, setAutoPlays] = useState(5);
+  const [autoPlaysInput, setAutoPlaysInput] = useState("");
+  const betAmount = parseNumInput(betAmountInput);
+  const autoPlays = Math.max(0, Math.min(1000, Math.floor(parseNumInput(autoPlaysInput)) || 0));
   const [autoPlaysLeft, setAutoPlaysLeft] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
@@ -51,7 +60,7 @@ export default function CoinTossGame() {
   ];
 
   const oddsOptions = [2, 4, 6, 8];
-  const winnableAmount = betAmount * activeOdds;
+  const winnableAmount = betAmount * activeOdds; // 0 when empty/invalid
 
   const queryClient = useQueryClient();
   const isLoggedIn = useIsLoggedIn();
@@ -81,7 +90,8 @@ export default function CoinTossGame() {
       return false;
     }
 
-    if (betAmount <= 0) {
+    const amount = parseNumInput(betAmountInput);
+    if (!betAmountInput.trim() || amount <= 0) {
       setResultText("Bet amount must be greater than 0");
       setShowResult(true);
       return false;
@@ -92,7 +102,7 @@ export default function CoinTossGame() {
 
     try {
       const response = await placeCoinflipBet({
-        betAmount,
+        betAmount: amount,
         choice: sideForThisFlip,
       });
 
@@ -252,11 +262,14 @@ export default function CoinTossGame() {
             <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-2">
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(Number(e.target.value))}
-                  min="0.000001"
-                  step="0.000001"
+                  type="text"
+                  inputMode="decimal"
+                  value={betAmountInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setBetAmountInput(v);
+                  }}
+                  placeholder="0"
                   className="bg-transparent text-sm text-white w-24 outline-none"
                   disabled={isFlipping || isAutoPlaying}
                 />
@@ -341,18 +354,21 @@ export default function CoinTossGame() {
                   <p className="text-xs text-white/60">Number of Plays</p>
                   <div className="bg-[#212121] rounded-lg p-2 flex items-center">
                     <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={autoPlays}
-                      onChange={(e) => setAutoPlays(Number(e.target.value))}
+                      type="text"
+                      inputMode="numeric"
+                      value={autoPlaysInput}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "" || /^\d+$/.test(v)) setAutoPlaysInput(v);
+                      }}
+                      placeholder="0"
                       className="w-full bg-transparent outline-none text-white text-xs"
                       disabled={isFlipping || isAutoPlaying}
                     />
                   </div>
                   {isAutoPlaying && autoPlaysLeft >= 0 && (
                     <p className="text-[11px] text-white/60">
-                      Auto playing... {autoPlays - autoPlaysLeft}/{autoPlays}
+                      Auto playing... {autoPlays - autoPlaysLeft}/{autoPlays || 0}
                     </p>
                   )}
                 </div>

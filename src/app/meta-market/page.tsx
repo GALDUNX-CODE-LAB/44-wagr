@@ -1,28 +1,35 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle, Search, TrendingUp, TrendingDown, Bookmark, ChartPie } from "lucide-react";
-import { fetchMarkets } from "../../lib/api";
+import { fetchMarkets, fetchMetaMarketCategories } from "../../lib/api";
+import type { MetaMarketCategory } from "../../interfaces/interface";
 import BookmarkMarketsModal from "./components/bookmark-market-modal";
 import { useQuery } from "@tanstack/react-query";
 import PortfolioModal from "./components/portfolio-modal";
 
-const categories = ["All", "Politics", "Religion", "Sports"];
 const PAGE_SIZE = 8;
+const ALL_ID = "All";
 
 export default function MarketPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_ID);
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [openBookmarks, setOpenBookmarks] = useState(false);
   const [openPortfolio, setOpenPortfolio] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ["meta-market-categories"],
+    queryFn: fetchMetaMarketCategories,
+    refetchOnWindowFocus: false,
+  });
 
   const {
     data: markets = [],
-    isLoading: loading,
+    isLoading: marketsLoading,
     isError,
     error,
-    refetch,
   } = useQuery({
     queryKey: ["markets"],
     queryFn: async () => {
@@ -32,8 +39,20 @@ export default function MarketPage() {
     refetchOnWindowFocus: false,
   });
 
-  const paginatedMarkets = markets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(markets.length / PAGE_SIZE);
+  const filteredMarkets = markets.filter((market) => {
+    const matchesCategory =
+      activeCategoryId === ALL_ID || market.categories?.some((c: MetaMarketCategory) => c._id === activeCategoryId);
+    const matchesSearch =
+      !searchQuery.trim() ||
+      [market.question, market.summary].some(
+        (s) => s && String(s).toLowerCase().includes(searchQuery.trim().toLowerCase())
+      );
+    return matchesCategory && matchesSearch;
+  });
+
+  const paginatedMarkets = filteredMarkets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filteredMarkets.length / PAGE_SIZE);
+  const loading = marketsLoading;
 
   if (loading) return <MarketSkeleton />;
   if (error) return <ErrorDisplay error={error} />;
@@ -70,30 +89,52 @@ export default function MarketPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
         <input
           type="text"
-          placeholder="Search"
-          className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3"
+          placeholder="Search markets"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setPage(1);
+          }}
+          className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3 text-white placeholder:text-white/40"
         />
       </div>
 
       {/* Categories */}
-      <div className="flex flex-wrap gap-4 sm:gap-6 mb-6">
-        {categories.map((cat) => (
-          <CategoryButton
-            key={cat}
-            category={cat}
-            active={activeCategory === cat}
-            onClick={() => {
-              setActiveCategory(cat);
-              setPage(1);
-            }}
-          />
-        ))}
+      <div className="flex flex-wrap gap-4 sm:gap-6 mb-6 items-center">
+        <CategoryButton
+          key={ALL_ID}
+          label="All"
+          active={activeCategoryId === ALL_ID}
+          onClick={() => {
+            setActiveCategoryId(ALL_ID);
+            setPage(1);
+          }}
+        />
+        {categoriesLoading ? (
+          <span className="text-sm text-white/50">Loading categories…</span>
+        ) : (
+          categories.map((cat) => (
+            <CategoryButton
+              key={cat._id}
+              label={cat.name}
+              active={activeCategoryId === cat._id}
+              onClick={() => {
+                setActiveCategoryId(cat._id);
+                setPage(1);
+              }}
+            />
+          ))
+        )}
       </div>
 
-      <MarketGrid markets={paginatedMarkets} router={router} />
+      <MarketGrid
+        markets={paginatedMarkets}
+        router={router}
+        hasFilter={activeCategoryId !== ALL_ID || !!searchQuery.trim()}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -161,7 +202,7 @@ function ErrorDisplay({ error }) {
   );
 }
 
-function CategoryButton({ category, active, onClick }) {
+function CategoryButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -169,15 +210,27 @@ function CategoryButton({ category, active, onClick }) {
         active ? "text-[#C8A2FF]" : "text-white/70 hover:text-white"
       }`}
     >
-      {category}
+      {label}
       {active && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C8A2FF] rounded-full" />}
     </button>
   );
 }
 
-function MarketGrid({ markets, router }) {
+function MarketGrid({
+  markets,
+  router,
+  hasFilter,
+}: {
+  markets: any[];
+  router: ReturnType<typeof useRouter>;
+  hasFilter?: boolean;
+}) {
   if (markets.length === 0) {
-    return <div className="text-center py-12 text-white/50">No markets found</div>;
+    return (
+      <div className="text-center py-12 text-white/50">
+        {hasFilter ? "No markets match this category or search." : "No markets found."}
+      </div>
+    );
   }
 
   return (
@@ -189,7 +242,7 @@ function MarketGrid({ markets, router }) {
   );
 }
 
-function MarketCard({ market, router }) {
+function MarketCard({ market, router }: { market: any; router: ReturnType<typeof useRouter> }) {
   return (
     <div
       onClick={() => router.push(`/meta-market/${market._id}`)}
@@ -210,10 +263,21 @@ function MarketCard({ market, router }) {
         </h2>
       </div>
 
+      {market.categories && market.categories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {(market.categories as { name: string; slug: string }[]).map((c) => (
+            <span
+              key={c.slug}
+              className="text-[10px] lg:text-xs px-2 py-0.5 rounded-full bg-[#C8A2FF]/20 text-[#C8A2FF]"
+            >
+              {c.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       {market.summary && (
-        <p className="text-xs lg:text-sm text-white/70 line-clamp-1 overflow-hidden">
-          {market.summary}
-        </p>
+        <p className="text-xs lg:text-sm text-white/70 line-clamp-1 overflow-hidden">{market.summary}</p>
       )}
 
       <div className="flex gap-3 items-center my-3">

@@ -8,6 +8,7 @@ import { getCrashHistory, placeCrashBet } from "../../../../lib/api";
 import useCrashSocket from "../../../../hooks/useCrashSocket";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useIsLoggedIn from "../../../../hooks/useIsLoggedIn";
+import { useUser } from "../../../../hooks/useUserData";
 
 type Round = { roundId: string; crashPoint: number } | null;
 type BetStatus = "none" | "placed" | "cashed" | "lost";
@@ -22,11 +23,19 @@ interface MyBet {
   profit?: number;
 }
 
+function parseNumInput(s: string): number {
+  if (s === "" || s === ".") return 0;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function CrashGame() {
   const ROUND_DURATION = 10000;
 
-  const [betAmount, setBetAmount] = useState(0.025);
-  const [autoCashout, setAutoCashout] = useState(2.5);
+  const [betAmountInput, setBetAmountInput] = useState("");
+  const [autoCashoutInput, setAutoCashoutInput] = useState("");
+  const betAmount = parseNumInput(betAmountInput);
+  const autoCashout = Math.max(1, parseNumInput(autoCashoutInput) || 1);
   const [currentRound, setCurrentRound] = useState<Round>(null);
   const [displayMultiplier, setDisplayMultiplier] = useState(1);
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
@@ -39,18 +48,35 @@ export default function CrashGame() {
 
   const simRef = useRef<NodeJS.Timeout | null>(null);
   const tickRef = useRef<number | null>(null);
+  const refetchedForCashedRef = useRef<string | null>(null);
 
   const queryClient = useQueryClient();
 
   const onSocketMessage = (msg: any) => {
-    if (msg?.event === "crash-result") {
-      setBettingOpen(!!msg.data?.newRound);
-      // setMyBet(!!msg.data?.newRound && null);
-      if (msg.data?.newRound) setNextRoundId(msg.data.roundId);
-      setCurrentRound({ roundId: msg.data?.roundId, crashPoint: msg.data?.crashPoint });
+    if (msg?.event !== "crash-result" || !msg.data) return;
+    const { newRound, roundId, crashPoint } = msg.data;
+
+    if (newRound) {
+      setNextRoundId(roundId ?? "");
+      setBettingOpen(true);
+      setCurrentRound(null);
+      setBetTimeLeft(ROUND_DURATION);
+    } else {
+      setBettingOpen(false);
+      setTimeLeft(ROUND_DURATION);
+      const point = Number(crashPoint) || 1;
+      setCurrentRound({ roundId: roundId ?? "", crashPoint: point });
       setDisplayMultiplier(1);
-      if (!msg.data?.newRound) setTimeLeft(ROUND_DURATION);
-      else setBetTimeLeft(ROUND_DURATION);
+      setMyBet((prev) => {
+        if (!prev || prev.roundId !== roundId || prev.status !== "placed") return prev;
+        if (point < prev.autoCashout)
+          return { ...prev, status: "lost", payout: 0, profit: Number((-prev.stake).toFixed(6)) };
+        return prev;
+      });
+      queryClient.refetchQueries({ queryKey: ["user-data"] });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["crash-history"] });
+      }, ROUND_DURATION);
     }
   };
 
@@ -74,16 +100,17 @@ export default function CrashGame() {
 
   console.log(history, "Crash Historyy");
   useEffect(() => {
-    if (!currentRound) return;
+    if (!currentRound || currentRound.crashPoint <= 0) return;
     const start = Date.now();
+    const target = currentRound.crashPoint;
 
     const tick = () => {
       const elapsed = Date.now() - start;
       if (elapsed >= ROUND_DURATION) {
-        if (currentRound) setDisplayMultiplier(currentRound.crashPoint);
+        setDisplayMultiplier(target);
       } else {
         const progress = elapsed / ROUND_DURATION;
-        const value = 1 + ((currentRound?.crashPoint ?? 1) - 1) * progress;
+        const value = 1 + (target - 1) * progress;
         setDisplayMultiplier(parseFloat(value.toFixed(2)));
         tickRef.current = requestAnimationFrame(tick);
       }
@@ -102,6 +129,15 @@ export default function CrashGame() {
     const interval = setInterval(() => {
       if (!bettingOpen) setTimeLeft((prev) => Math.max(prev - 100, 0));
       else setBetTimeLeft((prev) => Math.max(prev - 100, 0));
+    }, 100);
+    return () => clearInterval(interval);
+  }, [currentRound, bettingOpen]);
+
+  // Countdown when waiting for next round (no round yet, e.g. initial load)
+  useEffect(() => {
+    if (currentRound !== null || bettingOpen) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev <= 0 ? ROUND_DURATION : Math.max(prev - 100, 0)));
     }, 100);
     return () => clearInterval(interval);
   }, [currentRound, bettingOpen]);
@@ -158,8 +194,11 @@ export default function CrashGame() {
             }
           : prev
       );
+      if (refetchedForCashedRef.current !== myBet.roundId) {
+        refetchedForCashedRef.current = myBet.roundId;
+        queryClient.refetchQueries({ queryKey: ["user-data"] });
+      }
     }
-    queryClient.invalidateQueries({ queryKey: ["user-data"] });
   }, [displayMultiplier, bettingOpen, currentRound, myBet]);
 
   useEffect(() => {
@@ -180,12 +219,14 @@ export default function CrashGame() {
               }
             : prev
         );
+        queryClient.refetchQueries({ queryKey: ["user-data"] });
       }
     }
-    queryClient.invalidateQueries({ queryKey: ["user-data"] });
   }, [bettingOpen, currentRound, myBet]);
 
-  const isLoggedIn = useIsLoggedIn();
+  const hasCookie = useIsLoggedIn();
+  const { id: userId } = useUser();
+  const isLoggedIn = hasCookie || !!userId;
 
   const bettingDisabledReason = useMemo(() => {
     if (!isLoggedIn) return "Login to play";
@@ -193,21 +234,26 @@ export default function CrashGame() {
     if (!nextRoundId) return "Waiting for next round";
     if (myBet && myBet.status === "placed" && myBet.roundId === nextRoundId) return "Bet already locked";
     return null;
-  }, [bettingOpen, nextRoundId, myBet]);
+  }, [isLoggedIn, bettingOpen, nextRoundId, myBet]);
 
   const handlePlaceBet = async () => {
     if (bettingDisabledReason) return;
+    const stake = parseNumInput(betAmountInput);
+    const cashout = Math.max(1, parseNumInput(autoCashoutInput) || 1);
+    if (stake <= 0) {
+      return; // could toast "Enter bet amount > 0"
+    }
     try {
-      await placeCrashBet({ stake: betAmount, autoCashout });
+      await placeCrashBet({ stake, autoCashout: cashout });
     } catch {}
     setMyBet({
       roundId: nextRoundId,
-      stake: betAmount,
-      autoCashout,
+      stake,
+      autoCashout: cashout,
       status: "placed",
     });
 
-    queryClient.invalidateQueries({ queryKey: ["user-data"] });
+    queryClient.refetchQueries({ queryKey: ["user-data"] });
   };
 
   const formatTime = (ms: number) => `${Math.ceil(ms / 1000)}s`;
@@ -254,25 +300,24 @@ export default function CrashGame() {
             {!bettingOpen ? <>Time Left: {formatTime(timeLeft)}</> : <>Lock window: {formatTime(betTimeLeft)}</>}
           </div>
 
-          <div className="h-56 sm:h-64 flex items-center justify-center">
+          <div className="h-56 sm:h-64 flex flex-col items-center justify-center gap-3">
             {!bettingOpen ? (
               <>
                 {!currentRound ? (
-                  <p className="text-xl sm:text-2xl animate-bounce">Waiting For Next Round</p>
+                  <>
+                    <p className="text-xl sm:text-2xl animate-bounce">Waiting For Next Round</p>
+                    <p className="text-[#c8a2ff] text-2xl sm:text-3xl font-mono">
+                      Next round in: {formatTime(timeLeft)}
+                    </p>
+                  </>
                 ) : (
                   <div className="text-5xl sm:text-6xl font-bold text-[#c8a2ff]">{displayMultiplier.toFixed(2)}x</div>
                 )}
               </>
             ) : (
               <div className="text-center">
-                {!currentRound ? (
-                  <p className="text-xl sm:text-2xl animate-bounce">Waiting For Next Round</p>
-                ) : (
-                  <>
-                    <p className="text-xl sm:text-2xl">Lock in your bet</p>
-                    <p className="text-[#c8a2ff] text-2xl sm:text-3xl mt-1">{formatTime(betTimeLeft)}</p>
-                  </>
-                )}
+                <p className="text-xl sm:text-2xl">Lock in your bet</p>
+                <p className="text-[#c8a2ff] text-2xl sm:text-3xl mt-1 font-mono">{formatTime(betTimeLeft)}</p>
               </div>
             )}
           </div>
@@ -282,11 +327,14 @@ export default function CrashGame() {
               <div>
                 <p className="text-white/60 text-sm">Bet Amount</p>
                 <input
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(Number(e.target.value))}
+                  type="text"
+                  inputMode="decimal"
+                  value={betAmountInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setBetAmountInput(v);
+                  }}
+                  placeholder="0"
                   className="mt-1 p-3 bg-[#212121] text-white rounded w-full"
                 />
               </div>
@@ -295,21 +343,30 @@ export default function CrashGame() {
                 <p className="text-white/60 text-sm">Auto Cashout</p>
                 <div className="flex items-center gap-2 mt-1">
                   <button
-                    onClick={() => setAutoCashout((v) => +(v + 0.1).toFixed(1))}
+                    onClick={() => {
+                      const n = parseNumInput(autoCashoutInput) || 1;
+                      setAutoCashoutInput(String(+(n + 0.1).toFixed(1)));
+                    }}
                     className="p-2 rounded bg-[#212121] hover:bg-[#2b2b2b]"
                   >
                     <ChevronUp />
                   </button>
                   <input
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    value={autoCashout}
-                    onChange={(e) => setAutoCashout(Number(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    value={autoCashoutInput}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d*\.?\d*$/.test(v)) setAutoCashoutInput(v);
+                    }}
+                    placeholder="1"
                     className="p-3 bg-[#212121] text-white rounded w-24 text-center"
                   />
                   <button
-                    onClick={() => setAutoCashout((v) => Math.max(1, +(v - 0.1).toFixed(1)))}
+                    onClick={() => {
+                      const n = parseNumInput(autoCashoutInput) || 1;
+                      setAutoCashoutInput(String(Math.max(1, +(n - 0.1).toFixed(1))));
+                    }}
                     className="p-2 rounded bg-[#212121] hover:bg-[#2b2b2b]"
                   >
                     <ChevronDown />
