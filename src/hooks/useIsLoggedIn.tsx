@@ -3,11 +3,16 @@
 import { useEffect, useState } from "react";
 import { getCookie } from "../lib/api/cookie";
 
+function getIsLoggedIn(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!getCookie("access-token");
+}
+
 export default function useIsLoggedIn(): boolean {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn);
 
   useEffect(() => {
-    const check = () => setIsLoggedIn(!!getCookie("access-token"));
+    const check = () => setIsLoggedIn(getIsLoggedIn());
     check();
     const onFocus = () => check();
     const onVis = () => check();

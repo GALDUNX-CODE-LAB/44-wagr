@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { X, Copy, Check } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchReferralStats } from "../lib/api";
+import { fetchReferralStats, fetchReferralHistory, getReferralLink } from "../lib/api";
+
+interface ReferralRow {
+  username: string;
+  date: string;
+  totalBets: number;
+  totalEarnings: number;
+}
 
 export default function AffiliateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -13,35 +20,54 @@ export default function AffiliateModal({ open, onClose }: { open: boolean; onClo
     totalEarnings: number;
     totalReferralDeposit: number;
   } | null>(null);
-
-  const referralLink = "44//http/ref2345...bets";
-  const referralCode = "XYZ123";
-
-  const tableData = [
-    { username: "john_doe", date: "2024-07-10", referrals: 5, earnings: "$100.00" },
-    { username: "sara88", date: "2024-07-11", referrals: 2, earnings: "$45.00" },
-    { username: "mike21", date: "2024-07-12", referrals: 4, earnings: "$85.00" },
-  ];
+  const [referralLink, setReferralLink] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  const [tableData, setTableData] = useState<ReferralRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   };
 
   useEffect(() => {
-    const getReferralStats = async () => {
+    if (!open) return;
+
+    const loadAffiliateData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetchReferralStats();
-        if (res.success) {
-          setReferralStats(res.data);
+        const [statsRes, linkRes, historyRes] = await Promise.all([
+          fetchReferralStats(),
+          getReferralLink(),
+          fetchReferralHistory(),
+        ]);
+
+        if (statsRes?.success && statsRes?.data) {
+          setReferralStats(statsRes.data);
         }
+
+        if (linkRes?.success && linkRes?.referralUrl) {
+          setReferralLink(linkRes.referralUrl);
+          setReferralCode(linkRes.referralCode || "");
+        }
+
+        const res = historyRes as { data?: { referrals?: ReferralRow[] }; referrals?: ReferralRow[] };
+        const referrals = res?.data?.referrals ?? res?.referrals ?? [];
+        setTableData(referrals);
       } catch (err) {
-        console.error("Failed to fetch referral stats:", err);
+        console.error("Failed to fetch affiliate data:", err);
+        setError("Failed to load affiliate data. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (open) getReferralStats();
+    loadAffiliateData();
   }, [open]);
 
   return (
@@ -112,18 +138,19 @@ export default function AffiliateModal({ open, onClose }: { open: boolean; onClo
               <div className="flex flex-col items-end w-full sm:w-auto gap-1">
                 <div className="flex items-center gap-2">
                   <span className="text-white/65 bg-[#1c1c1c] rounded-lg border border-white/10 text-[10px] sm:text-sm font-mono px-2 py-1 sm:px-3 sm:py-2 truncate max-w-[160px] sm:max-w-[200px]">
-                    {referralLink}
+                    {loading ? "Loading..." : referralLink || "—"}
                   </span>
                   <button
                     onClick={handleCopy}
-                    className="bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black text-[10px] sm:text-xs font-light rounded-lg px-3 sm:px-4 py-1 sm:py-2 transition whitespace-nowrap"
+                    disabled={!referralLink}
+                    className="bg-[#C8A2FF] hover:bg-[#D5B3FF] disabled:opacity-50 disabled:cursor-not-allowed text-black text-[10px] sm:text-xs font-light rounded-lg px-3 sm:px-4 py-1 sm:py-2 transition whitespace-nowrap"
                   >
                     {copied ? <Check className="w-3 h-3" /> : "Copy Link"}
                   </button>
                 </div>
 
                 <div className="text-xs sm:text-sm text-white/65 font-normal text-right w-full">
-                  <span className="font-semibold">Code:</span> {referralCode}
+                  <span className="font-semibold">Code:</span> {referralCode || "—"}
                 </div>
               </div>
             </div>
@@ -132,25 +159,39 @@ export default function AffiliateModal({ open, onClose }: { open: boolean; onClo
             <div className="bg-[#212121] border border-white/10 rounded-[20px] p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-4">Stats and Referrals</h3>
 
+              {error && (
+                <p className="text-red-400 text-sm mb-4">{error}</p>
+              )}
+
               <div className="overflow-x-auto">
                 <table className="w-full text-xs sm:text-sm min-w-[400px]">
                   <thead className="text-white/60">
                     <tr>
                       <th className="text-left px-2 sm:px-4 py-2 sm:py-3">Username</th>
                       <th className="text-left px-2 sm:px-4 py-2 sm:py-3">Date</th>
-                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3">Referrals</th>
+                      <th className="text-left px-2 sm:px-4 py-2 sm:py-3">Total Bets</th>
                       <th className="text-left px-2 sm:px-4 py-2 sm:py-3">Earnings</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {tableData.map((row, i) => (
-                      <tr key={i} className={`${i % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"} text-white`}>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3">{row.username}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-white/70">{row.date}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3">{row.referrals}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-3">{row.earnings}</td>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-white/50">Loading...</td>
                       </tr>
-                    ))}
+                    ) : tableData.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-white/50">No referrals yet. Share your link to get started!</td>
+                      </tr>
+                    ) : (
+                      tableData.map((row, i) => (
+                        <tr key={i} className={`${i % 2 === 0 ? "bg-[#1C1C1C]" : "bg-[#212121]"} text-white`}>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3">{row.username}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-white/70">{row.date}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3">${(row.totalBets || 0).toFixed(2)}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3">${(row.totalEarnings || 0).toFixed(2)}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

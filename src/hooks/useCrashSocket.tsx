@@ -22,16 +22,26 @@ export default function useCrashSocket(
   const wsRef = useRef<WebSocket | null>(null);
   const hbRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectRef = useRef<NodeJS.Timeout | null>(null);
+  const onMessageRef = useRef(onMessage);
+  const retriesRef = useRef(0);
+
+  onMessageRef.current = onMessage;
+  retriesRef.current = retries;
 
   const resolveUrl = useCallback(() => {
-    const raw = opts?.url || process.env.NEXT_PUBLIC_WS || "";
-    if (raw) {
-      if (raw.startsWith("http")) return raw.replace(/^http/, "ws");
-      return raw;
+    const explicitWs = opts?.url || process.env.NEXT_PUBLIC_WS || "";
+    if (explicitWs) {
+      if (explicitWs.startsWith("http")) return explicitWs.replace(/^http/, "ws");
+      return explicitWs;
+    }
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    if (apiBase) {
+      if (apiBase.startsWith("http")) return apiBase.replace(/^http/, "ws");
+      return `ws://${apiBase}`;
     }
     if (typeof window !== "undefined") {
       const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-      return `${proto}//${window.location.host}/ws`;
+      return `${proto}//${window.location.host}`;
     }
     return "";
   }, [opts?.url]);
@@ -62,7 +72,7 @@ export default function useCrashSocket(
     const url = resolveUrl();
     if (!url) {
       setStatus("error");
-      setError("Missing NEXT_PUBLIC_WS or url");
+      setError("Missing NEXT_PUBLIC_WS or NEXT_PUBLIC_API_BASE_URL");
       return;
     }
 
@@ -89,8 +99,7 @@ export default function useCrashSocket(
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
-          console.log(msg);
-          onMessage(msg);
+          onMessageRef.current?.(msg);
         } catch (err: any) {
           setError(err?.message || "parse error");
         }
@@ -103,9 +112,11 @@ export default function useCrashSocket(
 
       ws.onclose = () => {
         setStatus("closed");
-        if (retries < maxRetries) {
-          const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        const currentRetries = retriesRef.current;
+        if (currentRetries < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, currentRetries), 10000);
           reconnectRef.current = setTimeout(() => {
+            retriesRef.current += 1;
             setRetries((r) => r + 1);
             connect();
           }, delay);
@@ -115,7 +126,7 @@ export default function useCrashSocket(
       setStatus("error");
       setError(err?.message || "connect error");
     }
-  }, [cleanup, heartbeatMs, maxRetries, onMessage, resolveUrl, retries]);
+  }, [cleanup, heartbeatMs, maxRetries, resolveUrl]);
 
   useEffect(() => {
     connect();
@@ -123,6 +134,7 @@ export default function useCrashSocket(
   }, [connect, cleanup]);
 
   const manualReconnect = useCallback(() => {
+    retriesRef.current = 0;
     setRetries(0);
     connect();
   }, [connect]);

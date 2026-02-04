@@ -63,6 +63,15 @@ export interface AuthResponse {
   };
 }
 
+export interface MetaMarketCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Market {
   _id: string;
   question: string;
@@ -75,6 +84,7 @@ export interface Market {
   isResolved: boolean;
   result?: "YES" | "NO";
   commentCount: number;
+  categories?: MetaMarketCategory[];
   createdAt: string;
   updatedAt: string;
   __v: number;

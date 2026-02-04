@@ -18,17 +18,26 @@ interface DiceHistoryItem {
   [key: string]: any;
 }
 
+function parseNumInput(s: string): number {
+  if (s === "" || s === ".") return 0;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function DiceGame() {
   const [activeOdds, setActiveOdds] = useState(60.57);
-  const [betAmount, setBetAmount] = useState(0);
-  const [target, setTarget] = useState(50);
+  const [betAmountInput, setBetAmountInput] = useState("");
+  const [targetInput, setTargetInput] = useState("");
   const [betType, setBetType] = useState<"over" | "under">("over");
   const [betHistory, setBetHistory] = useState<DiceHistoryItem[]>([]);
   const [lastResult, setLastResult] = useState<any>(null);
   const [isBetting, setIsBetting] = useState(false);
 
   const [autoMode, setAutoMode] = useState(false);
-  const [autoPlays, setAutoPlays] = useState<number | null>(5);
+  const [autoPlaysInput, setAutoPlaysInput] = useState("");
+  const betAmount = parseNumInput(betAmountInput);
+  const target = Math.max(1, Math.min(99, Math.floor(parseNumInput(targetInput)) || 50));
+  const autoPlays = Math.max(0, Math.min(1000, Math.floor(parseNumInput(autoPlaysInput)) || 0));
   const [autoPlaysLeft, setAutoPlaysLeft] = useState(0);
   const stopAutoRef = useRef(false);
 
@@ -107,8 +116,8 @@ export default function DiceGame() {
       return;
     }
 
-    if (!autoPlays || autoPlays <= 0) {
-      alert("Please enter how many times to auto play");
+    if (!autoPlaysInput.trim() || autoPlays <= 0) {
+      alert("Please enter how many times to auto play (1–1000)");
       return;
     }
 
@@ -213,11 +222,14 @@ export default function DiceGame() {
                 <span className="text-xs text-white/60 text-center">Roll {betType === "over" ? "Over" : "Under"}</span>
                 <div className="bg-[#212121] h-10 flex items-center border border-white/10 rounded-lg px-3 py-1.5">
                   <input
-                    type="number"
-                    min="1"
-                    max="99"
-                    value={target}
-                    onChange={(e) => setTarget(Number(e.target.value) > 100 ? 0 : Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={targetInput}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d*$/.test(v)) setTargetInput(v);
+                    }}
+                    placeholder="50"
                     className="w-full bg-transparent lg:text-base text-xs font-semibold text-center outline-none"
                     disabled={isBetting}
                   />
@@ -240,11 +252,14 @@ export default function DiceGame() {
               <p className="text-sm text-white/60 mb-1">Bet Amount</p>
               <div className="flex items-center bg-[#212121] rounded-lg p-3">
                 <input
-                  type="number"
-                  min="0"
-                  step="0"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(Number(e.target.value))}
+                  type="text"
+                  inputMode="decimal"
+                  value={betAmountInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "" || /^\d*\.?\d*$/.test(v)) setBetAmountInput(v);
+                  }}
+                  placeholder="0"
                   className="w-full bg-transparent outline-none text-white text-sm"
                   disabled={isBetting}
                 />
@@ -285,11 +300,14 @@ export default function DiceGame() {
                 <p className="text-xs text-white/60 mb-1">Number of Plays</p>
                 <div className="flex items-center bg-[#212121] rounded-lg p-2">
                   <input
-                    type="number"
-                    min="1"
-                    max="1000"
-                    value={autoPlays ?? 0}
-                    onChange={(e) => setAutoPlays(Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={autoPlaysInput}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d+$/.test(v)) setAutoPlaysInput(v);
+                    }}
+                    placeholder="0"
                     className="w-full bg-transparent outline-none text-white text-xs"
                     disabled={isBetting}
                   />

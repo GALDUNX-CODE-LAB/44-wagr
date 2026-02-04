@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,17 +10,30 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 
+import { fetchOriginalsPlayerCounts } from "../../lib/api";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
 
+const ORIGINALS_GAMES = [
+  { name: "Crash", key: "crash" as const, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
+  { name: "Dice", key: "dice" as const, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
+  { name: "Coin", key: "coin" as const, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
+  { name: "Wheel", key: "wheel" as const, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
+];
+
 export default function TheOriginals() {
-  const availableGames = [
-    { name: "Crash", players: 1248, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
-    { name: "Dice", players: 892, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
-    { name: "Coin", players: 1532, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
-    { name: "Wheel", players: 721, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
-  ];
+  const { data: playerCounts } = useQuery({
+    queryKey: ["originals-player-counts"],
+    queryFn: fetchOriginalsPlayerCounts,
+    refetchInterval: 30000,
+  });
+
+  const availableGames = ORIGINALS_GAMES.map((g) => ({
+    ...g,
+    players: playerCounts ? playerCounts[g.key] : 0,
+  }));
 
   const router = useRouter();
   const swiperRef = useRef<SwiperType | null>(null);
@@ -45,7 +59,7 @@ export default function TheOriginals() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex items-center gap-1">
           <TbNumber44Small className="text-primary bg-primary/20 rounded" />
-          44 Originals
+          44-wagr Original
         </h2>
         <div className="flex gap-2">
           <button
@@ -111,20 +125,25 @@ export default function TheOriginals() {
             releaseOnEdges: true,
           }}
         >
-          {availableGames.map((game: any, index: number) => (
-            <SwiperSlide key={index} style={{ width: 'auto' }}>
+          {availableGames.map((game: (typeof availableGames)[0], index: number) => (
+            <SwiperSlide key={index} style={{ width: "auto" }}>
               <div
                 onClick={() => handleSelectGame(game)}
-                className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform duration-200"
+                className="w-[100px] md:w-[120px] lg:w-[140px] flex flex-col gap-1 cursor-pointer group"
               >
-                <Image
-                  src={game.image}
-                  fill
-                  alt={game.name}
-                  className="object-contain"
-                  draggable={false}
-                  unoptimized
-                />
+                <div className="aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white group-hover:scale-105 transition-transform duration-200">
+                  <Image
+                    src={game.image}
+                    fill
+                    alt={game.name}
+                    className="object-contain"
+                    draggable={false}
+                    unoptimized
+                  />
+                </div>
+                <p className="text-white/70 text-xs text-center">
+                  {game.players.toLocaleString()} playing
+                </p>
               </div>
             </SwiperSlide>
           ))}

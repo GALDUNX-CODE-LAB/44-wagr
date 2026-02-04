@@ -14,6 +14,7 @@ import {
   LogOutIcon,
   ArrowUpRight,
 } from "lucide-react";
+import { TbCards } from "react-icons/tb";
 import Image from "next/image";
 import WalletModal from "./wallet-modal";
 import TransactionsModal from "./transactions-modal";
@@ -78,6 +79,14 @@ export default function NavbarV2() {
 
   return (
     <>
+      {/* Backdrop: close profile dropdown when tapping outside */}
+      {userDropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setUserDropdownOpen(false)}
+          aria-hidden
+        />
+      )}
       <div className="wrap relative h-[65px] w-full" />
       <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
         <nav className="w-full h-full sm:border-b border-white/15 text-white flex items-center justify-between px-6 py-3">
@@ -153,6 +162,16 @@ export default function NavbarV2() {
                       >
                         <Coins className="w-3 h-3" />
                         Points
+                      </button>
+                      <button
+                        className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
+                        onClick={() => {
+                          router.push("/bets");
+                          setUserDropdownOpen(false);
+                        }}
+                      >
+                        <TbCards className="w-3 h-3" />
+                        My Bets
                       </button>
                       <button
                         className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"

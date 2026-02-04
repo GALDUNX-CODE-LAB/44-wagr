@@ -37,8 +37,17 @@ const buildSegments = (count: number): Segment[] => {
   return result.slice(0, count);
 };
 
+function parseNumInput(s: string): number {
+  if (s === "" || s === ".") return 0;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function StakeRingWheelGame() {
-  const [betAmount, setBetAmount] = useState(0.01);
+  const [betAmountInput, setBetAmountInput] = useState("");
+  const [autoPlaysInput, setAutoPlaysInput] = useState("");
+  const betAmount = parseNumInput(betAmountInput);
+  const autoPlays = Math.max(0, Math.min(1000, Math.floor(parseNumInput(autoPlaysInput)) || 0));
   const [activeOdds, setActiveOdds] = useState(2);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -52,7 +61,6 @@ export default function StakeRingWheelGame() {
   const [inErr, setInErr] = useState<string | null>();
 
   const [autoMode, setAutoMode] = useState(false);
-  const [autoPlays, setAutoPlays] = useState(5);
   const [autoPlaysLeft, setAutoPlaysLeft] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
@@ -90,7 +98,12 @@ export default function StakeRingWheelGame() {
 
   const spinOnce = async (): Promise<boolean> => {
     if (isSpinning || !fixedSegments.length) return false;
-    if (betAmount > balance) {
+    const amount = parseNumInput(betAmountInput);
+    if (!betAmountInput.trim() || amount <= 0) {
+      setInErr("Enter bet amount greater than 0");
+      return false;
+    }
+    if (amount > balance) {
       setInErr("Insufficient Balance");
       return false;
     }
@@ -102,7 +115,7 @@ export default function StakeRingWheelGame() {
     playWheelsSound();
 
     try {
-      const response = await placeWheelBet({ stake: betAmount, segments: selectedSegments });
+      const response = await placeWheelBet({ stake: amount, segments: selectedSegments });
 
       if (!response?.success) {
         throw new Error("Bet failed.");
@@ -132,7 +145,7 @@ export default function StakeRingWheelGame() {
 
       await delayer(4500);
 
-      const winAmount = Number(betAmount) * multiplier;
+      const winAmount = amount * multiplier;
       if (multiplier > 0) playWheelsWins();
 
       setRecentResults((prev) => [{ multiplier, color: resultColor }, ...prev.slice(0, 4)]);
@@ -156,7 +169,7 @@ export default function StakeRingWheelGame() {
       return;
     }
 
-    if (autoPlays <= 0) {
+    if (!autoPlaysInput.trim() || autoPlays <= 0) {
       setResultText("Please enter how many times to auto play");
       setShowResult(true);
       return;
@@ -241,11 +254,15 @@ export default function StakeRingWheelGame() {
             <p className="text-xs lg:text-sm text-white/60">Bet Amount</p>
             <div className="flex justify-between bg-[#212121] rounded-lg mt-2 px-3 py-3.5">
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className={`ring-0 focus:ring-0 outline-0 text-sm ${inErr && "border border-red-300"}`}
-                placeholder=""
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
+                placeholder="0"
+                value={betAmountInput}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "" || /^\d*\.?\d*$/.test(v)) setBetAmountInput(v);
+                }}
                 disabled={isSpinning || isAutoPlaying}
               />
               <div className="flex items-center gap-2">
@@ -295,11 +312,14 @@ export default function StakeRingWheelGame() {
                 <p className="text-xs text-white/60">Number of Plays</p>
                 <div className="bg-[#212121] rounded-lg p-2 flex items-center">
                   <input
-                    type="number"
-                    min="1"
-                    max="1000"
-                    value={autoPlays}
-                    onChange={(e) => setAutoPlays(Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={autoPlaysInput}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "" || /^\d+$/.test(v)) setAutoPlaysInput(v);
+                    }}
+                    placeholder="0"
                     className="w-full bg-transparent outline-none text-white text-xs"
                     disabled={isSpinning || isAutoPlaying}
                   />

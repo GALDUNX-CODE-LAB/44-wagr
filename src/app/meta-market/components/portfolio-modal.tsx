@@ -8,11 +8,11 @@ import { getUserPortfolios, getPortfolioDetails } from "../../../lib/api";
 
 interface Portfolio {
   _id: string;
-  market: {
-    question: string;
+  market?: {
+    question?: string;
     result?: "YES" | "NO";
     isResolved: boolean;
-  };
+  } | null;
   yesShares: number;
   noShares: number;
   avgYesPrice: number;
@@ -89,9 +89,9 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                         className="w-full flex justify-between items-center px-4 py-3 text-left hover:bg-white/5 transition"
                       >
                         <div>
-                          <h3 className="text-sm font-medium mb-1">{p.market.question}</h3>
+                          <h3 className="text-sm font-medium mb-1">{p.market?.question ?? "n/a"}</h3>
                           <p className="text-xs text-gray-400">
-                            {totalShares.toFixed(5)} shares • Avg ₦{avgPrice.toFixed(5)}
+                            {totalShares?.toFixed?.(5) ?? "n/a"} shares • Avg ₦{avgPrice?.toFixed?.(5) ?? "n/a"}
                           </p>
                         </div>
                         <ChevronDown
@@ -122,24 +122,40 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                                       portfolioDetails.youPicked === "Yes" ? "text-[#C8A2FF]" : "text-rose-400"
                                     }`}
                                   >
-                                    {portfolioDetails.youPicked}
+                                    {portfolioDetails.youPicked ?? "n/a"}
                                   </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Average Price</span>
-                                  <span>${portfolioDetails.avgPrice}</span>
+                                  <span>
+                                    {portfolioDetails.avgPrice !== undefined && portfolioDetails.avgPrice !== null
+                                      ? `$${portfolioDetails.avgPrice}`
+                                      : "n/a"}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Shares</span>
-                                  <span>{portfolioDetails.shares.toFixed(7)}</span>
+                                  <span>
+                                    {portfolioDetails.shares !== undefined &&
+                                    portfolioDetails.shares !== null &&
+                                    typeof portfolioDetails.shares === "number"
+                                      ? portfolioDetails.shares.toFixed(7)
+                                      : "n/a"}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Cost</span>
-                                  <span>${portfolioDetails.cost.toFixed(7)}</span>
+                                  <span>
+                                    {portfolioDetails.cost !== undefined &&
+                                    portfolioDetails.cost !== null &&
+                                    typeof portfolioDetails.cost === "number"
+                                      ? `$${portfolioDetails.cost.toFixed(7)}`
+                                      : "n/a"}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Status</span>
-                                  <span className="text-gray-300">{portfolioDetails.status}</span>
+                                  <span className="text-gray-300">{portfolioDetails.status ?? "n/a"}</span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Event Outcome</span>
@@ -152,13 +168,15 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                                         : "text-gray-400"
                                     }`}
                                   >
-                                    {portfolioDetails.eventOutcome}
+                                    {portfolioDetails.eventOutcome ?? "n/a"}
                                   </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                   <span className="text-gray-400">Payout</span>
                                   <span className="text-green-400">
-                                    ₦{portfolioDetails.payout?.toLocaleString() ?? "0"}
+                                    {portfolioDetails.payout !== undefined && portfolioDetails.payout !== null
+                                      ? `₦${portfolioDetails.payout?.toLocaleString?.() ?? "0"}`
+                                      : "n/a"}
                                   </span>
                                 </div>
                                 <div className="flex justify-between py-2">
@@ -166,7 +184,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                                   <span>
                                     {portfolioDetails.payoutDate
                                       ? new Date(portfolioDetails.payoutDate).toLocaleString()
-                                      : "-"}
+                                      : "n/a"}
                                   </span>
                                 </div>
                                 <div className="flex justify-between py-2">
@@ -175,7 +193,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                                     href={`/portfolio/${p._id}`}
                                     className="text-[#C8A2FF] underline underline-offset-4 text-xs break-all"
                                   >
-                                    {p._id}
+                                    {p._id ?? "n/a"}
                                   </Link>
                                 </div>
                               </div>

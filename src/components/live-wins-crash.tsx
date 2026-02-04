@@ -23,7 +23,7 @@ interface LiveCrashProp {
 export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashProp) {
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
-  const prevRoundRef = useRef<string | null>(null);
+  const prevBetEndRef = useRef<boolean>(false);
 
   const { data: liveWins = [] } = useQuery<Win[]>({
     queryKey: ["live-wins-crash"],
@@ -41,18 +41,21 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
     staleTime: 15_000,
   });
 
-  // Clear ONLY when the round actually changes (start of next lock window)
+  // Clear ONLY when transitioning into the lock bet window (not during countdown/flying)
   useEffect(() => {
-    if (!roundId) return;
-    if (prevRoundRef.current !== roundId) {
-      prevRoundRef.current = roundId;
+    if (betEnd && !prevBetEndRef.current) {
+      prevBetEndRef.current = true;
       queryClient.setQueryData<Win[]>(["live-wins-crash"], () => []);
     }
-  }, [roundId, queryClient]);
+    if (!betEnd) prevBetEndRef.current = false;
+  }, [betEnd, queryClient]);
 
   // WebSocket: ingest per-bet broadcasts
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS;
+    let wsUrl = process.env.NEXT_PUBLIC_WS;
+    if (!wsUrl && process.env.NEXT_PUBLIC_API_BASE_URL) {
+      wsUrl = process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^http/, "ws");
+    }
     if (!wsUrl) return;
 
     const socket = new WebSocket(wsUrl);
@@ -97,10 +100,8 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
       <table className="min-w-full table-auto text-sm text-white">
         <thead>
           <tr className="text-[11px] md:text-xs uppercase tracking-wide text-white/60">
-            <th className="whitespace-nowrap px-5 py-3 text-left">Game</th>
-            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">User</th>
-            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Time</th>
-            <th className="whitespace-nowrap px-5 py-3 text-left hidden md:table-cell">Bet Amount</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left">User</th>
+            <th className="whitespace-nowrap px-5 py-3 text-left">Bet Amount</th>
             <th className="whitespace-nowrap px-5 py-3 text-left">Multiplier</th>
             <th className="whitespace-nowrap px-5 py-3 text-right">Payout</th>
           </tr>
@@ -114,39 +115,21 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
                 index % 2 === 0 ? "bg-[#1c1c1c]" : "bg-[#212121]"
               } text-[13px] font-medium`}
             >
-              {/* Game */}
+              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.user}</td>
+              <td className="whitespace-nowrap px-5 py-3 text-white/90">{win.bet}</td>
               <td className="whitespace-nowrap px-5 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-white/5">
-                    <span className="h-2 w-2 rounded-full bg-white" />
-                  </span>
-                  <span>{win.game}</span>
-                </div>
+                <span
+                  className={
+                    !betEnd && multiplier >= Number(win.multiplier)
+                      ? "text-[#00ff5f] font-semibold"
+                      : "text-white/80"
+                  }
+                >
+                  {win.multiplier}x
+                </span>
               </td>
-
-              {/* User */}
-              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.user}</td>
-
-              {/* Time */}
-              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell text-white/80">{win.time}</td>
-
-              {/* Bet */}
-              <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
-                <div className="flex items-center gap-1">
-                  <span className="text-white/90">{win.bet}</span>
-                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                </div>
-              </td>
-
-              {/* Multiplier */}
-              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.multiplier}</td>
-
-              {/* Payout */}
               <td className="whitespace-nowrap px-5 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
-                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                </div>
+                <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
               </td>
             </tr>
           ))}
