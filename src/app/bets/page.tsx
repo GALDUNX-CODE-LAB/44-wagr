@@ -49,11 +49,11 @@ function mapBetToDisplay(bet: any, gameType: string) {
         outcome: bet.isWin ? "win" : "lose",
         payout: bet.payout,
         createdAt: bet.createdAt,
-        profit: bet.payout - (bet.betAmount || 0),
+        profit: (bet.payout ?? 0) - (bet.betAmount || 0),
         meta: {
-          Multiplier: `${bet.multiplier}x`,
-          Result: bet.result,
-          Choice: bet.choice,
+          Multiplier: `${bet.multiplier ?? "—"}x`,
+          Choice: bet.choice ?? "—",
+          Result: bet.result ?? "—",
         },
       };
     case "wheel":
@@ -61,15 +61,14 @@ function mapBetToDisplay(bet: any, gameType: string) {
         id: bet._id,
         type: "Wheel",
         icon: <RefreshCcw className="w-4 h-4 text-white" />,
-        amount: bet.stake,
-        outcome: bet.payout > 0 ? "win" : "lose",
+        amount: bet.betAmount,
+        outcome: (bet.payout ?? 0) > 0 ? "win" : "lose",
         payout: bet.payout,
         createdAt: bet.createdAt,
-        profit: bet.payout - (bet.stake || 0),
+        profit: (bet.payout ?? 0) - (bet.betAmount || 0),
         meta: {
-          Multiplier: `${bet.multiplier}x`,
-          Chosen: bet.chosenColor,
-          Result: bet.resultColor,
+          Multiplier: `${bet.multiplier ?? "—"}x`,
+          Result: bet.resultColor ?? "—",
         },
       };
     case "crash":
@@ -77,15 +76,15 @@ function mapBetToDisplay(bet: any, gameType: string) {
         id: bet._id,
         type: "Crash",
         icon: <TrendingUp className="w-4 h-4 text-white" />,
-        amount: bet.stake,
+        amount: bet.betAmount,
         outcome: bet.isWin ? "win" : "lose",
         payout: bet.payout,
         profit: bet.profit,
         createdAt: bet.createdAt,
         meta: {
-          "Auto Cashout": `${bet.autoCashout}x`,
-          Profit: `${bet.profit >= 0 ? "+" : ""}${bet.profit} BTC`,
-          Round: bet.round?.slice?.(-8) ?? "—",
+          "Auto Cashout": `${bet.autoCashout ?? "—"}x`,
+          Profit: `${(bet.profit ?? 0) >= 0 ? "+" : ""}$${bet.profit ?? 0}`,
+          Round: bet.round ? String(bet.round).slice(-8) : "—",
         },
       };
     case "metamarket":
@@ -93,13 +92,13 @@ function mapBetToDisplay(bet: any, gameType: string) {
         id: bet._id,
         type: "Meta Market",
         icon: <BarChart3 className="w-4 h-4 text-white" />,
-        amount: bet.stake,
+        amount: bet.betAmount,
         outcome: bet.isWin ? "win" : "lose",
         payout: bet.payout,
         profit: bet.profit,
         createdAt: bet.createdAt,
         meta: {
-          Side: bet.side,
+          Side: bet.side ?? "—",
           Shares: bet.shares?.toFixed?.(2) ?? "—",
           "Avg Price": `$${bet.avgPrice?.toFixed?.(3) ?? "—"}`,
         },
@@ -242,8 +241,8 @@ export default function BetHistoryPage() {
                     const amountColor = isWin ? "text-green-400" : "text-red-400";
                     const profitDisplay =
                       bet.type === "Crash" || bet.type === "Meta Market"
-                        ? `${(bet.profit ?? 0) >= 0 ? "+" : ""}${bet.profit ?? 0} BTC`
-                        : bet.payout != null ? `${bet.payout} BTC` : "—";
+                        ? `${(bet.profit ?? 0) >= 0 ? "+" : ""}$${bet.profit ?? 0}`
+                        : bet.payout != null ? `$${bet.payout}` : "—";
                     const dateStr = bet.createdAt
                       ? new Date(bet.createdAt).toLocaleString(undefined, {
                           dateStyle: "short",
@@ -268,7 +267,7 @@ export default function BetHistoryPage() {
                             {isWin ? "Win" : "Lose"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-white/90">{bet.amount ?? "—"} BTC</td>
+                        <td className="px-4 py-3 text-white/90">${bet.amount ?? "—"}</td>
                         <td className={`px-4 py-3 font-medium ${amountColor}`}>{profitDisplay}</td>
                         <td className="px-4 py-3 text-white/60 text-xs">{dateStr}</td>
                         <td className="px-4 py-3 text-white/50 text-xs max-w-[200px] truncate" title={detailsStr}>

@@ -52,11 +52,16 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
 
   // WebSocket: ingest per-bet broadcasts
   useEffect(() => {
-    let wsUrl = process.env.NEXT_PUBLIC_WS;
+    let wsUrl = (process.env.NEXT_PUBLIC_WS || "").trim();
     if (!wsUrl && process.env.NEXT_PUBLIC_API_BASE_URL) {
-      wsUrl = process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^http/, "ws");
+      wsUrl = process.env.NEXT_PUBLIC_API_BASE_URL.trim().replace(/^http/, "ws");
     }
     if (!wsUrl) return;
+
+    // Upgrade ws:// → wss:// on HTTPS pages (browser blocks mixed content)
+    if (window.location.protocol === "https:") {
+      wsUrl = wsUrl.replace(/^ws:\/\//, "wss://");
+    }
 
     const socket = new WebSocket(wsUrl);
     ws.current = socket;
@@ -116,7 +121,7 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
               } text-[13px] font-medium`}
             >
               <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.user}</td>
-              <td className="whitespace-nowrap px-5 py-3 text-white/90">{win.bet}</td>
+              <td className="whitespace-nowrap px-5 py-3 text-white/90">${win.bet}</td>
               <td className="whitespace-nowrap px-5 py-3">
                 <span
                   className={
@@ -129,7 +134,7 @@ export default function LiveCrashWns({ roundId, multiplier, betEnd }: LiveCrashP
                 </span>
               </td>
               <td className="whitespace-nowrap px-5 py-3 text-right">
-                <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
+                <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>${win.payout}</span>
               </td>
             </tr>
           ))}

@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Search, TrendingUp, TrendingDown, Bookmark, ChartPie } from "lucide-react";
+import { MessageCircle, Search, TrendingUp, TrendingDown, Bookmark, ChartPie, ArrowUpDown, Heart } from "lucide-react";
 import { fetchMarkets, fetchMetaMarketCategories } from "../../lib/api";
 import type { MetaMarketCategory } from "../../interfaces/interface";
 import BookmarkMarketsModal from "./components/bookmark-market-modal";
@@ -11,6 +11,12 @@ import PortfolioModal from "./components/portfolio-modal";
 const PAGE_SIZE = 8;
 const ALL_ID = "All";
 
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+] as const;
+type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+
 export default function MarketPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<string>(ALL_ID);
   const router = useRouter();
@@ -18,6 +24,7 @@ export default function MarketPage() {
   const [openBookmarks, setOpenBookmarks] = useState(false);
   const [openPortfolio, setOpenPortfolio] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateSort, setDateSort] = useState<SortValue>("newest");
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["meta-market-categories"],
@@ -39,16 +46,25 @@ export default function MarketPage() {
     refetchOnWindowFocus: false,
   });
 
-  const filteredMarkets = markets.filter((market) => {
-    const matchesCategory =
-      activeCategoryId === ALL_ID || market.categories?.some((c: MetaMarketCategory) => c._id === activeCategoryId);
-    const matchesSearch =
-      !searchQuery.trim() ||
-      [market.question, market.summary].some(
-        (s) => s && String(s).toLowerCase().includes(searchQuery.trim().toLowerCase())
-      );
-    return matchesCategory && matchesSearch;
-  });
+  const filteredMarkets = useMemo(() => {
+    const list = markets.filter((market) => {
+      const matchesCategory =
+        activeCategoryId === ALL_ID || market.categories?.some((c: MetaMarketCategory) => c._id === activeCategoryId);
+      const matchesSearch =
+        !searchQuery.trim() ||
+        [market.question, market.summary].some(
+          (s) => s && String(s).toLowerCase().includes(searchQuery.trim().toLowerCase())
+        );
+      return matchesCategory && matchesSearch;
+    });
+    // Sort by date (createdAt)
+    const sorted = [...list].sort((a, b) => {
+      const ta = new Date(a.createdAt || 0).getTime();
+      const tb = new Date(b.createdAt || 0).getTime();
+      return dateSort === "newest" ? tb - ta : ta - tb;
+    });
+    return sorted;
+  }, [markets, activeCategoryId, searchQuery, dateSort]);
 
   const paginatedMarkets = filteredMarkets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.ceil(filteredMarkets.length / PAGE_SIZE);
@@ -87,19 +103,38 @@ export default function MarketPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-        <input
-          type="text"
-          placeholder="Search markets"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPage(1);
-          }}
-          className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3 text-white placeholder:text-white/40"
-        />
+      {/* Search + Date sort */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+          <input
+            type="text"
+            placeholder="Search markets"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3 text-white placeholder:text-white/40"
+          />
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <ArrowUpDown className="w-5 h-5 text-white/50" />
+          <select
+            value={dateSort}
+            onChange={(e) => {
+              setDateSort(e.target.value as SortValue);
+              setPage(1);
+            }}
+            className="h-11 px-4 rounded-lg bg-[#212121] border border-white/6 text-white text-sm focus:outline-none focus:border-primary"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Categories */}
@@ -216,6 +251,8 @@ function CategoryButton({ label, active, onClick }: { label: string; active: boo
   );
 }
 
+const BOOKMARK_STORAGE_KEY = "bookmarkedMarkets";
+
 function MarketGrid({
   markets,
   router,
@@ -243,6 +280,29 @@ function MarketGrid({
 }
 
 function MarketCard({ market, router }: { market: any; router: ReturnType<typeof useRouter> }) {
+  const [bookmarked, setBookmarked] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || "[]");
+      setBookmarked(Array.isArray(stored) && stored.includes(market._id));
+    } catch {
+      setBookmarked(false);
+    }
+  }, [market._id]);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const stored: string[] = JSON.parse(localStorage.getItem(BOOKMARK_STORAGE_KEY) || "[]");
+      const updated = stored.includes(market._id)
+        ? stored.filter((id) => id !== market._id)
+        : [...stored, market._id];
+      localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(updated));
+      setBookmarked(updated.includes(market._id));
+    } catch {}
+  };
+
   return (
     <div
       onClick={() => router.push(`/meta-market/${market._id}`)}
@@ -261,6 +321,19 @@ function MarketCard({ market, router }: { market: any; router: ReturnType<typeof
         <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2 flex-1">
           {market.question}
         </h2>
+        <button
+          type="button"
+          onClick={handleLike}
+          className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          title={bookmarked ? "Remove from bookmarks" : "Like / Bookmark"}
+          aria-label={bookmarked ? "Remove from bookmarks" : "Like / Bookmark"}
+        >
+          {bookmarked ? (
+            <Heart className="w-5 h-5 text-primary fill-primary" />
+          ) : (
+            <Heart className="w-5 h-5 text-white/60" />
+          )}
+        </button>
       </div>
 
       {market.categories && market.categories.length > 0 && (

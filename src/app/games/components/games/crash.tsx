@@ -394,7 +394,7 @@ export default function CrashGame() {
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-[#212121] rounded-lg p-3">
                   <p className="text-xs text-white/60">Your Stake</p>
-                  <p className="text-sm font-semibold">{myBet.stake} BTC</p>
+                  <p className="text-sm font-semibold">${myBet.stake}</p>
                 </div>
                 <div className="bg-[#212121] rounded-lg p-3">
                   <p className="text-xs text-white/60">Auto Cashout</p>

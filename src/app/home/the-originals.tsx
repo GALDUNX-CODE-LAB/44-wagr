@@ -46,6 +46,7 @@ export default function TheOriginals() {
       const stored = localStorage.getItem("continue-playing");
       let parsed: any[] = stored ? JSON.parse(stored) : [];
 
+      parsed = parsed.filter((g) => g.link !== game.link);
       parsed.unshift(game);
       localStorage.setItem("continue-playing", JSON.stringify(parsed));
       router.push(game.link);
@@ -141,9 +142,7 @@ export default function TheOriginals() {
                     unoptimized
                   />
                 </div>
-                <p className="text-white/70 text-xs text-center">
-                  {game.players.toLocaleString()} playing
-                </p>
+                <p className="text-white/70 text-xs text-center">{game.players.toLocaleString()} playing</p>
               </div>
             </SwiperSlide>
           ))}

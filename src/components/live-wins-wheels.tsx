@@ -24,9 +24,13 @@ export default function LiveWheelsWins() {
   });
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS;
-    console.log(wsUrl);
+    let wsUrl = (process.env.NEXT_PUBLIC_WS || "").trim();
     if (!wsUrl) return;
+
+    // Upgrade ws:// → wss:// on HTTPS pages (browser blocks mixed content)
+    if (window.location.protocol === "https:") {
+      wsUrl = wsUrl.replace(/^ws:\/\//, "wss://");
+    }
 
     const socket = new WebSocket(wsUrl);
     ws.current = socket;
@@ -106,10 +110,7 @@ export default function LiveWheelsWins() {
 
               {/* Bet */}
               <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
-                <div className="flex items-center gap-1">
-                  <span className="text-white/90">{win.bet}</span>
-                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                </div>
+                <span className="text-white/90">${win.bet}</span>
               </td>
 
               {/* Multiplier */}
@@ -117,10 +118,7 @@ export default function LiveWheelsWins() {
 
               {/* Payout */}
               <td className="whitespace-nowrap px-5 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>{win.payout}</span>
-                  <div className="w-3 h-3 rounded-full bg-[#D9D9D9]" />
-                </div>
+                <span className={Number(win.payout) > 0 ? "text-[#00ff5f]" : "text-white/80"}>${win.payout}</span>
               </td>
             </tr>
           ))}

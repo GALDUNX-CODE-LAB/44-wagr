@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LoaderCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { setupProfile } from "../lib/api";
+import { getStoredRefCode } from "../lib/referral-utils";
 
 interface SetupProfileModalProps {
   open: boolean;
@@ -12,12 +13,20 @@ interface SetupProfileModalProps {
 export default function SetupProfileModal({ open, onClose }: SetupProfileModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefillRefCode, setPrefillRefCode] = useState("");
 
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
   }, [onClose]);
+
+  useEffect(() => {
+    if (open) {
+      const code = getStoredRefCode();
+      if (code) setPrefillRefCode(code);
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -83,6 +92,8 @@ export default function SetupProfileModal({ open, onClose }: SetupProfileModalPr
                   name="referralCode"
                   type="text"
                   placeholder="Enter referral code"
+                  defaultValue={prefillRefCode}
+                  key={prefillRefCode}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
