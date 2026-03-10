@@ -86,12 +86,7 @@ export const fetchUserPoints = async () => {
   return response;
 };
 
-export const fetchUserBets = async (
-  page = 1,
-  game = "all",
-  outcome?: "win" | "loss",
-  limit = 12
-) => {
+export const fetchUserBets = async (page = 1, game = "all", outcome?: "win" | "loss", limit = 12) => {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (game && game !== "all") params.set("game", game);
   if (outcome) params.set("outcome", outcome);
@@ -158,19 +153,22 @@ export const fetchReferralStats = async () => {
 };
 
 export const fetchReferralHistory = async () => {
-  const response = await apiHandler<{ success?: boolean; referrals?: Array<{
-    username: string;
-    date: string;
-    totalBets: number;
-    totalEarnings: number;
-  }> }>("/referral/history", { method: "GET" });
+  const response = await apiHandler<{
+    success?: boolean;
+    referrals?: Array<{
+      username: string;
+      date: string;
+      totalBets: number;
+      totalEarnings: number;
+    }>;
+  }>("/referral/history", { method: "GET" });
   return response;
 };
 
 export const getReferralLink = async () => {
   const response = await apiHandler<{ success: boolean; referralCode: string; referralUrl: string }>(
     "/user/referral-link",
-    { method: "GET" }
+    { method: "GET" },
   );
   return response;
 };
@@ -230,7 +228,7 @@ export const fetchMarkets = async () => {
 export const fetchMetaMarketCategories = async (): Promise<MetaMarketCategory[]> => {
   const res = await apiHandler<{ data?: MetaMarketCategory[]; message?: MetaMarketCategory[] }>(
     "/meta-market/categories",
-    { method: "GET" }
+    { method: "GET" },
   );
   if (Array.isArray(res)) return res;
   return res?.data ?? res?.message ?? [];
@@ -252,12 +250,12 @@ export const createMetaMarketCategory = async (payload: {
 /** Update a meta market category (admin). */
 export const updateMetaMarketCategory = async (
   categoryId: string,
-  payload: { name?: string; slug?: string; order?: number }
+  payload: { name?: string; slug?: string; order?: number },
 ): Promise<MetaMarketCategory> => {
-  const res = await apiHandler<{ data: MetaMarketCategory }>(
-    `/meta-market/categories/${categoryId}`,
-    { method: "PATCH", data: payload }
-  );
+  const res = await apiHandler<{ data: MetaMarketCategory }>(`/meta-market/categories/${categoryId}`, {
+    method: "PATCH",
+    data: payload,
+  });
   return (res as any)?.data ?? res;
 };
 
@@ -330,18 +328,18 @@ export const getGoogleCallback = async (code: string) => {
   return response;
 };
 
-export const requestNonce = async (walletAddress: string, refCode?: string | null) => {
+export const requestNonce = async (walletAddress: string, refCode?: string | null, walletType?: "evm" | "solana") => {
   const url = refCode ? `/auth/nonce?ref=${encodeURIComponent(refCode)}` : "/auth/nonce";
   return await apiHandler(url, {
     method: "POST",
-    data: { walletAddress },
+    data: { walletAddress, ...(walletType && { walletType }) },
   });
 };
 
-export const verifySignature = async (walletAddress: string, signature: string) => {
+export const verifySignature = async (walletAddress: string, signature: string, walletType?: "evm" | "solana") => {
   return await apiHandler("/auth/verify", {
     method: "POST",
-    data: { walletAddress, signature },
+    data: { walletAddress, signature, ...(walletType && { walletType }) },
   });
 };
 
@@ -403,7 +401,7 @@ export const placeLotteryBet = async (
   roundId: string,
   betData: {
     pickedNumbers: number[];
-  }
+  },
 ) => {
   const requestData = {
     roundId: roundId,
@@ -446,7 +444,12 @@ export const executeMarketTrade = async (payload: ExecuteMarketPayload) => {
   return response.data;
 };
 
-export const createUserWithdrawal = async (amount: number, walletAddress: string, chain: "ETH" | "BSC" | "SOL", passcode: string | null) => {
+export const createUserWithdrawal = async (
+  amount: number,
+  walletAddress: string,
+  chain: "ETH" | "BSC" | "SOL",
+  passcode: string | null,
+) => {
   const requestData = {
     amount: amount,
     walletAddress: walletAddress,

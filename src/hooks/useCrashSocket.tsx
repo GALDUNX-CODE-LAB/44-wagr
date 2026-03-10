@@ -10,7 +10,7 @@ export default function useCrashSocket(
     heartbeatMs?: number;
     maxRetries?: number;
     url?: string;
-  }
+  },
 ) {
   const heartbeatMs = opts?.heartbeatMs ?? 25000;
   const maxRetries = opts?.maxRetries ?? 5;
@@ -29,21 +29,28 @@ export default function useCrashSocket(
   retriesRef.current = retries;
 
   const resolveUrl = useCallback(() => {
-    const explicitWs = opts?.url || process.env.NEXT_PUBLIC_WS || "";
+    let url = "";
+
+    const explicitWs = (opts?.url || process.env.NEXT_PUBLIC_WS || "").trim();
     if (explicitWs) {
-      if (explicitWs.startsWith("http")) return explicitWs.replace(/^http/, "ws");
-      return explicitWs;
+      url = explicitWs.startsWith("http") ? explicitWs.replace(/^http/, "ws") : explicitWs;
+    } else {
+      const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim();
+      if (apiBase) {
+        url = apiBase.startsWith("http") ? apiBase.replace(/^http/, "ws") : `ws://${apiBase}`;
+      } else if (typeof window !== "undefined") {
+        const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        url = `${proto}//${window.location.host}`;
+      }
     }
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-    if (apiBase) {
-      if (apiBase.startsWith("http")) return apiBase.replace(/^http/, "ws");
-      return `ws://${apiBase}`;
+
+    // Browsers block ws:// connections from HTTPS pages (mixed content).
+    // Always upgrade to wss:// when the page is served over HTTPS.
+    if (typeof window !== "undefined" && window.location.protocol === "https:") {
+      url = url.replace(/^ws:\/\//, "wss://");
     }
-    if (typeof window !== "undefined") {
-      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-      return `${proto}//${window.location.host}`;
-    }
-    return "";
+
+    return url;
   }, [opts?.url]);
 
   const cleanup = useCallback(() => {
