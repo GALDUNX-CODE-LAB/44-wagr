@@ -80,13 +80,13 @@ export default function MarketPage() {
 
       <div className="flex justify-between">
         <div className="wrap">
-          <h1 className="text-lg lg:text-2xl font-medium mb-1">Meta-Market</h1>
-          <p className="text-xs lg:text-base font-normal text-white/70 mb-6 max-w-xl">
+          <h1 className="text-sm lg:text-base font-medium mb-1">Meta-Market</h1>
+          <p className="text-[10px] lg:text-xs font-normal text-white/70 mb-6 max-w-xl">
             Explore trending prediction markets.
           </p>
         </div>
 
-        <div className="wrap text-sm flex gap-5">
+        <div className="wrap text-xs flex gap-5">
           <span
             className="flex gap-1 items-center hover:text-primary transition-all"
             onClick={() => setOpenPortfolio(true)}
@@ -115,7 +115,7 @@ export default function MarketPage() {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-3 text-white placeholder:text-white/40"
+            className="w-full pl-10 bg-[#212121] border border-white/6 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/40"
           />
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -126,7 +126,7 @@ export default function MarketPage() {
               setDateSort(e.target.value as SortValue);
               setPage(1);
             }}
-            className="h-11 px-4 rounded-lg bg-[#212121] border border-white/6 text-white text-sm focus:outline-none focus:border-primary"
+            className="h-9 px-3 rounded-lg bg-[#212121] border border-white/6 text-white text-xs focus:outline-none focus:border-primary"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -149,7 +149,7 @@ export default function MarketPage() {
           }}
         />
         {categoriesLoading ? (
-          <span className="text-sm text-white/50">Loading categories…</span>
+          <span className="text-xs text-white/50">Loading categories…</span>
         ) : (
           categories.map((cat) => (
             <CategoryButton
@@ -178,7 +178,7 @@ export default function MarketPage() {
             <button
               key={i + 1}
               onClick={() => setPage(i + 1)}
-              className={`px-3 py-1 rounded ${
+              className={`px-2.5 py-0.5 rounded text-xs ${
                 page === i + 1 ? "bg-[#C8A2FF] text-black" : "bg-[#333] text-white hover:bg-[#444]"
               }`}
             >
@@ -229,8 +229,8 @@ function MarketSkeleton() {
 function ErrorDisplay({ error }) {
   return (
     <div className="text-center py-12">
-      <div className="text-red-500 mb-4">Error: {error}</div>
-      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-red-500 rounded">
+      <div className="text-red-500 mb-4 text-xs">Error: {error}</div>
+      <button onClick={() => window.location.reload()} className="px-3 py-1.5 text-xs bg-red-500 rounded">
         Retry
       </button>
     </div>
@@ -241,7 +241,7 @@ function CategoryButton({ label, active, onClick }: { label: string; active: boo
   return (
     <button
       onClick={onClick}
-      className={`text-sm font-medium relative pb-1 transition-colors ${
+      className={`text-xs font-medium relative pb-1 transition-colors ${
         active ? "text-[#C8A2FF]" : "text-white/70 hover:text-white"
       }`}
     >
@@ -264,7 +264,7 @@ function MarketGrid({
 }) {
   if (markets.length === 0) {
     return (
-      <div className="text-center py-12 text-white/50">
+      <div className="text-center py-12 text-white/50 text-xs">
         {hasFilter ? "No markets match this category or search." : "No markets found."}
       </div>
     );
@@ -318,7 +318,7 @@ function MarketCard({ market, router }: { market: any; router: ReturnType<typeof
         ) : (
           <div className="lg:w-10 lg:h-10 w-10 h-10 bg-white/10 rounded-[10px] mt-2 flex-shrink-0" />
         )}
-        <h2 className="text-sm lg:text-base mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2 flex-1">
+        <h2 className="text-xs lg:text-sm mt-2 font-medium overflow-hidden text-ellipsis line-clamp-2 flex-1">
           {market.question}
         </h2>
         <button
@@ -341,7 +341,7 @@ function MarketCard({ market, router }: { market: any; router: ReturnType<typeof
           {(market.categories as { name: string; slug: string }[]).map((c) => (
             <span
               key={c.slug}
-              className="text-[10px] lg:text-xs px-2 py-0.5 rounded-full bg-[#C8A2FF]/20 text-[#C8A2FF]"
+              className="text-[9px] lg:text-[10px] px-1.5 py-0.5 rounded-full bg-[#C8A2FF]/20 text-[#C8A2FF]"
             >
               {c.name}
             </span>
@@ -350,12 +350,12 @@ function MarketCard({ market, router }: { market: any; router: ReturnType<typeof
       )}
 
       {market.summary && (
-        <p className="text-xs lg:text-sm text-white/70 line-clamp-1 overflow-hidden">{market.summary}</p>
+        <p className="text-[10px] lg:text-xs text-white/70 line-clamp-1 overflow-hidden">{market.summary}</p>
       )}
 
       <div className="flex gap-3 items-center my-3">
-        <button className="p-2 rounded-lg text-xs font-medium lg:text-sm bg-primary text-black w-full">Yes</button>
-        <button className="p-2 rounded-lg text-xs font-medium lg:text-sm bg-secondary w-full">No</button>
+        <button className="p-1.5 rounded-lg text-[10px] font-medium lg:text-xs bg-primary text-black w-full">Yes</button>
+        <button className="p-1.5 rounded-lg text-[10px] font-medium lg:text-xs bg-secondary w-full">No</button>
       </div>
 
       <MarketStats market={market} />
@@ -365,7 +365,7 @@ function MarketCard({ market, router }: { market: any; router: ReturnType<typeof
 
 function MarketStats({ market }) {
   return (
-    <div className="flex justify-between text-xs lg:text-sm font-medium mt-2">
+    <div className="flex justify-between text-[10px] lg:text-xs font-medium mt-2">
       <div className="flex items-center gap-2">
         <span className="text-white/65">Vol: {market.b}</span>
         <TrendIndicator qYes={market.qYes} qNo={market.qNo} />

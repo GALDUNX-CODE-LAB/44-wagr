@@ -46,47 +46,47 @@ export default function MarketHeader({ market }: { market: Market }) {
 
   return (
     <div className="flex-1 flex flex-col gap-4">
-      <h1 className="text-lg lg:text-2xl font-medium flex items-center gap-3">
+      <h1 className="text-sm lg:text-base font-medium flex items-center gap-2">
         {market.image && (
           <img 
             src={market.image} 
             alt={market.question}
-            className="w-[30px] h-[30px] lg:w-[60px] lg:h-[60px] object-cover rounded-[10px] flex-shrink-0"
+            className="w-6 h-6 lg:w-9 lg:h-9 object-cover rounded-[8px] flex-shrink-0"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         )}
         {!market.image && (
-          <div className="w-[30px] h-[30px] lg:w-[60px] lg:h-[60px] bg-white rounded-[10px] flex-shrink-0" />
+          <div className="w-6 h-6 lg:w-9 lg:h-9 bg-white rounded-[8px] flex-shrink-0" />
         )}
         <div className="wrap flex-1">
           <div className="flex w-full items-center gap-2 justify-between">
             {market.question}
             <button onClick={handleBookmark} className="p-1 rounded-md hover:bg-white/10 transition">
-              <Bookmark size={20} className={bookmarked ? "text-[#C8A2FF] fill-[#C8A2FF]" : "text-white/40"} />
+              <Bookmark size={16} className={bookmarked ? "text-[#C8A2FF] fill-[#C8A2FF]" : "text-white/40"} />
             </button>
           </div>
           {market.summary && (
-            <small className="text-xs text-white/70 block mt-1">
+            <small className="text-[10px] text-white/70 block mt-1">
               {market.summary}
             </small>
           )}
         </div>
       </h1>
 
-      <div className="flex flex-wrap gap-4 text-white/20 text-xs lg:text-sm">
+      <div className="flex flex-wrap gap-4 text-white/20 text-[10px] lg:text-xs">
         <p>{market.b?.toLocaleString()} vol</p>
         <p>{marketDate}</p>
         {market.isResolved && <p className="text-green-500">Resolved: {market.result}</p>}
       </div>
 
       <div className="flex gap-4 mt-2">
-        <span className="flex items-center gap-2 text-xs text-white/65">
-          <span className="w-3 h-3 bg-[#C8A2FF] rounded-full" /> YES {yesProbability.toFixed(1)}%
+        <span className="flex items-center gap-1.5 text-[10px] text-white/65">
+          <span className="w-2 h-2 bg-[#C8A2FF] rounded-full" /> YES {yesProbability.toFixed(1)}%
         </span>
-        <span className="flex items-center gap-2 text-xs text-white/65">
-          <span className="w-3 h-3 bg-red-500 rounded-full" /> NO {noProbability.toFixed(1)}%
+        <span className="flex items-center gap-1.5 text-[10px] text-white/65">
+          <span className="w-2 h-2 bg-red-500 rounded-full" /> NO {noProbability.toFixed(1)}%
         </span>
       </div>
 

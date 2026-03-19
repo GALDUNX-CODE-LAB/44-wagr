@@ -45,8 +45,8 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
   // Fallback to default banners if no banners from API
   if (isLoading) {
     return (
-      <div className="wrap py-5">
-        <div className="w-full h-[223px] pt-4 rounded overflow-hidden relative border border-white/10 py-6 bg-[#212121] animate-pulse" />
+      <div className="wrap py-2 sm:py-4">
+        <div className="w-full h-[88px] sm:h-[140px] lg:h-[180px] rounded-lg overflow-hidden relative border border-white/10 bg-[#212121] animate-pulse" />
       </div>
     );
   }
@@ -59,8 +59,8 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
   const currentMobileBanner = mobileBanners[current % mobileBanners.length] || mobileBanners[0] || currentDesktopBanner;
 
   return (
-    <div className="wrap py-5">
-      <div className="w-full h-[223px] pt-4 rounded overflow-hidden relative border border-white/10 py-6">
+    <div className="wrap py-2 sm:py-4">
+      <div className="w-full h-[88px] sm:h-[140px] lg:h-[180px] rounded-lg overflow-hidden relative border border-white/10">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
@@ -90,12 +90,12 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
         </AnimatePresence>
 
         {maxBanners > 1 && (
-          <div className="absolute bottom-4 w-full flex justify-center gap-2">
+          <div className="absolute bottom-2 sm:bottom-3 w-full flex justify-center gap-1.5">
             {Array.from({ length: maxBanners }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrent(index)}
-                className={`w-2 h-2 rounded-full transition ${index === current ? "bg-white" : "bg-white/40"}`}
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition ${index === current ? "bg-white" : "bg-white/40"}`}
               />
             ))}
           </div>

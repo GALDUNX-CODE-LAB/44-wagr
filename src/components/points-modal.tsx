@@ -1,7 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { X, ArrowRight, Coins, LoaderCircle, History } from "lucide-react";
-import { claimDailyStreak, fetchUserPoints, redeemPoints, fetchRedemptionHistory, getCurrentStreak } from "../lib/api";
+import {
+  claimDailyStreak,
+  fetchUserPoints,
+  redeemPoints,
+  fetchRedemptionHistory,
+  getCurrentStreak,
+  fetchActiveSocialTasks,
+  completeSocialTask as completeSocialTaskApi,
+  fetchMySocialTaskCompletions,
+} from "../lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "../hooks/useUserData";
 import { useQuery } from "@tanstack/react-query";
@@ -19,11 +28,13 @@ interface PointEntry {
 }
 
 interface SocialEntry {
+  id: string;
   action: string;
   points: number;
   status: "claim" | "claimed";
   link: string;
   visited: boolean;
+  claiming?: boolean;
 }
 
 interface RedeemHistory {
@@ -74,17 +85,9 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
   const [streakData, setStreakData] = useState<PointEntry[]>([]);
   const [userPoints, setUserPoints] = useState(0);
   const [hasClaimedToday, setHasClaimedToday] = useState(false);
-  const [socialPoints, setSocialPoints] = useState<SocialEntry[]>([
-    {
-      action: "Follow us on Instagram",
-      points: 300,
-      status: "claim",
-      link: "https://www.instagram.com/vercel",
-      visited: false,
-    },
-    { action: "Join our Telegram", points: 300, status: "claim", link: "https://t.me/vercel", visited: false },
-    { action: "Share on Twitter", points: 300, status: "claim", link: "https://twitter.com/vercel", visited: false },
-  ]);
+  const [socialPoints, setSocialPoints] = useState<SocialEntry[]>([]);
+  const [socialTasksLoading, setSocialTasksLoading] = useState(false);
+  const [socialTasksError, setSocialTasksError] = useState<string | null>(null);
 
   const [redeemAmount, setRedeemAmount] = useState("");
   const [redeemLoading, setRedeemLoading] = useState(false);
@@ -176,10 +179,39 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
 
   console.log(redeemHistory);
 
+  const loadSocialTasks = async () => {
+    setSocialTasksLoading(true);
+    setSocialTasksError(null);
+    try {
+      const [tasks, completions] = await Promise.all([
+        fetchActiveSocialTasks(),
+        fetchMySocialTaskCompletions().catch(() => []),
+      ]);
+      const completedIds = new Set((completions || []).map((c) => c.socialTaskId));
+      const entries: SocialEntry[] = (tasks || []).map((t) => ({
+        id: t._id,
+        action: t.title,
+        points: t.points,
+        status: completedIds.has(t._id) ? "claimed" : "claim",
+        link: t.actionUrl || "#",
+        visited: completedIds.has(t._id) || !t.actionUrl,
+        claiming: false,
+      }));
+      setSocialPoints(entries);
+    } catch (e) {
+      console.error("Failed to load social tasks", e);
+      setSocialTasksError("Failed to load social tasks. Try again later.");
+      setSocialPoints([]);
+    } finally {
+      setSocialTasksLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (open) {
       loadUserPoints();
       loadRedeemHistory();
+      loadSocialTasks();
     }
   }, [open]);
 
@@ -229,6 +261,27 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
 
   const handleSocialArrowClick = (index: number) => {
     setSocialPoints((prev) => prev.map((entry, i) => (i === index ? { ...entry, visited: true } : entry)));
+  };
+
+  const handleSocialClaim = async (entry: SocialEntry) => {
+    if (entry.status === "claimed" || entry.claiming) return;
+    setSocialPoints((prev) =>
+      prev.map((e) => (e.id === entry.id ? { ...e, claiming: true } : e)),
+    );
+    try {
+      await completeSocialTaskApi(entry.id);
+      setSocialPoints((prev) =>
+        prev.map((e) =>
+          e.id === entry.id ? { ...e, status: "claimed" as const, claiming: false, visited: true } : e,
+        ),
+      );
+      setUserPoints((prev) => prev + entry.points);
+    } catch (err) {
+      console.error("Claim social task failed", err);
+      setSocialPoints((prev) =>
+        prev.map((e) => (e.id === entry.id ? { ...e, claiming: false } : e)),
+      );
+    }
   };
 
   return (
@@ -329,47 +382,65 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
 
         {activeTab === "social" && (
           <div className="flex flex-col gap-3">
-            {socialPoints.map((entry, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className={`w-full flex justify-between items-center px-6 py-4 rounded-[20px] border border-white/10 ${
-                  entry.status === "claimed" ? "bg-[#1C1C1C] text-white/40" : "bg-[#212121]"
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium mb-1">{entry.action}</span>
-                  <span className="font-medium text-sm">+{entry.points}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <a
-                    href={entry.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => handleSocialArrowClick(i)}
-                    className={`p-2 rounded-full ${
-                      entry.status === "claimed" ? "cursor-not-allowed" : "hover:bg-white/10"
-                    }`}
-                    aria-label={`Go to ${entry.action}`}
-                  >
-                    <ArrowRight className={`w-5 h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"}`} />
-                  </a>
-                  <button
-                    className={`min-w-[80px] sm:w-[100px] px-4 py-2 rounded-full text-xs font-semibold ${
-                      !entry.visited
-                        ? "bg-black text-white/40 cursor-not-allowed"
-                        : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
-                    }`}
-                    disabled={!entry.visited}
-                  >
-                    Claim
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+            {socialTasksLoading ? (
+              <div className="flex items-center justify-center py-8 gap-2 text-white/60">
+                <LoaderCircle className="w-5 h-5 animate-spin" />
+                <span>Loading social tasks...</span>
+              </div>
+            ) : socialTasksError ? (
+              <p className="text-red-400 text-sm py-4">{socialTasksError}</p>
+            ) : socialPoints.length === 0 ? (
+              <p className="text-white/50 text-sm py-4">No social tasks available right now.</p>
+            ) : (
+              socialPoints.map((entry, i) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className={`w-full flex justify-between items-center px-6 py-4 rounded-[20px] border border-white/10 ${
+                    entry.status === "claimed" ? "bg-[#1C1C1C] text-white/40" : "bg-[#212121]"
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium mb-1">{entry.action}</span>
+                    <span className="font-medium text-sm">+{entry.points}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {entry.link !== "#" && (
+                      <a
+                        href={entry.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => handleSocialArrowClick(i)}
+                        className={`p-2 rounded-full ${
+                          entry.status === "claimed" ? "cursor-not-allowed" : "hover:bg-white/10"
+                        }`}
+                        aria-label={`Go to ${entry.action}`}
+                      >
+                        <ArrowRight
+                          className={`w-5 h-5 ${entry.status === "claimed" ? "text-white/40" : "text-white"}`}
+                        />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleSocialClaim(entry)}
+                      disabled={entry.status === "claimed" || !entry.visited || entry.claiming}
+                      className={`min-w-[80px] sm:w-[100px] px-4 py-2 rounded-full text-xs font-semibold ${
+                        entry.status === "claimed"
+                          ? "bg-black text-white/40 cursor-not-allowed"
+                          : !entry.visited
+                            ? "bg-black text-white/40 cursor-not-allowed"
+                            : "bg-[#C8A2FF] hover:bg-[#D5B3FF] text-black"
+                      }`}
+                    >
+                      {entry.claiming ? "Claiming..." : entry.status === "claimed" ? "Claimed" : "Claim"}
+                    </button>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         )}
 

@@ -19,7 +19,7 @@ export default function CommentInput({ onSubmit }: { onSubmit: (text: string) =>
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full text-center py-3 bg-[#212121] rounded-[10px] text-sm text-white/70 border border-white/10">
+      <div className="w-full text-center py-2 bg-[#212121] rounded-[10px] text-xs text-white/70 border border-white/10">
         Please log in to comment
       </div>
     );
@@ -39,7 +39,7 @@ export default function CommentInput({ onSubmit }: { onSubmit: (text: string) =>
           }
         }}
         disabled={loading}
-        className="w-full h-[30px] lg:h-[50px] text-xs pl-4 pr-12 bg-[#212121] border border-white/6 lg:rounded-[15px] rounded outline-0 lg:text-sm"
+        className="w-full h-[28px] lg:h-[40px] text-[10px] pl-3 pr-10 bg-[#212121] border border-white/6 lg:rounded-[12px] rounded outline-0 lg:text-xs"
       />
       <button
         onClick={handleSubmit}
