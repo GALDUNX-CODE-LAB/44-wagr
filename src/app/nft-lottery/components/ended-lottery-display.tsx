@@ -14,7 +14,7 @@ export default function EndedLotteryDisplay({ lottery }: EndedLotteryDisplayProp
     .sort((a, b) => (a.rank || 0) - (b.rank || 0)) || [];
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Trophy className="w-6 h-6 text-yellow-400 fill-yellow-400" />;
+    if (rank === 1) return <Trophy className="w-6 h-6 text-[#c8a2ff] fill-[#c8a2ff]" />;
     if (rank === 2) return <Medal className="w-6 h-6 text-gray-300 fill-gray-300" />;
     if (rank === 3) return <Award className="w-6 h-6 text-amber-600 fill-amber-600" />;
     return <span className="text-lg font-bold text-white/60">#{rank}</span>;
@@ -104,7 +104,7 @@ export default function EndedLotteryDisplay({ lottery }: EndedLotteryDisplayProp
       {top3Winners.length > 0 && (
         <div className="bg-gradient-to-br from-[#212121] to-[#1C1C1C] border border-white/10 rounded-[20px] p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Trophy className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+            <Trophy className="w-6 h-6 text-[#c8a2ff] fill-[#c8a2ff]" />
             <h3 className="text-xl font-bold text-white">Top 3 Winners</h3>
           </div>
           <div className="space-y-4">
@@ -116,7 +116,7 @@ export default function EndedLotteryDisplay({ lottery }: EndedLotteryDisplayProp
                   key={index}
                   className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
                     rank === 1
-                      ? "bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
+                      ? "bg-gradient-to-r from-[#c8a2ff]/10 to-[#c8a2ff]/5 border-[#c8a2ff]/30"
                       : rank === 2
                       ? "bg-gradient-to-r from-gray-400/10 to-gray-400/5 border-gray-400/30"
                       : rank === 3

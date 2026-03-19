@@ -23,6 +23,11 @@ const nextConfig = {
         hostname: "gateway.pinata.cloud",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "dev-nancy-public-files.s3.eu-north-1.amazonaws.com",
+        pathname: "/**",
+      },
     ],
   },
 };

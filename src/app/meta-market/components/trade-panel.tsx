@@ -115,9 +115,9 @@ export default function TradePanel({ market }: TradePanelProps) {
   };
 
   return (
-    <div className="lg:w-[340px] bg-[#1C1C1C] text-white rounded-xl border border-white/10 p-4 space-y-4">
+    <div className="lg:w-[300px] bg-[#1C1C1C] text-white rounded-xl border border-white/10 p-3 space-y-3">
       <div className="flex justify-between items-center">
-        <h2 className="font-semibold">{market.question}</h2>
+        <h2 className="text-xs font-semibold line-clamp-2">{market.question}</h2>
       </div>
 
       <div className="flex gap-2">
@@ -125,7 +125,7 @@ export default function TradePanel({ market }: TradePanelProps) {
           <button
             key={t}
             onClick={() => setTab(t as "BUY" | "SELL")}
-            className={`flex-1 py-1 font-medium text-xs ${
+            className={`flex-1 py-1 font-medium text-[10px] ${
               tab === t
                 ? `border-b ${t === "BUY" ? "border-b-[#C8A2FF]" : "border-b-red-400 text-red-400"} `
                 : " border-b  border-b-[#fff] text-gray-300"
@@ -139,7 +139,7 @@ export default function TradePanel({ market }: TradePanelProps) {
       <div className="flex gap-2">
         <button
           onClick={() => setSide("YES")}
-          className={`flex-1 py-3 rounded-lg font-semibold ${
+          className={`flex-1 py-2 rounded-lg font-semibold text-xs ${
             side === "YES" ? "bg-[#C8A2FF] text-black" : "bg-[#212121] text-gray-300"
           }`}
         >
@@ -147,7 +147,7 @@ export default function TradePanel({ market }: TradePanelProps) {
         </button>
         <button
           onClick={() => setSide("NO")}
-          className={`flex-1 py-3 rounded-lg font-semibold text-sm ${
+          className={`flex-1 py-2 rounded-lg font-semibold text-xs ${
             side === "NO" ? "bg-red-500 text-white" : "bg-[#212121] text-gray-300"
           }`}
         >
@@ -157,7 +157,7 @@ export default function TradePanel({ market }: TradePanelProps) {
 
       <div>
         <div className="flex justify-between items-center">
-          <label className="text-sm text-gray-400">
+          <label className="text-xs text-gray-400">
             <small
               className={`cursor-pointer ${inputMode === "SHARES" && "text-primary"}`}
               onClick={() => {
@@ -188,24 +188,24 @@ export default function TradePanel({ market }: TradePanelProps) {
             inputMode="decimal"
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
-            className="w-full bg-transparent focus:outline-none text-lg"
+            className="w-full bg-transparent focus:outline-none text-sm"
             placeholder="0"
           />
         </div>
 
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-[10px] text-gray-400 mt-1">
           {inputMode === "USDT" ? `${shares.toFixed(2)} Shares` : `$${amount.toFixed(2)}`}
         </p>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-400 text-xs">{error}</p>}
 
       {market.isResolved ? (
-        <button className="bg-green-500/30 text-green-500 p-2 rounded-lg w-full">Market Resolved</button>
+        <button className="bg-green-500/30 text-green-500 p-1.5 rounded-lg w-full text-xs">Market Resolved</button>
       ) : (
         <button
           onClick={handleTrade}
-          className={`w-full py-3 rounded-lg  ${
+          className={`w-full py-2 rounded-lg text-xs ${
             tab === "BUY" ? "bg-[#C8A2FF] text-black" : "bg-red-400 text-white"
           } font-semibold`}
         >
@@ -220,17 +220,17 @@ export default function TradePanel({ market }: TradePanelProps) {
       )}
 
       {isLoggedIn && (
-        <div className="border-t border-white/10 pt-3 text-sm text-gray-400">
-          <h1 className="text-primary mb-1">Your Holdings</h1>
+        <div className="border-t border-white/10 pt-3 text-xs text-gray-400">
+          <h3 className="text-primary mb-1 text-xs font-semibold">Your Holdings</h3>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-white text-[10px]">
                 {portfolio?.yesShares?.toFixed(2)} <small className="text-white/80">YES shares</small>
               </span>
               <span>${(portfolio?.yesShares * prices?.yesPrice)?.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-white text-[10px]">
                 {portfolio?.noShares?.toFixed(2)} <small className="text-white/80">NO shares</small>
               </span>
               <span>${(portfolio?.noShares * prices?.noPrice)?.toFixed(2)}</span>

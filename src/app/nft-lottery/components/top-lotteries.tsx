@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { Trophy, Medal } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 import { fetchTopWinningLotteries } from "../../../lib/api"
 
 interface TopWinner {
@@ -13,34 +12,21 @@ interface TopWinner {
 }
 
 export default function TopWinningLotteries() {
-  const router = useRouter();
-  const [winners, setWinners] = useState<TopWinner[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: winners = [], isLoading: loading, isError } = useQuery({
+    queryKey: ["lottery", "top-winners", 5],
+    queryFn: async () => {
+      const response = await fetchTopWinningLotteries(5);
+      return Array.isArray(response) ? response : [];
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    const loadTopWinners = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetchTopWinningLotteries(5);
-        setWinners(Array.isArray(response) ? response : []);
-      } catch (err) {
-        console.error("Error fetching top winners:", err);
-        setError("Failed to load top winners");
-        setWinners([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTopWinners();
-  }, []);
+  const errorMessage = isError ? "Failed to load top winners" : null;
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-400 fill-yellow-400" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-300 fill-gray-300" />;
-    if (rank === 3) return <Medal className="w-5 h-5 text-amber-600 fill-amber-600" />;
+    if (rank === 1) return <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8a2ff] fill-[#c8a2ff]" />;
+    if (rank === 2) return <Medal className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 fill-gray-300" />;
+    if (rank === 3) return <Medal className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 fill-amber-600" />;
     return null;
   };
 
@@ -54,41 +40,39 @@ export default function TopWinningLotteries() {
   };
 
   return (
-    <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-6 flex flex-col">
-      <div className="flex items-center gap-3 mb-6">
-        <Trophy className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-        <h2 className="text-xl font-bold text-white">Top Winners</h2>
+    <div className="w-full bg-[#212121] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#c8a2ff] fill-[#c8a2ff]" />
+        <h2 className="text-xs sm:text-sm font-semibold text-white">Top Winners</h2>
       </div>
-
-      <div className="space-y-3 flex-grow overflow-y-auto max-h-[450px]">
+      <div className="space-y-2 flex-grow overflow-y-auto max-h-[320px] sm:max-h-[380px]">
         {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A2FF]"></div>
+          <div className="flex justify-center items-center py-6">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#C8A2FF]" />
           </div>
-        ) : error ? (
-          <div className="text-center py-4 text-red-400 text-sm">{error}</div>
+        ) : errorMessage ? (
+          <div className="text-center py-3 text-red-400 text-xs">{errorMessage}</div>
         ) : winners.length === 0 ? (
-          <div className="text-center py-8 text-white/50 text-sm">No winners yet</div>
+          <div className="text-center py-6 text-white/50 text-xs">No winners yet</div>
         ) : (
           winners.map((winner, index) => {
             const rank = index + 1;
             return (
               <div
                 key={index}
-                className="flex items-center gap-4 p-4 bg-[#1C1C1C]/50 rounded-xl border border-white/5 hover:border-[#C8A2FF]/30 transition-all cursor-pointer group"
+                className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-[#1C1C1C]/50 rounded-lg border border-white/5 hover:border-[#C8A2FF]/30 transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-center w-10 h-10 flex-shrink-0">
+                <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
                   {getRankIcon(rank) || (
-                    <span className="text-lg font-bold text-white/60">#{rank}</span>
+                    <span className="text-xs font-semibold text-white/60">#{rank}</span>
                   )}
                 </div>
-
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10 flex-shrink-0 group-hover:border-[#C8A2FF]/50 transition-colors">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-white/10 flex-shrink-0 group-hover:border-[#C8A2FF]/50 transition-colors">
                   <Image
                     src={winner.userImage || "/assets/user.png"}
-                    width={40}
-                    height={40}
-                    className="object-cover"
+                    width={32}
+                    height={32}
+                    className="object-cover w-full h-full"
                     alt={winner.username}
                     unoptimized
                     onError={(e) => {
@@ -96,14 +80,12 @@ export default function TopWinningLotteries() {
                     }}
                   />
                 </div>
-
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white truncate">{winner.username}</p>
-                  <p className="text-xs text-white/50 mt-0.5">Winner #{rank}</p>
+                  <p className="text-xs font-medium text-white truncate">{winner.username}</p>
+                  <p className="text-[10px] text-white/50">#{rank}</p>
                 </div>
-
                 <div className="text-right flex-shrink-0">
-                  <p className="font-bold text-base text-[#C8A2FF]">
+                  <p className="text-xs font-semibold text-[#C8A2FF]">
                     {formatPayout(winner.payout)}
                   </p>
                 </div>

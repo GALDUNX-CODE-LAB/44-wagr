@@ -86,6 +86,43 @@ export const fetchUserPoints = async () => {
   return response;
 };
 
+// Social tasks (points modal)
+export interface SocialTaskItem {
+  _id: string;
+  title: string;
+  description?: string;
+  points: number;
+  platform?: string;
+  actionUrl?: string;
+  order?: number;
+}
+
+export const fetchActiveSocialTasks = async (): Promise<SocialTaskItem[]> => {
+  const res = await apiHandler<{ data?: SocialTaskItem[]; success?: boolean; message?: string }>(
+    "/social-tasks",
+    { method: "GET" },
+  );
+  if (Array.isArray(res)) return res;
+  return res?.data ?? [];
+};
+
+export const completeSocialTask = async (taskId: string) => {
+  const res = await apiHandler<{ data?: { pointsAwarded: number }; success?: boolean; message?: string }>(
+    `/social-tasks/${taskId}/complete`,
+    { method: "POST" },
+  );
+  return res;
+};
+
+export const fetchMySocialTaskCompletions = async (): Promise<{ socialTaskId: string; completedAt: string }[]> => {
+  const res = await apiHandler<{ data?: { socialTaskId: string; completedAt: string }[] }>(
+    "/social-tasks/my-completions",
+    { method: "GET" },
+  );
+  if (Array.isArray(res)) return res;
+  return res?.data ?? [];
+}
+
 export const fetchUserBets = async (page = 1, game = "all", outcome?: "win" | "loss", limit = 12) => {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (game && game !== "all") params.set("game", game);
@@ -397,6 +434,22 @@ export const fetchLotteryById = async (roundId: string) => {
   return response.data || response;
 };
 
+export const fetchMyLotteryBet = async (
+  roundId: string,
+): Promise<{ pickedNumbers: number[] } | null> => {
+  try {
+    const response = await apiHandler<{ data?: { pickedNumbers?: number[] } | null }>(
+      `/lottery/${roundId}/my-bet`,
+      { method: "GET" },
+    );
+    const bet = response?.data ?? null;
+    if (!bet || !Array.isArray(bet.pickedNumbers)) return null;
+    return { pickedNumbers: bet.pickedNumbers };
+  } catch {
+    return null;
+  }
+};
+
 export const placeLotteryBet = async (
   roundId: string,
   betData: {
@@ -417,7 +470,9 @@ export const placeLotteryBet = async (
     });
     return response;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || "Failed to place bet. Please try again.";
+    const data = error?.response?.data;
+    const errorMessage =
+      (data && (data.message ?? data.error)) || error?.message || "Failed to place bet. Please try again.";
     throw new Error(errorMessage);
   }
 };

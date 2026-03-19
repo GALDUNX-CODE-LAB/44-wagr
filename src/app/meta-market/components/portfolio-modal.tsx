@@ -132,28 +132,28 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
             >
               <X size={18} />
             </button>
-            <h2 className="text-lg font-semibold mb-5 bg-gradient-to-r from-[#C8A2FF] to-[#F472B6] bg-clip-text text-transparent">
+            <h2 className="text-sm font-semibold mb-4 bg-gradient-to-r from-[#C8A2FF] to-[#F472B6] bg-clip-text text-transparent">
               Your Portfolios
             </h2>
 
             {!isLoading && filteredPortfolios.length > 0 && (
               <>
                 <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-[#2a1f3d] to-[#212121] border border-[#C8A2FF]/20">
-                  <p className="text-xs text-[#C8A2FF]/80 uppercase tracking-wider mb-1">Total value across markets</p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-[10px] text-[#C8A2FF]/80 uppercase tracking-wider mb-1">Total value across markets</p>
+                  <p className="text-base font-bold text-white">
                     $
                     {totalPortfolioValue(filteredPortfolios).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Cost basis (avg entry price × shares)</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Cost basis (avg entry price × shares)</p>
                 </div>
 
                 {ringData.length > 0 && (
                   <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3 min-w-0">
                     <div className="rounded-lg sm:rounded-xl bg-[#212121] border border-white/10 p-2 sm:p-4 min-w-0">
-                      <p className="text-[10px] sm:text-xs text-amber-400/90 uppercase tracking-wider mb-0.5 sm:mb-2">
+                      <p className="text-[9px] sm:text-[10px] text-amber-400/90 uppercase tracking-wider mb-0.5 sm:mb-2">
                         Allocation
                       </p>
                       <div className="h-[88px] sm:h-[140px] lg:h-[180px]">
@@ -187,7 +187,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                       </div>
                     </div>
                     <div className="rounded-lg sm:rounded-xl bg-[#212121] border border-white/10 p-2 sm:p-4 min-w-0">
-                      <p className="text-[10px] sm:text-xs text-emerald-400/90 uppercase tracking-wider mb-0.5 sm:mb-2">
+                      <p className="text-[9px] sm:text-[10px] text-emerald-400/90 uppercase tracking-wider mb-0.5 sm:mb-2">
                         Value by market
                       </p>
                       <div className="h-[88px] sm:h-[140px] lg:h-[180px]">
@@ -231,7 +231,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                 <LoaderCircle size={24} className="animate-spin text-[#C8A2FF]" />
               </div>
             ) : filteredPortfolios.length === 0 ? (
-              <p className="text-center text-gray-400 py-10 text-sm">No portfolios with shares found.</p>
+              <p className="text-center text-gray-400 py-10 text-xs">No portfolios with shares found.</p>
             ) : (
               <div className="space-y-3">
                 {filteredPortfolios.map((p: Portfolio) => {
@@ -263,7 +263,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                               onClick={(e) => e.stopPropagation()}
                               className="group flex items-center gap-1.5 mb-1"
                             >
-                              <h3 className="text-sm font-medium group-hover:text-[#C8A2FF] transition truncate pr-1">
+                              <h3 className="text-xs font-medium group-hover:text-[#C8A2FF] transition truncate pr-1">
                                 {p.market?.question ?? "n/a"}
                               </h3>
                               <ExternalLink
@@ -272,9 +272,9 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                               />
                             </Link>
                           ) : (
-                            <h3 className="text-sm font-medium mb-1">{p.market?.question ?? "n/a"}</h3>
+                            <h3 className="text-xs font-medium mb-1">{p.market?.question ?? "n/a"}</h3>
                           )}
-                          <p className="text-xs text-gray-400 mb-1.5">
+                          <p className="text-[10px] text-gray-400 mb-1.5">
                             {totalShares >= 0.01 ? totalShares.toFixed(2) : totalShares.toFixed(4)} shares • Avg $
                             {(avgPrice ?? 0).toFixed(4)}
                           </p>
@@ -307,7 +307,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="px-4 pb-4 pt-2 border-t border-white/10 text-sm"
+                            className="px-4 pb-4 pt-2 border-t border-white/10 text-xs"
                           >
                             {isFetching ? (
                               <div className="flex justify-center py-6">
@@ -414,7 +414,7 @@ export default function PortfolioModal({ open, onClose }: { open: boolean; onClo
                                     <Link
                                       href={`/meta-market/${marketId}`}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="inline-flex items-center gap-1.5 text-sm text-[#C8A2FF] hover:underline"
+                                      className="inline-flex items-center gap-1.5 text-xs text-[#C8A2FF] hover:underline"
                                     >
                                       View market dashboard
                                       <ExternalLink size={14} />

@@ -70,7 +70,7 @@ export default function BookmarkMarketsModal({ open, onClose }: { open: boolean;
             </button>
 
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-semibold">Bookmarked Markets</h2>
+              <h2 className="text-sm font-semibold">Bookmarked Markets</h2>
               {isFetching && <LoaderCircle size={16} className="animate-spin text-[#C8A2FF]" />}
             </div>
 
@@ -79,7 +79,7 @@ export default function BookmarkMarketsModal({ open, onClose }: { open: boolean;
                 <LoaderCircle size={24} className="animate-spin text-[#C8A2FF]" />
               </div>
             ) : !data || data.length === 0 ? (
-              <p className="text-center text-gray-400 py-10 text-sm">No bookmarked markets yet.</p>
+              <p className="text-center text-gray-400 py-10 text-xs">No bookmarked markets yet.</p>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {data.map((m: Market) => {
@@ -94,7 +94,7 @@ export default function BookmarkMarketsModal({ open, onClose }: { open: boolean;
                       className="bg-[#212121] border border-white/10 rounded-xl p-4 flex flex-col justify-between hover:border-[#C8A2FF]/40 transition"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <Link href={`/meta-market/${m._id}`} className="text-sm font-medium hover:text-[#C8A2FF]">
+                        <Link href={`/meta-market/${m._id}`} className="text-xs font-medium hover:text-[#C8A2FF]">
                           {m.question}
                         </Link>
                         <button onClick={() => toggleBookmark(m._id)} className="p-1 rounded-md hover:bg-white/10">
@@ -105,14 +105,14 @@ export default function BookmarkMarketsModal({ open, onClose }: { open: boolean;
                         </button>
                       </div>
 
-                      <p className="text-xs text-gray-400 mb-3 line-clamp-2">{m.summary}</p>
+                      <p className="text-[10px] text-gray-400 mb-3 line-clamp-2">{m.summary}</p>
 
                       <div className="flex justify-between items-center text-[11px] text-gray-400 mb-2">
                         <span>{m.commentCount} comments</span>
                         <span>{m.b.toLocaleString()} vol</span>
                       </div>
 
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between text-[10px]">
                         <span className="flex items-center gap-2 text-[#C8A2FF] font-medium">
                           <span className="w-2 h-2 rounded-full bg-[#C8A2FF]" /> YES {yesProb.toFixed(1)}%
                         </span>
