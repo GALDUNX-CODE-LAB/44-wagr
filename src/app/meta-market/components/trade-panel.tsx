@@ -115,9 +115,11 @@ export default function TradePanel({ market }: TradePanelProps) {
   };
 
   return (
-    <div className="lg:w-[300px] bg-[#1C1C1C] text-white rounded-xl border border-white/10 p-3 space-y-3">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xs font-semibold line-clamp-2">{market.question}</h2>
+    <div className="w-full min-w-0 lg:w-[300px] lg:max-w-[300px] shrink-0 bg-[#1C1C1C] text-white rounded-xl border border-white/10 p-3 space-y-3 overflow-hidden">
+      <div className="flex min-w-0 justify-between items-center">
+        <h2 className="text-xs font-semibold min-w-0 max-w-full overflow-hidden line-clamp-2 break-words">
+          {market.question}
+        </h2>
       </div>
 
       <div className="flex gap-2">
@@ -143,7 +145,7 @@ export default function TradePanel({ market }: TradePanelProps) {
             side === "YES" ? "bg-[#C8A2FF] text-black" : "bg-[#212121] text-gray-300"
           }`}
         >
-          YES {prices?.yesPrice?.toFixed(2)}¢
+          YES ${prices?.yesPrice?.toFixed(2)}
         </button>
         <button
           onClick={() => setSide("NO")}
@@ -151,7 +153,7 @@ export default function TradePanel({ market }: TradePanelProps) {
             side === "NO" ? "bg-red-500 text-white" : "bg-[#212121] text-gray-300"
           }`}
         >
-          NO {prices?.noPrice?.toFixed(2)}¢
+          NO ${prices?.noPrice?.toFixed(2)}
         </button>
       </div>
 

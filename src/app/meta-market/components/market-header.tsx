@@ -28,9 +28,9 @@ export default function MarketHeader({ market }: { market: Market }) {
     localStorage.setItem("bookmarkedMarkets", JSON.stringify(updated));
   };
 
-  const totalShares = (market.qYes ?? 0) + (market.qNo ?? 0);
-  const yesProbability = totalShares > 0 ? (market.qYes! / totalShares) * 100 : 50;
-  const noProbability = 100 - yesProbability;
+  const lastTrend = (market.trend ?? []).at(-1);
+  const yesPrice = lastTrend?.yes ?? 0.5;
+  const noPrice = lastTrend?.no ?? 0.5;
 
   const marketDate = new Date(market.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -38,15 +38,15 @@ export default function MarketHeader({ market }: { market: Market }) {
     day: "numeric",
   });
 
-  const graphData = market.trend.map((point) => ({
+  const graphData = (market.trend ?? []).map((point) => ({
     label: new Date(point.time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     yes: point.yes,
     no: point.no,
   }));
 
   return (
-    <div className="flex-1 flex flex-col gap-4">
-      <h1 className="text-sm lg:text-base font-medium flex items-center gap-2">
+    <div className="flex-1 flex flex-col gap-4 min-w-0 max-w-full overflow-hidden">
+      <h1 className="text-sm lg:text-base font-medium flex items-start gap-2 w-full min-w-0 max-w-full">
         {market.image && (
           <img 
             src={market.image} 
@@ -60,15 +60,21 @@ export default function MarketHeader({ market }: { market: Market }) {
         {!market.image && (
           <div className="w-6 h-6 lg:w-9 lg:h-9 bg-white rounded-[8px] flex-shrink-0" />
         )}
-        <div className="wrap flex-1">
-          <div className="flex w-full items-center gap-2 justify-between">
-            {market.question}
-            <button onClick={handleBookmark} className="p-1 rounded-md hover:bg-white/10 transition">
+        <div className="flex-1 min-w-0 max-w-full overflow-hidden">
+          <div className="flex w-full min-w-0 max-w-full items-start gap-2 justify-between">
+            <span className="min-w-0 max-w-full flex-1 overflow-hidden line-clamp-4 break-words">
+              {market.question}
+            </span>
+            <button
+              type="button"
+              onClick={handleBookmark}
+              className="p-1 rounded-md hover:bg-white/10 transition shrink-0"
+            >
               <Bookmark size={16} className={bookmarked ? "text-[#C8A2FF] fill-[#C8A2FF]" : "text-white/40"} />
             </button>
           </div>
           {market.summary && (
-            <small className="text-[10px] text-white/70 block mt-1">
+            <small className="text-[10px] text-white/70 block mt-1 min-w-0 max-w-full overflow-hidden line-clamp-6 break-words">
               {market.summary}
             </small>
           )}
@@ -83,10 +89,10 @@ export default function MarketHeader({ market }: { market: Market }) {
 
       <div className="flex gap-4 mt-2">
         <span className="flex items-center gap-1.5 text-[10px] text-white/65">
-          <span className="w-2 h-2 bg-[#C8A2FF] rounded-full" /> YES {yesProbability.toFixed(1)}%
+          <span className="w-2 h-2 bg-[#C8A2FF] rounded-full" /> YES ${yesPrice.toFixed(2)}
         </span>
         <span className="flex items-center gap-1.5 text-[10px] text-white/65">
-          <span className="w-2 h-2 bg-red-500 rounded-full" /> NO {noProbability.toFixed(1)}%
+          <span className="w-2 h-2 bg-red-500 rounded-full" /> NO ${noPrice.toFixed(2)}
         </span>
       </div>
 
