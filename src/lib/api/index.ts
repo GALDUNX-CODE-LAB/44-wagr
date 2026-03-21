@@ -326,15 +326,17 @@ export const createMetaMarket = async (formData: {
   return res as { market: Market };
 };
 
-export const fetchMarketById = async (id: string): Promise<Market> => {
-  const data = await apiHandler<{ market: Market }>(`/meta-market/${id}`, {
+export const fetchMarketById = async (
+  id: string,
+): Promise<{ market: Market; commentCount?: number }> => {
+  const data = await apiHandler<{ market: Market; commentCount?: number }>(`/meta-market/${id}`, {
     method: "GET",
   });
 
   if (!data.market) {
     throw new Error("Market data not found in response");
   }
-  return data.market;
+  return { market: data.market, commentCount: data.commentCount };
 };
 
 // ✅ Place a market bet
