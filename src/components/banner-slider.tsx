@@ -46,7 +46,7 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
   if (isLoading) {
     return (
       <div className="wrap py-2 sm:py-4">
-        <div className="w-full h-[88px] sm:h-[140px] lg:h-[180px] rounded-lg overflow-hidden relative border border-white/10 bg-[#212121] animate-pulse" />
+        <div className="w-full h-[192px] sm:h-[200px] lg:h-[240px] rounded-lg overflow-hidden relative border border-white/10 bg-[#212121] animate-pulse" />
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
 
   return (
     <div className="wrap py-2 sm:py-4">
-      <div className="w-full h-[88px] sm:h-[140px] lg:h-[180px] rounded-lg overflow-hidden relative border border-white/10">
+      <div className="w-full h-[192px] sm:h-[200px] lg:h-[240px] rounded-lg overflow-hidden relative border border-white/10">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
