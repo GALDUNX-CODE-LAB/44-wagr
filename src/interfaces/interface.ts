@@ -372,3 +372,70 @@ export const DIFFICULTY_BIAS: Record<Difficulty, number> = {
 };
 
 export const ROW_OPTIONS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+
+export type CellState = "hidden" | "gem" | "mine" | "revealed-gem";
+
+export type MineCount =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+  | 22
+  | 23
+  | 24;
+
+export interface Cell {
+  index: number;
+  state: CellState;
+  isMine: boolean;
+  isRevealed: boolean;
+  animating: boolean;
+}
+
+export interface MinesGameState {
+  phase: "idle" | "playing" | "won" | "lost";
+  cells: Cell[];
+  mineCount: MineCount;
+  gemsFound: number;
+  totalSafe: number; // 25 - mineCount
+  currentMultiplier: number;
+  betAmount: number;
+  profit: number;
+}
+
+// Calculate multiplier based on gems found and mines count
+// Uses the same formula as Stake: expected value based on combinatorics
+export function calcMultiplier(minesCount: number, gemsFound: number): number {
+  if (gemsFound === 0) return 1;
+  const totalCells = 25;
+  const safeCells = totalCells - minesCount;
+
+  let mult = 1;
+  for (let i = 0; i < gemsFound; i++) {
+    mult *= (totalCells - i) / (safeCells - i);
+  }
+  // Apply house edge (~1%)
+  mult = mult * 0.99;
+  return Math.round(mult * 100) / 100;
+}
+
+export const MINE_OPTIONS: MineCount[] = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+];

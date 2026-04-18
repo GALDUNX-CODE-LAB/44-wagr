@@ -16,16 +16,25 @@ interface PlinkoResultToastProps {
 
 const PRIMARY = "#c8a2ff";
 
+const DISPLAY_MS = 2800;
+
 export default function PlinkoResultToast({ result }: PlinkoResultToastProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    if (!result) return;
+    if (!result) {
+      setToasts([]);
+      return;
+    }
+
     const toast: Toast = { ...result };
-    setToasts((prev) => [...prev, toast]);
+    // Only one toast: new result replaces the previous (avoids stale timers + stacking).
+    setToasts([toast]);
+
     const timer = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== toast.id));
-    }, 500);
+    }, DISPLAY_MS);
+
     return () => clearTimeout(timer);
   }, [result]);
 

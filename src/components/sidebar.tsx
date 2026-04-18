@@ -12,6 +12,7 @@ import {
   LoaderPinwheel,
   ChevronsLeft,
   ChevronsRight,
+  Bomb,
 } from "lucide-react";
 import { TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
@@ -99,6 +100,12 @@ export default function Sidebar() {
       icon: <LoaderPinwheel className="w-3 h-3" />,
       href: "/games/plinko",
     },
+    {
+      name: "Mines",
+      image: "/assets/gamesV2/mine.png",
+      icon: <Bomb className="w-3 h-3" />,
+      href: "/games/mines",
+    },
   ];
 
   const navItems = [
@@ -147,7 +154,13 @@ export default function Sidebar() {
           >
             {!collapsed && (
               <div className="flex min-w-0 flex-1 justify-center">
-                <Image src="/assets/44.png" alt="44-wager" width={100} height={50} className="h-auto w-[100px] object-contain" />
+                <Image
+                  src="/assets/44.png"
+                  alt="44-wager"
+                  width={100}
+                  height={50}
+                  className="h-auto w-[100px] object-contain"
+                />
               </div>
             )}
             <button
@@ -160,7 +173,9 @@ export default function Sidebar() {
               {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
             </button>
           </div>
-          <div className={`flex flex-col gap-1 rounded-lg bg-black/20 m-2 p-2 ${collapsed ? "items-stretch px-1" : ""}`}>
+          <div
+            className={`flex flex-col gap-1 rounded-lg bg-black/20 m-2 p-2 ${collapsed ? "items-stretch px-1" : ""}`}
+          >
             {navItems.map((item) =>
               item.hasDropdown ? (
                 <div key={item.key} className="relative z-30" ref={gamesAnchorRef}>

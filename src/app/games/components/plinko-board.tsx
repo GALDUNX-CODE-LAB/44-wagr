@@ -18,8 +18,33 @@ interface PlinkoBoardProps {
 }
 
 const CANVAS_FONT = '"poppins", ui-sans-serif, system-ui, sans-serif';
-/** Matches Tailwind `text-sm` (0.875rem at default root). */
-const TEXT_SM_PX = 14;
+
+/** Compact labels (many buckets × narrow canvas on mobile). */
+function formatMultiplierLabel(mult: number): string {
+  if (mult >= 1000) return `${Math.round(mult / 1000)}k`;
+  if (mult >= 100) return String(Math.round(mult));
+  if (mult % 1 === 0) return String(mult);
+  return String(mult);
+}
+
+/** Keep text inside bucket; very small caps for dense rows. */
+function fillBucketLabel(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  cy: number,
+  maxWidth: number,
+) {
+  let fontPx = Math.max(5, Math.min(Math.floor(maxWidth * 0.28), 8));
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < 6 && fontPx >= 5; i++) {
+    ctx.font = `600 ${fontPx}px ${CANVAS_FONT}`;
+    if (ctx.measureText(text).width <= maxWidth * 0.88) break;
+    fontPx -= 1;
+  }
+  ctx.fillText(text, cx, cy);
+}
 
 const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
   ({ rows, difficulty, betAmount, onBallLand, activeBucketIndex }, ref) => {
@@ -108,10 +133,13 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
           ctx.fill();
 
           ctx.fillStyle = "#131212";
-          ctx.font = `600 ${TEXT_SM_PX}px ${CANVAS_FONT}`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`${mult}`, b.x + b.width / 2, bucketTop + innerPad + innerSize / 2);
+          fillBucketLabel(
+            ctx,
+            formatMultiplierLabel(mult),
+            b.x + b.width / 2,
+            bucketTop + innerPad + innerSize / 2,
+            innerSize - 3,
+          );
         }
       }
 

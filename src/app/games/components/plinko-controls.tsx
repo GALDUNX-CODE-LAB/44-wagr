@@ -50,7 +50,8 @@ export default function PlinkoControls({
   const [rowsOpen, setRowsOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-full min-h-0 gap-2 p-3 overflow-y-auto font-sans text-[#ededed]">
+    <div className="flex flex-col flex-1 min-h-0 gap-2 p-3 overflow-hidden font-sans text-[#ededed]">
+      <div className="flex flex-col gap-2 shrink-0">
       <div
         className="flex rounded-xl overflow-hidden shrink-0"
         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
@@ -254,7 +255,7 @@ export default function PlinkoControls({
           type="button"
           whileTap={{ scale: 0.97 }}
           onClick={onBet}
-          className="w-full py-2.5 rounded-xl font-semibold text-sm tracking-wide mt-auto shrink-0 text-[#131212]"
+          className="w-full py-2 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
           style={{
             background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
             boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
@@ -267,7 +268,7 @@ export default function PlinkoControls({
           type="button"
           whileTap={{ scale: 0.97 }}
           onClick={onAutoToggle}
-          className="w-full py-2.5 rounded-xl font-semibold text-sm tracking-wide mt-auto shrink-0 text-[#131212]"
+          className="w-full py-2 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
           style={{
             background: isAutoRunning
               ? "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)"
@@ -278,32 +279,40 @@ export default function PlinkoControls({
           {isAutoRunning ? "STOP" : "START AUTO"}
         </motion.button>
       )}
+      </div>
 
-      {results.length > 0 && (
-        <div className="shrink-0 min-h-0">
-          <div className="text-[10px] tracking-wider text-white/50 mb-1">RECENT</div>
-          <div className="flex flex-col gap-0.5 max-h-24 overflow-y-auto">
-            {[...results]
-              .reverse()
-              .slice(0, 8)
-              .map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between px-2 py-1 rounded-lg text-[11px]"
-                  style={{ background: "rgba(255,255,255,0.04)" }}
-                >
-                  <span className="text-white/45">${r.betAmount.toFixed(2)}</span>
-                  <span style={{ color: getMultColor(r.multiplier) }} className="font-bold">
-                    {r.multiplier}×
-                  </span>
-                  <span className={r.payout >= r.betAmount ? "text-emerald-400" : "text-red-400"}>
-                    ${r.payout.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-          </div>
+      <div className="flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
+        <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
+        <div
+          className="flex-1 min-h-[72px] overflow-y-auto rounded-xl px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {results.length === 0 ? (
+            <p className="text-[11px] text-white/35 text-center py-5 px-2 leading-snug">No recent game.</p>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              {[...results]
+                .reverse()
+                .slice(0, 50)
+                .map((r) => (
+                  <div
+                    key={r.id}
+                    className="flex items-center justify-between px-2 py-1 rounded-lg text-[11px] shrink-0"
+                    style={{ background: "rgba(255,255,255,0.04)" }}
+                  >
+                    <span className="text-white/45">${r.betAmount.toFixed(2)}</span>
+                    <span style={{ color: getMultColor(r.multiplier) }} className="font-bold">
+                      {r.multiplier}×
+                    </span>
+                    <span className={r.payout >= r.betAmount ? "text-emerald-400" : "text-red-400"}>
+                      ${r.payout.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
