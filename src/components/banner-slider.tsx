@@ -9,13 +9,13 @@ import { fetchBanners } from "../lib/api";
 interface Banner {
   _id: string;
   imageUrl: string;
-  type: "home" | "game";
+  type: "home" | "game" | "lottery";
   size: "desktop" | "mobile";
   isActive: boolean;
 }
 
 interface BannerSliderProps {
-  type?: "home" | "game";
+  type?: "home" | "game" | "lottery";
 }
 
 export default function BannerSlider({ type = "home" }: BannerSliderProps) {
@@ -45,7 +45,7 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
   // Fallback to default banners if no banners from API
   if (isLoading) {
     return (
-      <div className="wrap py-2 sm:py-4">
+      <div className="wrap py-1 sm:py-2">
         <div className="w-full h-[192px] sm:h-[200px] lg:h-[240px] rounded-lg overflow-hidden relative border border-white/10 bg-[#212121] animate-pulse" />
       </div>
     );
@@ -59,7 +59,7 @@ export default function BannerSlider({ type = "home" }: BannerSliderProps) {
   const currentMobileBanner = mobileBanners[current % mobileBanners.length] || mobileBanners[0] || currentDesktopBanner;
 
   return (
-    <div className="wrap py-2 sm:py-4">
+    <div className="wrap py-1 sm:py-2">
       <div className="w-full h-[192px] sm:h-[200px] lg:h-[240px] rounded-lg overflow-hidden relative border border-white/10">
         <AnimatePresence mode="wait">
           <motion.div

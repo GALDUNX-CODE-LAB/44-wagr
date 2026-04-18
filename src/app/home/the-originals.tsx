@@ -56,7 +56,7 @@ export default function TheOriginals() {
   };
 
   return (
-    <div className="py-6 rounded-lg relative">
+    <div className="py-3 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex items-center gap-1">
           <TbNumber44Small className="text-primary bg-primary/20 rounded" />

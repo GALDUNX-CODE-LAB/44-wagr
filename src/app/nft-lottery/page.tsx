@@ -26,9 +26,7 @@ export default function NFTLotteryPage() {
 
   const lotteries = data ?? [];
   const { activeCards, endedCards } = useMemo(() => {
-    const filtered = lotteries.filter((card) =>
-      card.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = lotteries.filter((card) => card.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const active = filtered.filter((card) => !card.isCompleted);
     const ended = filtered.filter((card) => card.isCompleted);
     return { activeCards: active, endedCards: ended };
@@ -50,8 +48,8 @@ export default function NFTLotteryPage() {
   return (
     <div className="text-white px-3 sm:px-4 md:px-6 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto">
-        <BannerSlider type="game" />
-        <div className="mb-4 sm:mb-6">
+        <BannerSlider type="lottery" />
+        <div className="mb-3 sm:mb-4">
           <PageHeader title="Lottery Draw" onSearch={handleSearch} searchPlaceholder="Search" />
         </div>
 
@@ -62,9 +60,7 @@ export default function NFTLotteryPage() {
           </div>
         ) : !hasAny ? (
           <div className="text-center py-10 sm:py-12">
-            <p className="text-white/70 text-xs">
-              {searchQuery ? "No lotteries found." : "No lotteries available."}
-            </p>
+            <p className="text-white/70 text-xs">{searchQuery ? "No lotteries found." : "No lotteries available."}</p>
           </div>
         ) : (
           <div className="mb-6 sm:mb-8 space-y-8">
@@ -74,11 +70,7 @@ export default function NFTLotteryPage() {
                   Active games
                 </h2>
                 <div className="pb-6 border-b border-white/10">
-                  <ActiveGamesSwiper
-                    cards={activeCards}
-                    onCardClick={handleCardClick}
-                    onBetNow={handleBetNow}
-                  />
+                  <ActiveGamesSwiper cards={activeCards} onCardClick={handleCardClick} onBetNow={handleBetNow} />
                 </div>
               </section>
             )}
@@ -87,11 +79,7 @@ export default function NFTLotteryPage() {
                 <h2 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3 sm:mb-4">
                   Ended games
                 </h2>
-                <EndedGamesGrid
-                  cards={endedCards}
-                  onCardClick={handleCardClick}
-                  onBetNow={handleBetNow}
-                />
+                <EndedGamesGrid cards={endedCards} onCardClick={handleCardClick} onBetNow={handleBetNow} />
               </section>
             )}
           </div>

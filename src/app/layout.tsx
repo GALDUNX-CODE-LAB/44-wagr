@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Sidebar from "../components/sidebar";
+import { SidebarCollapsedProvider } from "../components/sidebar-collapsed-context";
 import { WalletProvider } from "../components/wallet-provider";
 import "@rainbow-me/rainbowkit/styles.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -31,18 +32,20 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="text-[#ededed] font-inter min-h-dvh min-w-dvw ">
         <Suspense>
           <WalletProvider>
-            <div className="flex">
-              <div className="wrap relative ">
-                <Sidebar />
-              </div>
-              <div className="content w-[100vw] lg:w-[calc(100vw-220px)] lg:ml-[220px]">
-                <div className="">
-                  <NavbarV2 />
-                  <div className="container mx-auto">{children}</div>
-                  <Footer />
+            <SidebarCollapsedProvider>
+              <div className="flex">
+                <div className="wrap relative ">
+                  <Sidebar />
+                </div>
+                <div className="content w-[100vw] lg:w-[calc(100vw-var(--sidebar-width))] lg:ml-[var(--sidebar-width)]">
+                  <div className="">
+                    <NavbarV2 />
+                    <div className="container mx-auto">{children}</div>
+                    <Footer />
+                  </div>
                 </div>
               </div>
-            </div>
+            </SidebarCollapsedProvider>
           </WalletProvider>
           <Toaster />
         </Suspense>

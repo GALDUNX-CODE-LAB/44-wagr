@@ -16,7 +16,9 @@ export default function PageHeader({ title, onSearch, searchPlaceholder = "Searc
   return (
     <div className="flex flex-row items-center justify-between gap-2">
       <InfoModal open={openInfoModal} onClose={() => setOpenInfoModal(false)} />
-      <h1 className="text-xs sm:text-sm font-medium text-white/80 whitespace-nowrap">{title}</h1>
+      <h1 className="text-base sm:text-lg font-semibold text-white tracking-tight shrink-0 min-w-0 pr-2">
+        {title}
+      </h1>
       <div className="flex gap-1.5 sm:gap-2 items-center min-w-0">
         <div className="relative flex-shrink min-w-0 w-[110px] sm:w-[140px] md:w-[180px] lg:w-[220px]">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />

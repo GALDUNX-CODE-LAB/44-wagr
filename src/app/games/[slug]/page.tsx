@@ -10,6 +10,7 @@ const gamesMap: Record<string, any> = {
   coin: dynamic(() => import("../components/games/coin")),
   crash: dynamic(() => import("../components/games/crash")),
   wheel: dynamic(() => import("../components/games/wheel")),
+  plinko: dynamic(() => import("../components/games/plinko")),
 };
 
 export default function GamePage() {

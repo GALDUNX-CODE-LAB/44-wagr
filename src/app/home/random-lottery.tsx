@@ -121,7 +121,7 @@ export default function RandomLottery() {
   }, [count]);
 
   return (
-    <div className="w-full lg:max-w-8xl mx-auto text-white my-8">
+    <div className="w-full lg:max-w-8xl mx-auto text-white my-4">
       <h2 className="text-white font-semibold text-sm mb-2 lg:text-lg flex gap-2 items-center">
         <RiNftLine className="text-primary" />
         NFT Lottery
