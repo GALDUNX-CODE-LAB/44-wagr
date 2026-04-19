@@ -36,6 +36,7 @@ export default function PlinkoGame() {
         betAmount,
         payout,
         timestamp: Date.now(),
+        won: payout > 0,
       };
 
       setResults((prev) => [...prev, result]);
@@ -99,52 +100,52 @@ export default function PlinkoGame() {
 
   return (
     <>
-    <div
-      className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] mt-4 md:mt-10 mx-auto min-h-0 overflow-hidden rounded-2xl border border-white/10 font-sans h-[calc(100svh-5.5rem)] max-h-[calc(100svh-4rem)] md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))]"
-      style={{
-        background: "#131212",
-      }}
-    >
-      <div className="flex-1 min-h-0 md:flex-none md:h-full h-auto overflow-y-auto overflow-x-hidden flex flex-col w-full md:w-[220px] lg:w-[240px] border-t border-[rgba(200,162,255,0.12)] md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] pt-2 md:pt-0 md:overflow-hidden">
-        <PlinkoControls
-          betAmount={betAmount}
-          onBetAmountChange={setBetAmount}
-          difficulty={difficulty}
-          onDifficultyChange={setDifficulty}
-          rows={rows}
-          onRowsChange={setRows}
-          gameMode={gameMode}
-          onGameModeChange={setGameMode}
-          onBet={handleBet}
-          isAutoRunning={isAutoRunning}
-          onAutoToggle={handleAutoToggle}
-          autoCount={autoCount}
-          onAutoCountChange={setAutoCount}
-          results={results}
-        />
-      </div>
-
-      <div className="flex-shrink-0 max-h-[40svh] h-[40svh] md:h-full md:max-h-none md:flex-1 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
-        <PlinkoBoard
-          ref={boardRef}
-          rows={rows}
-          difficulty={difficulty}
-          betAmount={betAmount}
-          onBallLand={handleBallLand}
-          activeBucketIndex={activeBucketIndex}
-        />
-
-        {lastResult && lastResult.multiplier >= 10 && (
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "radial-gradient(ellipse at center, rgba(200,162,255,0.12) 0%, transparent 70%)",
-            }}
+      <div
+        className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] mt-4 md:mt-10 mx-auto min-h-0 overflow-hidden rounded-2xl border border-white/10 font-sans h-[calc(100svh-5.5rem)] max-h-[calc(100svh-4rem)] md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))]"
+        style={{
+          background: "#131212",
+        }}
+      >
+        <div className="flex-1 min-h-0 md:flex-none md:h-full h-auto overflow-y-auto overflow-x-hidden flex flex-col w-full md:w-[220px] lg:w-[240px] border-t border-[rgba(200,162,255,0.12)] md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] pt-2 md:pt-0 md:overflow-hidden">
+          <PlinkoControls
+            betAmount={betAmount}
+            onBetAmountChange={setBetAmount}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficulty}
+            rows={rows}
+            onRowsChange={setRows}
+            gameMode={gameMode}
+            onGameModeChange={setGameMode}
+            onBet={handleBet}
+            isAutoRunning={isAutoRunning}
+            onAutoToggle={handleAutoToggle}
+            autoCount={autoCount}
+            onAutoCountChange={setAutoCount}
+            results={results}
           />
-        )}
+        </div>
+
+        <div className="flex-shrink-0 max-h-[40svh] h-[40svh] md:h-full md:max-h-none md:flex-1 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
+          <PlinkoBoard
+            ref={boardRef}
+            rows={rows}
+            difficulty={difficulty}
+            betAmount={betAmount}
+            onBallLand={handleBallLand}
+            activeBucketIndex={activeBucketIndex}
+          />
+
+          {lastResult && lastResult.multiplier >= 10 && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "radial-gradient(ellipse at center, rgba(200,162,255,0.12) 0%, transparent 70%)",
+              }}
+            />
+          )}
+        </div>
       </div>
-    </div>
-    <PlinkoResultToast result={lastResult} />
+      <PlinkoResultToast result={lastResult} />
     </>
   );
 }

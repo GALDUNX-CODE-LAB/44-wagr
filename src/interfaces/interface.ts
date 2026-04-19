@@ -439,3 +439,81 @@ export function calcMultiplier(minesCount: number, gemsFound: number): number {
 export const MINE_OPTIONS: MineCount[] = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 ];
+
+export type PumpDifficulty = "easy" | "medium" | "hard" | "extreme";
+
+export interface PumpGameState {
+  phase: "idle" | "playing" | "busted" | "cashedout";
+  currentStep: number;
+  currentMultiplier: number;
+  betAmount: number;
+  profit: number;
+  bustedAtStep: number | null;
+}
+
+export interface BetResult {
+  id: string;
+  multiplier: number;
+  payout: number;
+  betAmount: number;
+  won: boolean;
+}
+
+export const MULTIPLIER_LADDERS: Record<PumpDifficulty, number[]> = {
+  easy: [
+    1.0, 1.1, 1.22, 1.35, 1.5, 1.68, 1.88, 2.12, 2.4, 2.73, 3.12, 3.58, 4.14, 4.82, 5.65, 6.68, 7.96, 9.59, 11.65,
+    14.28, 17.65, 22.05, 27.8, 35.4, 45.6,
+  ],
+
+  medium: [
+    1.0, 1.23, 1.55, 1.98, 2.56, 3.36, 4.48, 6.04, 8.24, 11.35, 15.8, 22.2, 31.5, 45.2, 65.5, 96.0, 142.0, 212.0, 320.0,
+    488.0, 750.0, 1160.0, 1810.0, 2850.0, 4500.0,
+  ],
+
+  hard: [
+    1.0, 1.5, 2.3, 3.6, 5.6, 8.8, 14.0, 22.5, 36.5, 59.5, 97.5, 161.0, 267.0, 446.0, 750.0, 1270.0, 2160.0, 3700.0,
+    6380.0, 11000.0, 19200.0, 33700.0, 59500.0, 106000.0, 190000.0,
+  ],
+
+  extreme: [
+    1.0, 2.0, 4.1, 8.4, 17.5, 36.5, 76.5, 161.0, 341.0, 726.0, 1550.0, 3320.0, 7140.0, 15400.0, 33300.0, 72200.0,
+    157000.0, 342000.0, 747000.0, 1630000.0, 3570000.0, 7820000.0, 17200000.0, 37800000.0, 83300000.0,
+  ],
+};
+
+export interface PumpBetResult {
+  id: string;
+  multiplier: number;
+  payout: number;
+  betAmount: number;
+  won: boolean;
+}
+
+export const BUST_PROBABILITY: Record<PumpDifficulty, number[]> = {
+  easy: Array(25)
+    .fill(0)
+    .map((_, i) => 0.04 + i * 0.008),
+  medium: Array(25)
+    .fill(0)
+    .map((_, i) => 0.08 + i * 0.016),
+  hard: Array(25)
+    .fill(0)
+    .map((_, i) => 0.14 + i * 0.025),
+  extreme: Array(25)
+    .fill(0)
+    .map((_, i) => 0.22 + i * 0.032),
+};
+
+export const DIFFICULTY_OPTIONS: { value: PumpDifficulty; label: string; color: string }[] = [
+  { value: "easy", label: "Easy", color: "#22c55e" },
+  { value: "medium", label: "Medium", color: "#f59e0b" },
+  { value: "hard", label: "Hard", color: "#ef4444" },
+  { value: "extreme", label: "Extreme", color: "#a855f7" },
+];
+
+export const DIFFICULTY_COLORS: Record<PumpDifficulty, { body: string; shine: string; neck: string; glow: string }> = {
+  easy: { body: "#22c55e", shine: "#86efac", neck: "#15803d", glow: "rgba(34,197,94,0.4)" },
+  medium: { body: "#f59e0b", shine: "#fcd34d", neck: "#b45309", glow: "rgba(245,158,11,0.4)" },
+  hard: { body: "#ef4444", shine: "#fca5a5", neck: "#b91c1c", glow: "rgba(239,68,68,0.4)" },
+  extreme: { body: "#a855f7", shine: "#d8b4fe", neck: "#7e22ce", glow: "rgba(168,85,247,0.4)" },
+};

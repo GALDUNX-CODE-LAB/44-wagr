@@ -13,6 +13,7 @@ const gamesMap: Record<string, any> = {
   wheel: dynamic(() => import("../components/games/wheel")),
   plinko: dynamic(() => import("../components/games/plinko")),
   mines: dynamic(() => import("../components/games/mines")),
+  pump: dynamic(() => import("../components/games/pump")),
 };
 
 export default function GamePage() {
@@ -22,8 +23,6 @@ export default function GamePage() {
   const GameComponent = gamesMap[slug];
 
   return (
-    <div className={collapsed ? undefined : "px-5"}>
-      {GameComponent ? <GameComponent /> : <p>Game not found.</p>}
-    </div>
+    <div className={collapsed ? undefined : "px-5"}>{GameComponent ? <GameComponent /> : <p>Game not found.</p>}</div>
   );
 }

@@ -14,7 +14,7 @@ import {
   ChevronsRight,
   Bomb,
 } from "lucide-react";
-import { TbGraph } from "react-icons/tb";
+import { TbBalloon, TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
 import { RiNftLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
@@ -105,6 +105,12 @@ export default function Sidebar() {
       image: "/assets/gamesV2/mine.png",
       icon: <Bomb className="w-3 h-3" />,
       href: "/games/mines",
+    },
+    {
+      name: "Pump",
+      image: "/assets/gamesV2/pump.png",
+      icon: <TbBalloon className="w-3 h-3" />,
+      href: "/games/pump",
     },
   ];
 
