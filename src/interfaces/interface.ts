@@ -517,3 +517,76 @@ export const DIFFICULTY_COLORS: Record<PumpDifficulty, { body: string; shine: st
   hard: { body: "#ef4444", shine: "#fca5a5", neck: "#b91c1c", glow: "rgba(239,68,68,0.4)" },
   extreme: { body: "#a855f7", shine: "#d8b4fe", neck: "#7e22ce", glow: "rgba(168,85,247,0.4)" },
 };
+
+export type RedlightDifficulty = "easy" | "medium" | "hard" | "professional";
+
+export interface RLGLGameState {
+  phase: "idle" | "green" | "red" | "frozen" | "eliminated" | "cashedout";
+  progress: number; // 0–100
+  currentMultiplier: number;
+  betAmount: number;
+  profit: number;
+  elapsedMs: number;
+  redLightAt: number | null; // ms timestamp when red light fires
+  frozenAt: number | null; // ms when player froze
+  round: number;
+}
+
+export interface RedlightBetResult {
+  id: string;
+  multiplier: number;
+  payout: number;
+  betAmount: number;
+  won: boolean;
+  round: number;
+}
+
+// How fast progress moves per second (% per second)
+export const PROGRESS_SPEED: Record<RedlightDifficulty, number> = {
+  easy: 8,
+  medium: 13,
+  hard: 18,
+  professional: 24,
+};
+
+// Multiplier increment every 2 seconds
+export const MULT_INCREMENT: Record<RedlightDifficulty, number> = {
+  easy: 0.07,
+  medium: 0.13,
+  hard: 0.22,
+  professional: 0.38,
+};
+
+// Starting multiplier
+export const BASE_MULT = 1.0;
+
+// Red light fires randomly between these ms windows (after green starts)
+// Shorter window = harder (less time to react)
+export const RED_LIGHT_WINDOW: Record<RedlightDifficulty, [number, number]> = {
+  easy: [4000, 10000],
+  medium: [2500, 7000],
+  hard: [1500, 5000],
+  professional: [800, 3500],
+};
+
+// Player has this many ms to freeze after red light fires
+export const FREEZE_GRACE_MS: Record<RedlightDifficulty, number> = {
+  easy: 700,
+  medium: 500,
+  hard: 350,
+  professional: 200,
+};
+
+export const REDLIGHT_DIFFICULTY_OPTIONS: { value: RedlightDifficulty; label: string; color: string; tag: string }[] = [
+  { value: "easy", label: "Easy", color: "#22c55e", tag: "chill" },
+  { value: "medium", label: "Medium", color: "#f59e0b", tag: "risky" },
+  { value: "hard", label: "Hard", color: "#ef4444", tag: "dangerous" },
+  { value: "professional", label: "Professional", color: "#a855f7", tag: "☠️ insane" },
+];
+
+export const REDLIGHT_DIFFICULTY_COLORS: Record<RedlightDifficulty, string> = {
+  easy: "#22c55e",
+  medium: "#f59e0b",
+  hard: "#ef4444",
+  professional: "#a855f7",
+};

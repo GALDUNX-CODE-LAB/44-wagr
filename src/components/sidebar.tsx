@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { TbBalloon, TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
-import { RiNftLine } from "react-icons/ri";
+import { RiNftLine, RiTrafficLightLine } from "react-icons/ri";
 import { Dices } from "lucide-react";
 import Image from "next/image";
 import { FaEnvelope, FaSignOutAlt } from "react-icons/fa";
@@ -111,6 +111,12 @@ export default function Sidebar() {
       image: "/assets/gamesV2/pump.png",
       icon: <TbBalloon className="w-3 h-3" />,
       href: "/games/pump",
+    },
+    {
+      name: "Red Light",
+      image: "/assets/gamesV2/red-light.png",
+      icon: <RiTrafficLightLine className="w-3 h-3" />,
+      href: "/games/redlight",
     },
   ];
 
