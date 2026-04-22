@@ -55,9 +55,9 @@ export default function RLGLControls({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-1.5 overflow-y-auto overflow-x-hidden p-2 font-sans text-[#ededed] md:gap-2 md:p-3">
-      {/* Mode toggle — desktop only */}
+      {/* Mode toggle */}
       <div
-        className="hidden shrink-0 rounded-xl overflow-hidden md:flex"
+        className="order-4 md:order-1 flex shrink-0 rounded overflow-hidden"
         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
       >
         {(["manual", "auto"] as GameMode[]).map((mode) => (
@@ -79,10 +79,10 @@ export default function RLGLControls({
       </div>
 
       {/* Bet Amount */}
-      <div className="shrink-0">
+      <div className="order-2 md:order-2 shrink-0">
         <div className="text-[10px] tracking-wider text-white/50 mb-1">BET AMOUNT</div>
         <div
-          className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
+          className="flex items-center gap-2 rounded px-2.5 py-2"
           style={{
             background: "rgba(255,255,255,0.06)",
             border: "1px solid rgba(200,162,255,0.1)",
@@ -93,7 +93,7 @@ export default function RLGLControls({
             type="number"
             value={betAmount}
             onChange={(e) => !isPlaying && !isFrozen && onBetAmountChange(Math.max(0, parseFloat(e.target.value) || 0))}
-            className="flex-1 min-w-0 bg-transparent outline-none text-white text-sm tabular-nums"
+            className="flex-1 min-w-0 rounded bg-transparent px-1 py-1 outline-none text-white text-sm tabular-nums"
             disabled={isPlaying || isFrozen}
             step={0.01}
             min={0}
@@ -103,7 +103,7 @@ export default function RLGLControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount / 2)}
               disabled={isPlaying}
-              className="rounded-lg px-2 py-1 text-[11px] font-semibold"
+              className="rounded px-2 py-1 text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               ½
@@ -112,7 +112,7 @@ export default function RLGLControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount * 2)}
               disabled={isPlaying}
-              className="rounded-lg px-2 py-1 text-[11px] font-semibold"
+              className="rounded px-2 py-1 text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               2×
@@ -126,7 +126,7 @@ export default function RLGLControls({
                 key={v}
                 type="button"
                 onClick={() => onBetAmountChange(v)}
-                className="flex-1 py-1 rounded-lg text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
+                className="flex-1 py-1 rounded text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
               >
                 ${v}
               </button>
@@ -136,13 +136,13 @@ export default function RLGLControls({
       </div>
 
       {/* Difficulty */}
-      <div className="shrink-0">
+      <div className="order-5 md:order-3 shrink-0">
         <div className="text-[10px] tracking-wider text-white/50 mb-1">DIFFICULTY</div>
         <div className="relative" style={{ opacity: isPlaying || isFrozen ? 0.5 : 1 }}>
           <button
             type="button"
             onClick={() => !isPlaying && !isFrozen && setDiffOpen(!diffOpen)}
-            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-sm text-white"
+            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded text-sm text-white"
             style={{
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(200,162,255,0.1)",
@@ -168,7 +168,7 @@ export default function RLGLControls({
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className="absolute left-0 right-0 rounded-xl mt-1 z-20 overflow-hidden"
+                className="absolute left-0 right-0 rounded mt-1 z-20 overflow-hidden"
                 style={{ background: "#131212", border: "1px solid rgba(200,162,255,0.15)" }}
               >
                 {REDLIGHT_DIFFICULTY_OPTIONS.map((opt) => (
@@ -200,9 +200,9 @@ export default function RLGLControls({
       </div>
 
       {/* Difficulty stats — desktop only */}
-      <div className="hidden shrink-0 grid-cols-2 gap-2 md:grid">
+      <div className="order-10 md:order-4 hidden shrink-0 grid-cols-2 gap-2 md:grid">
         <div
-          className="rounded-xl px-2.5 py-1.5"
+          className="rounded px-2.5 py-1.5"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="text-[10px] tracking-wider text-white/40">+MULT/2s</div>
@@ -211,7 +211,7 @@ export default function RLGLControls({
           </div>
         </div>
         <div
-          className="rounded-xl px-2.5 py-1.5"
+          className="rounded px-2.5 py-1.5"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="text-[10px] tracking-wider text-white/40">GRACE</div>
@@ -228,7 +228,7 @@ export default function RLGLControls({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="hidden rounded-xl px-2.5 py-1.5 md:block"
+            className="order-11 md:order-5 hidden rounded px-2.5 py-1.5 md:block"
             style={{ background: `${diffOption.color}12`, border: `1px solid ${diffOption.color}33` }}
           >
             <div className="text-[10px] tracking-wider text-white/50">LIVE MULTIPLIER</div>
@@ -244,7 +244,7 @@ export default function RLGLControls({
       </AnimatePresence>
 
       {/* Profit */}
-      <div className="shrink-0">
+      <div className="order-6 md:order-6 shrink-0">
         <div className="mb-1 flex justify-between gap-2 text-[10px] text-white/50 md:text-[11px]">
           <span className="leading-snug md:truncate">
             <span className="md:hidden">TOTAL PROFIT</span>
@@ -255,7 +255,7 @@ export default function RLGLControls({
           </span>
         </div>
         <div
-          className="rounded-xl px-2 py-1 md:px-2.5 md:py-1.5"
+          className="rounded px-2 py-1 md:px-2.5 md:py-1.5"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <span className="text-[10px] leading-snug text-white tabular-nums md:text-[11px]">
@@ -264,14 +264,14 @@ export default function RLGLControls({
         </div>
       </div>
 
-      {/* Action Buttons — desktop only (mobile uses centered FAB on playfield) */}
-      <div className="mt-auto hidden flex-col gap-2 md:flex">
+      {/* Action Buttons */}
+      <div className="order-1 md:order-7 mt-auto flex flex-col gap-2">
       {isIdle && (
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={onStartRun}
           type="button"
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2 font-semibold text-[11px] tracking-wide text-[#131212]"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tracking-wide text-[#131212]"
           style={{
             background: "linear-gradient(135deg, #22c55e 0%, #15803d 100%)",
             boxShadow: "0 4px 18px rgba(34,197,94,0.28)",
@@ -288,7 +288,7 @@ export default function RLGLControls({
             whileTap={{ scale: 0.97 }}
             onClick={onCashout}
             type="button"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2 font-semibold text-[11px] tabular-nums text-[#131212] tracking-wide"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tabular-nums text-[#131212] tracking-wide"
             style={{
               background: `linear-gradient(135deg, ${diffOption.color}, ${diffOption.color}99)`,
               boxShadow: `0 4px 18px ${diffOption.color}44`,
@@ -301,7 +301,7 @@ export default function RLGLControls({
             whileTap={{ scale: 0.96 }}
             onClick={onFreeze}
             type="button"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/15 py-2 font-semibold text-[11px] tracking-wide text-white"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/15 py-2 font-semibold text-[11px] tracking-wide text-white"
             style={{
               background: phase === "red" ? "linear-gradient(135deg, #ef4444, #b91c1c)" : "rgba(255,255,255,0.08)",
               boxShadow: phase === "red" ? "0 4px 18px rgba(239,68,68,0.3)" : "none",
@@ -320,7 +320,7 @@ export default function RLGLControls({
             whileTap={{ scale: 0.97 }}
             onClick={onCashout}
             type="button"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2 font-semibold text-[11px] tabular-nums tracking-wide text-[#131212]"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tabular-nums tracking-wide text-[#131212]"
             style={{
               background: "linear-gradient(135deg, #22c55e, #15803d)",
               boxShadow: "0 4px 18px rgba(34,197,94,0.28)",
@@ -333,7 +333,7 @@ export default function RLGLControls({
             whileTap={{ scale: 0.97 }}
             onClick={onContinue}
             type="button"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.08] py-2 font-semibold text-[11px] tracking-wide text-white"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/15 bg-white/[0.08] py-2 font-semibold text-[11px] tracking-wide text-white"
           >
             <Footprints className="h-3 w-3 shrink-0" aria-hidden />
             KEEP RUNNING
@@ -342,18 +342,18 @@ export default function RLGLControls({
       )}
       </div>
 
-      {/* Recent results — desktop only */}
+      {/* Recent results */}
       {results.length > 0 && (
-        <div className="hidden min-h-0 flex-1 flex-col gap-1 pt-0.5 md:flex">
+        <div className="order-7 md:order-8 flex min-h-0 flex-1 flex-col gap-1 pt-0.5">
           <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
-          <div className="flex max-h-28 flex-col gap-0.5 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 py-1.5">
+          <div className="flex max-h-28 flex-col gap-0.5 overflow-y-auto rounded border border-white/[0.08] bg-white/[0.03] px-2 py-1.5">
             {[...results]
               .reverse()
               .slice(0, 6)
               .map((r, i) => (
                 <div
                   key={i}
-                  className="flex shrink-0 items-center justify-between gap-1 rounded-lg px-2 py-1 text-[11px] tabular-nums leading-snug"
+                  className="flex shrink-0 items-center justify-between gap-1 rounded px-2 py-1 text-[11px] tabular-nums leading-snug"
                   style={{ background: "rgba(255,255,255,0.04)" }}
                 >
                   <span className="flex w-4 shrink-0 items-center justify-center" aria-hidden>

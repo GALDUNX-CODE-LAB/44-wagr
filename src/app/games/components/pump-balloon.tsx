@@ -32,19 +32,15 @@ export default function PumpBalloon({ phase, currentStep, maxSteps, currentMulti
   const isCashedout = phase === "cashedout";
 
   return (
-    <div className="relative h-full w-full min-h-0 overflow-hidden">
-      {/* Pump base — stays at bottom of playfield */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] flex justify-center px-1">
-        <PumpBase colors={colors} phase={phase} />
-      </div>
-
-      {/* Balloon / explosion — vertically & horizontally centered in this panel (not viewport) */}
-      <div className="absolute inset-0 z-10 flex min-h-0 items-center justify-center px-3 py-6 md:py-8">
-        <AnimatePresence mode="wait">
-          {!isBusted && (
-            <motion.div
-              key="balloon"
-              className="flex min-h-0 max-h-[min(78%,520px)] w-full max-w-[280px] items-center justify-center"
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
+      {/* Stage: centers balloon in the space above the pump base (mobile + desktop) */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-3 pt-4 pb-1 md:pb-2 md:pt-6">
+        <div className="grid min-h-[120px] flex-1 place-items-center md:min-h-0">
+          <AnimatePresence mode="wait">
+            {!isBusted && (
+              <motion.div
+                key="balloon"
+                className="flex max-h-[min(72dvh,520px)] min-h-0 w-full max-w-[280px] flex-col items-center justify-center justify-self-center"
               initial={{ scale: 0.55, y: 0, opacity: 0 }}
               animate={{
                 scale,
@@ -57,24 +53,29 @@ export default function PumpBalloon({ phase, currentStep, maxSteps, currentMulti
               exit={{ scale: 0, opacity: 0, transition: { duration: 0.15 } }}
               transition={{ type: "spring", stiffness: 140, damping: 16 }}
             >
-              <BalloonSVG colors={colors} multiplier={currentMultiplier} phase={phase} progress={progress} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <BalloonSVG colors={colors} multiplier={currentMultiplier} phase={phase} progress={progress} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        <AnimatePresence mode="wait">
-          {isBusted && (
-            <motion.div
-              key="explosion"
-              className="flex min-h-0 max-h-[min(78%,520px)] w-full max-w-[280px] items-center justify-center"
+          <AnimatePresence mode="wait">
+            {isBusted && (
+              <motion.div
+                key="explosion"
+                className="flex max-h-[min(72dvh,520px)] min-h-0 w-full max-w-[280px] flex-col items-center justify-center justify-self-center"
               initial={{ scale: 0.8, opacity: 1 }}
               animate={{ scale: [1, 1.8, 0], opacity: [1, 1, 0] }}
               transition={{ duration: 0.55, times: [0, 0.4, 1] }}
             >
-              <ExplosionSVG color={colors.body} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <ExplosionSVG color={colors.body} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="pointer-events-none z-[1] flex shrink-0 justify-center px-1 pb-1 md:pb-2">
+        <PumpBase colors={colors} phase={phase} />
       </div>
 
       {/* Bust copy — centered overlay */}

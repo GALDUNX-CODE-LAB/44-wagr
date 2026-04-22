@@ -64,7 +64,7 @@ export default function PumpControls({
       <div className="flex flex-col gap-2 shrink-0">
         {/* Mode toggle */}
         <div
-          className="flex rounded-xl overflow-hidden shrink-0"
+          className="order-3 md:order-1 flex shrink-0 rounded overflow-hidden"
           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
         >
           {(["manual", "auto"] as GameMode[]).map((mode) => (
@@ -86,10 +86,10 @@ export default function PumpControls({
         </div>
 
         {/* Bet Amount */}
-        <div className="shrink-0">
+        <div className="order-2 md:order-2 shrink-0">
           <div className="text-[10px] tracking-wider text-white/50 mb-1">BET AMOUNT</div>
           <div
-            className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
+            className="flex items-center gap-2 rounded px-2.5 py-2"
             style={{
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(200,162,255,0.1)",
@@ -100,7 +100,7 @@ export default function PumpControls({
               type="number"
               value={betAmount}
               onChange={(e) => !isPlaying && onBetAmountChange(Math.max(0, parseFloat(e.target.value) || 0))}
-              className="flex-1 bg-transparent outline-none text-white text-xs min-w-0"
+              className="flex-1 bg-transparent outline-none text-white text-sm min-w-0 rounded py-1 px-1"
               disabled={isPlaying}
               step={0.01}
               min={0}
@@ -109,7 +109,7 @@ export default function PumpControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount / 2)}
               disabled={isPlaying}
-              className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+              className="px-2 py-1 rounded text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               ½
@@ -118,7 +118,7 @@ export default function PumpControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount * 2)}
               disabled={isPlaying}
-              className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+              className="px-2 py-1 rounded text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               2×
@@ -131,7 +131,7 @@ export default function PumpControls({
                   key={v}
                   type="button"
                   onClick={() => onBetAmountChange(v)}
-                  className="flex-1 py-1 rounded-lg text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
+                  className="flex-1 py-1 rounded text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
                 >
                   ${v}
                 </button>
@@ -141,13 +141,13 @@ export default function PumpControls({
         </div>
 
         {/* Difficulty */}
-        <div className="shrink-0">
+        <div className="order-4 md:order-3 shrink-0">
           <div className="text-[10px] tracking-wider text-white/50 mb-1">DIFFICULTY</div>
           <div className="relative" style={{ opacity: isPlaying ? 0.5 : 1 }}>
             <button
               type="button"
               onClick={() => !isPlaying && setDiffOpen(!diffOpen)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-white"
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs text-white"
               style={{
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(200,162,255,0.1)",
@@ -175,7 +175,7 @@ export default function PumpControls({
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="absolute left-0 right-0 rounded-xl mt-1 z-20 overflow-hidden max-h-40 overflow-y-auto"
+                  className="absolute left-0 right-0 rounded mt-1 z-20 overflow-hidden max-h-40 overflow-y-auto"
                   style={{ background: SURFACE, border: "1px solid rgba(200,162,255,0.15)" }}
                 >
                   {DIFFICULTY_OPTIONS.map((opt) => (
@@ -225,13 +225,14 @@ export default function PumpControls({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
+              className="order-5 md:order-4"
             >
               <div className="text-[10px] tracking-wider text-white/50 mb-1">AUTO PUMPS BEFORE CASHOUT</div>
               <input
                 type="number"
                 value={autoPumpCount}
                 onChange={(e) => onAutoPumpCountChange(Math.max(1, Math.min(24, parseInt(e.target.value) || 1)))}
-                className="w-full px-2.5 py-1.5 rounded-xl outline-none text-white text-xs"
+                className="w-full rounded px-2.5 py-2.5 outline-none text-white text-sm"
                 style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
                 min={1}
                 max={24}
@@ -247,7 +248,7 @@ export default function PumpControls({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="rounded-xl px-3 py-2"
+              className="order-6 md:order-5 rounded px-3 py-2"
               style={{
                 background: `rgba(${diffOption.color
                   .slice(1)
@@ -270,7 +271,7 @@ export default function PumpControls({
         </AnimatePresence>
 
         {/* Profit */}
-        <div className="shrink-0">
+        <div className="order-7 md:order-6 shrink-0">
           <div className="flex items-center justify-between text-[10px] tracking-wider text-white/50 mb-1 gap-1">
             <span className="truncate">TOTAL PROFIT ({currentMultiplier.toFixed(2)}×)</span>
             <span style={{ color: profit >= 0 ? "#4ade80" : "#f87171" }}>
@@ -278,7 +279,7 @@ export default function PumpControls({
             </span>
           </div>
           <div
-            className="rounded-xl px-2.5 py-1.5"
+            className="rounded px-2.5 py-1.5"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(200,162,255,0.08)" }}
           >
             <span className="text-white text-xs font-semibold">
@@ -294,7 +295,7 @@ export default function PumpControls({
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onBet}
-              className="w-full py-2 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212] shrink-0"
+              className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs tracking-wide text-[#131212]"
               style={{
                 background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
                 boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
@@ -303,13 +304,13 @@ export default function PumpControls({
               BET
             </motion.button>
           ) : (
-            <div className="flex flex-col gap-1.5 shrink-0">
+            <div className="order-1 md:order-7 flex shrink-0 flex-col gap-1.5">
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.97 }}
                 onClick={onCashout}
                 disabled={currentStep === 0}
-                className="w-full py-2 rounded-xl font-semibold text-[11px]"
+                className="w-full py-2 rounded font-semibold text-[11px]"
                 style={{
                   background:
                     currentStep > 0
@@ -326,7 +327,7 @@ export default function PumpControls({
                 type="button"
                 whileTap={{ scale: 0.97 }}
                 onClick={onPump}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.06] py-2 text-[11px] font-semibold text-white/85"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/12 bg-white/[0.06] py-2 text-[11px] font-semibold text-white/85"
               >
                 <Wind className="size-3.5 shrink-0 opacity-90" aria-hidden strokeWidth={2.25} />
                 PUMP
@@ -338,7 +339,7 @@ export default function PumpControls({
             type="button"
             whileTap={{ scale: 0.97 }}
             onClick={isAutoRunning ? onStopAuto : onStartAuto}
-            className="w-full py-2 rounded-xl font-semibold text-[11px] shrink-0"
+            className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs"
             style={{
               background: isAutoRunning
                 ? "linear-gradient(135deg, #ef4444, #b91c1c)"
@@ -352,10 +353,10 @@ export default function PumpControls({
         )}
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
+      <div className="order-8 md:order-8 flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
         <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
         <div
-          className="flex-1 min-h-[72px] overflow-y-auto rounded-xl px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
+          className="flex-1 min-h-[72px] overflow-y-auto rounded px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {results.length === 0 ? (
@@ -368,7 +369,7 @@ export default function PumpControls({
                 .map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between px-2 py-1 rounded-lg text-[11px] shrink-0"
+                    className="flex items-center justify-between px-2 py-1 rounded text-[11px] shrink-0"
                     style={{ background: "rgba(255,255,255,0.04)" }}
                   >
                     <span className="inline-flex shrink-0" aria-hidden>

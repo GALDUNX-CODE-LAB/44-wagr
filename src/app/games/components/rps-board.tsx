@@ -27,16 +27,16 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
   const ladderSvgClass = "w-[44px] h-[54px] sm:w-[56px] sm:h-[68px] md:w-[70px] md:h-[85px]";
 
   return (
-    <div className="w-full h-full min-h-0 flex flex-col relative overflow-hidden bg-[#1c1c1c]">
+    <div className="w-full h-full min-h-0 flex flex-col relative gap-y-3 sm:gap-y-4 md:gap-y-5 overflow-x-hidden overflow-y-auto md:overflow-y-hidden overscroll-y-contain bg-[#1c1c1c]">
       {/* ── Card ladder (top, horizontal) ─────────────────────────────────── */}
-      <div className="flex items-end justify-end gap-1 sm:gap-2 md:gap-3 px-2 sm:px-6 md:px-8 pt-3 sm:pt-6 md:pt-8 pb-1.5 sm:pb-2 flex-shrink-0 overflow-x-auto [scrollbar-width:thin]">
+      <div className="flex items-end justify-end gap-2 sm:gap-2 md:gap-3 px-2 sm:px-6 md:px-8 pt-3 sm:pt-6 md:pt-8 pb-2 sm:pb-2 flex-shrink-0 overflow-x-auto [scrollbar-width:thin]">
         {ROUND_MULTIPLIERS.map((mult, i) => {
           const isUnlocked = phase !== "idle" && currentRound > i + 1;
           const isCurrent = phase !== "idle" && currentRound === i + 1;
           const isActive = isUnlocked || isCurrent;
 
           return (
-            <div key={i} className="flex flex-col items-center gap-0.5 sm:gap-2 shrink-0">
+            <div key={i} className="flex flex-col items-center gap-1 sm:gap-2 shrink-0">
               {/* Card */}
               <motion.div
                 animate={
@@ -48,7 +48,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
                     : {}
                 }
                 transition={{ repeat: Infinity, duration: 1.8 }}
-                className="rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center relative overflow-hidden w-[52px] h-[64px] sm:w-[72px] sm:h-[88px] md:w-[90px] md:h-[110px]"
+                className="rounded flex items-center justify-center relative overflow-hidden w-[52px] h-[64px] sm:w-[72px] sm:h-[88px] md:w-[90px] md:h-[110px]"
                 style={{
                   background: isUnlocked
                     ? "linear-gradient(135deg, #22c55e 0%, #15803d 100%)"
@@ -134,7 +134,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
       </div>
 
       {/* ── Arena (middle) ───────────────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center gap-4 sm:gap-10 md:gap-16 px-2 sm:px-6 md:px-10 min-h-0">
+      <div className="flex-1 flex items-center justify-center gap-6 sm:gap-10 md:gap-16 px-3 sm:px-6 md:px-10 min-h-[min(148px,28svh)] sm:min-h-0 py-2 sm:py-0">
         {/* Player side */}
         <div className="flex flex-col items-center gap-1.5 sm:gap-3">
           <div className="text-[11px] tracking-[0.2em] text-white/30">YOU</div>
@@ -143,7 +143,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 280, damping: 18 }}
-            className="rounded-xl sm:rounded-2xl flex items-center justify-center w-[76px] h-[92px] sm:w-[92px] sm:h-[112px] md:w-[110px] md:h-[130px]"
+            className="rounded flex items-center justify-center w-[76px] h-[92px] sm:w-[92px] sm:h-[112px] md:w-[110px] md:h-[130px]"
             style={{
               background: lastPlayedRound?.result
                 ? lastPlayedRound.result === "win"
@@ -192,7 +192,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
         </div>
 
         {/* VS badge */}
-        <div className="text-[14px] sm:text-[22px] font-black text-white/[0.12] tracking-[0.15em] sm:tracking-[0.2em] shrink-0">
+        <div className="text-[14px] sm:text-[22px] font-black text-white/[0.12] tracking-[0.15em] sm:tracking-[0.2em] shrink-0 px-1 sm:px-0 py-1">
           VS
         </div>
 
@@ -204,7 +204,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 280, damping: 18 }}
-            className="rounded-xl sm:rounded-2xl flex items-center justify-center w-[76px] h-[92px] sm:w-[92px] sm:h-[112px] md:w-[110px] md:h-[130px]"
+            className="rounded flex items-center justify-center w-[76px] h-[92px] sm:w-[92px] sm:h-[112px] md:w-[110px] md:h-[130px]"
             style={{
               background: lastPlayedRound?.result
                 ? lastPlayedRound.result === "lose"
@@ -227,10 +227,10 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
       </div>
 
       {/* ── Machine / choice buttons (bottom) ───────────────────────────── */}
-      <div className="flex-shrink-0 flex flex-col items-center gap-0 pb-3 sm:pb-6 w-full max-w-[min(100%,280px)] mx-auto px-1">
+      <div className="flex-shrink-0 flex flex-col items-center gap-2 sm:gap-3 pb-4 sm:pb-6 w-full max-w-[min(100%,280px)] mx-auto px-1 pt-2 sm:pt-0">
         {/* Machine housing top */}
         <div
-          className="rounded-t-lg sm:rounded-t-xl flex items-center justify-center w-[min(100%,200px)] sm:w-[240px] h-7 sm:h-8"
+          className="rounded flex items-center justify-center w-[min(100%,200px)] sm:w-[240px] h-7 sm:h-8"
           style={{
             background: "#252525",
             borderTop: "2px solid rgba(200,162,255,0.22)",
@@ -242,12 +242,12 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
         </div>
         {/* Machine body */}
         <div
-          className="rounded-b-lg sm:rounded-b-xl w-full max-w-[min(100%,220px)] sm:max-w-[280px] h-2 sm:h-[10px]"
+          className="rounded w-full max-w-[min(100%,220px)] sm:max-w-[280px] h-2 sm:h-[10px]"
           style={{ background: "#1a1a1a" }}
         />
 
         {/* Connector lines */}
-        <div className="relative flex justify-center w-full h-7 sm:h-10 max-w-[min(100%,220px)] sm:max-w-[280px]">
+        <div className="relative flex justify-center w-full h-8 sm:h-10 max-w-[min(100%,220px)] sm:max-w-[280px] mt-0.5 sm:mt-0">
           <svg
             viewBox="0 0 280 40"
             className="w-full h-full"
@@ -274,7 +274,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
         </div>
 
         {/* RPS Buttons */}
-        <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 w-full px-1">
+        <div className="flex justify-center gap-2.5 sm:gap-3 md:gap-4 w-full px-2 pb-0.5">
           {(["rock", "paper", "scissors"] as RPSChoice[]).map((choice) => (
             <ChoiceButton
               key={choice}
@@ -300,7 +300,7 @@ export default function RPSBoard({ gameState, onPlay }: RPSBoardProps) {
               initial={{ scale: 0.6, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="rounded-xl sm:rounded-2xl px-6 py-4 sm:px-10 sm:py-6 text-center mx-4 max-w-[min(320px,92vw)] sm:max-w-none sm:min-w-[220px]"
+              className="rounded px-6 py-4 sm:px-10 sm:py-6 text-center mx-4 max-w-[min(320px,92vw)] sm:max-w-none sm:min-w-[220px]"
               style={{
                 background:
                   phase === "won"
@@ -345,7 +345,7 @@ function ChoiceButton({ choice, disabled, onClick }: { choice: RPSChoice; disabl
       whileTap={!disabled ? { scale: 0.94 } : {}}
       onClick={onClick}
       disabled={disabled}
-      className="flex flex-col items-center justify-center rounded-xl sm:rounded-2xl gap-0.5 sm:gap-1 w-[62px] h-[70px] sm:w-[72px] sm:h-[82px] md:w-[80px] md:h-[88px] shrink-0"
+      className="flex flex-col items-center justify-center rounded gap-0.5 sm:gap-1 w-[62px] h-[70px] sm:w-[72px] sm:h-[82px] md:w-[80px] md:h-[88px] shrink-0"
       style={{
         background: disabled
           ? "linear-gradient(145deg, #2a2828, #1a1818)"
@@ -361,7 +361,7 @@ function ChoiceButton({ choice, disabled, onClick }: { choice: RPSChoice; disabl
     >
       {/* Button top bevel */}
       <div
-        className="absolute inset-x-0 top-0 h-1 rounded-t-xl"
+        className="absolute inset-x-0 top-0 h-1 rounded"
         style={{ background: disabled ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.22)" }}
       />
 

@@ -309,7 +309,7 @@ function VerticalRunnerTrack({
         )}
       </div>
 
-      <div className="flex max-h-[min(44svh,320px)] min-h-[180px] w-full flex-1 flex-row items-stretch justify-center gap-1.5">
+      <div className="flex min-h-[180px] w-full flex-1 flex-row items-stretch justify-center gap-1.5 md:max-h-[min(44svh,320px)]">
         <div
           className="flex flex-col justify-between py-1 text-[9px] uppercase tracking-wider text-white/30"
           style={{ fontFamily: "'Courier New', monospace" }}

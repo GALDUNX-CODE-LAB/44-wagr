@@ -25,12 +25,13 @@ const TILE_LABELS: Record<number, string[]> = {
   4: ["LEFT", "CENTER-L", "CENTER-R", "RIGHT"],
 };
 
+// Height of each row slot (tile + header + gap) in px — keep in sync with the row sizing below
+const ROW_SLOT_PX = 120;
+
 export default function GlassBridge({ gameState, difficulty, onPickTile, boardLocked }: GlassBridgeProps) {
   const { phase, rows, currentRow } = gameState;
   const ladders = STEP_MULTIPLIERS[difficulty];
   const diffColor = GLASS_DIFFICULTY_COLORS[difficulty];
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [lostOverlayVisible, setLostOverlayVisible] = useState(true);
 
   useEffect(() => {
@@ -43,28 +44,13 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
     return () => window.clearTimeout(t);
   }, [phase]);
 
-  useEffect(() => {
-    if (phase !== "playing") return;
-    const container = scrollContainerRef.current;
-    const rowEl = rowRefs.current[currentRow];
-    if (!container || !rowEl) return;
-    requestAnimationFrame(() => {
-      const cRect = container.getBoundingClientRect();
-      const rRect = rowEl.getBoundingClientRect();
-      const rowCenterY = rRect.top + rRect.height / 2;
-      const viewCenterY = cRect.top + cRect.height / 2;
-      const delta = rowCenterY - viewCenterY;
-      container.scrollTo({
-        top: container.scrollTop + delta,
-        behavior: "smooth",
-      });
-    });
-  }, [currentRow, phase, rows.length]);
+  // How far to push the stack down so the active row stays near the bottom of the viewport.
+  // Each step advances by one ROW_SLOT_PX downward (treadmill effect).
+  const translateY = currentRow * ROW_SLOT_PX;
 
   return (
     <div
-      ref={scrollContainerRef}
-      className={`font-sans w-full h-full min-h-0 relative flex flex-col items-stretch overflow-x-hidden overflow-y-auto overscroll-y-contain bg-transparent ${boardLocked ? "pointer-events-none" : ""}`}
+      className={`font-sans w-full h-full min-h-0 relative flex flex-col items-stretch overflow-hidden bg-transparent ${boardLocked ? "pointer-events-none" : ""}`}
     >
       {/* Background abyss depth lines */}
       <div className="absolute inset-0 pointer-events-none" style={{ overflow: "hidden" }}>
@@ -87,9 +73,20 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
         />
       </div>
 
-      {/* Bridge rows — anchored to bottom so step 1 / START stay visible; scroll when tall */}
-      <div className="relative z-10 flex min-h-full w-full flex-col justify-end px-4 pb-8 pt-4 sm:px-8">
-        <div className="flex w-full max-w-3xl mx-auto flex-col-reverse gap-3 sm:gap-4">
+      {/*
+        Treadmill container:
+        - Rows are laid out bottom→top (flex-col-reverse) starting from the bottom anchor.
+        - translateY pushes the whole stack DOWN each time currentRow advances,
+          making it feel like the bridge is scrolling toward the player.
+        - The transition gives the smooth conveyor-belt motion.
+      */}
+      <div className="absolute inset-0 flex items-end justify-center px-4 pb-8 sm:px-8">
+        <motion.div
+          className="w-full max-w-3xl flex flex-col-reverse"
+          style={{ gap: 12 }}
+          animate={{ y: translateY }}
+          transition={{ type: "spring", stiffness: 260, damping: 32, mass: 1 }}
+        >
           {rows.map((row, rowIdx) => {
             const isCurrentRow = rowIdx === currentRow && phase === "playing";
             const isPast = rowIdx < currentRow;
@@ -101,13 +98,11 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
             return (
               <motion.div
                 key={row.rowIndex}
-                ref={(node) => {
-                  rowRefs.current[rowIdx] = node;
-                }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: isFuture && phase === "playing" ? 0.45 : 1, y: 0 }}
                 transition={{ delay: rowIdx * 0.04 }}
-                className="flex flex-col items-center gap-2 scroll-mt-4"
+                className="flex flex-col items-center scroll-mt-4"
+                style={{ gap: 8, minHeight: ROW_SLOT_PX - 12 }}
               >
                 {/* Row header: step # and multiplier */}
                 <div className="flex items-center gap-3">
@@ -183,7 +178,7 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
               ▶ START
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Win overlay */}
@@ -410,7 +405,12 @@ function GlassTile({ state, label, multiplier, isActive, canClick, diffColor, co
 
 function CrackSVG() {
   return (
-    <svg viewBox="0 0 120 90" className="w-full h-full max-w-none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <svg
+      viewBox="0 0 120 90"
+      className="w-full h-full max-w-none"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
+    >
       <defs>
         <radialGradient id="crackGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(255,100,100,0.3)" />

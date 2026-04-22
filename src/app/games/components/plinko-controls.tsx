@@ -53,7 +53,7 @@ export default function PlinkoControls({
     <div className="flex flex-col flex-1 min-h-0 gap-2 p-3 overflow-hidden font-sans text-[#ededed]">
       <div className="flex flex-col gap-2 shrink-0">
       <div
-        className="flex rounded-xl overflow-hidden shrink-0"
+        className="flex rounded overflow-hidden shrink-0 order-3 md:order-1"
         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
       >
         {(["manual", "auto"] as GameMode[]).map((mode) => (
@@ -61,11 +61,10 @@ export default function PlinkoControls({
             key={mode}
             type="button"
             onClick={() => onGameModeChange(mode)}
-            className="flex-1 py-1.5 text-xs font-semibold transition-all duration-200 capitalize tracking-wide"
+            className="flex-1 py-2 text-xs font-semibold transition-all duration-200 capitalize tracking-wide rounded"
             style={{
               background: gameMode === mode ? PRIMARY : "transparent",
               color: gameMode === mode ? SURFACE : "rgba(255,255,255,0.45)",
-              borderRadius: 10,
             }}
           >
             {mode}
@@ -73,24 +72,24 @@ export default function PlinkoControls({
         ))}
       </div>
 
-      <div className="shrink-0">
+      <div className="shrink-0 order-2 md:order-2">
         <div className="text-[10px] tracking-wider text-white/50 mb-1">BET AMOUNT</div>
         <div
-          className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
+          className="flex items-center gap-2 rounded px-2.5 py-2"
           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
         >
           <input
             type="number"
             value={betAmount}
             onChange={(e) => onBetAmountChange(Math.max(0, parseFloat(e.target.value) || 0))}
-            className="flex-1 bg-transparent outline-none text-white text-sm min-w-0"
+            className="flex-1 bg-transparent outline-none text-white text-sm min-w-0 rounded py-1 px-1"
             step={0.01}
             min={0}
           />
           <button
             type="button"
             onClick={() => onBetAmountChange(betAmount / 2)}
-            className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+            className="px-2.5 py-1.5 rounded text-[11px] font-semibold shrink-0"
             style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
           >
             ½
@@ -98,7 +97,7 @@ export default function PlinkoControls({
           <button
             type="button"
             onClick={() => onBetAmountChange(betAmount * 2)}
-            className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+            className="px-2.5 py-1.5 rounded text-[11px] font-semibold shrink-0"
             style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
           >
             2×
@@ -110,7 +109,7 @@ export default function PlinkoControls({
               key={v}
               type="button"
               onClick={() => onBetAmountChange(v)}
-              className="flex-1 py-1 rounded-lg text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
+              className="flex-1 py-1.5 rounded text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
             >
               ${v}
             </button>
@@ -118,7 +117,7 @@ export default function PlinkoControls({
         </div>
       </div>
 
-      <div className="shrink-0">
+      <div className="shrink-0 order-4 md:order-3">
         <div className="text-[10px] tracking-wider text-white/50 mb-1">DIFFICULTY</div>
         <div className="relative">
           <button
@@ -127,7 +126,7 @@ export default function PlinkoControls({
               setDiffOpen(!diffOpen);
               setRowsOpen(false);
             }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-sm text-white"
+            className="w-full flex items-center justify-between rounded px-2.5 py-2 text-sm text-white"
             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
           >
             <span className="flex items-center gap-2">
@@ -150,7 +149,7 @@ export default function PlinkoControls({
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className="absolute left-0 right-0 rounded-xl mt-1 z-20 overflow-hidden"
+                className="absolute left-0 right-0 rounded mt-1 z-20 overflow-hidden"
                 style={{ background: SURFACE, border: "1px solid rgba(200,162,255,0.15)" }}
               >
                 {DIFFICULTY_OPTIONS.map((opt) => (
@@ -177,7 +176,7 @@ export default function PlinkoControls({
         </div>
       </div>
 
-      <div className="shrink-0">
+      <div className="shrink-0 order-5 md:order-4">
         <div className="text-[10px] tracking-wider text-white/50 mb-1">ROWS</div>
         <div className="relative">
           <button
@@ -186,7 +185,7 @@ export default function PlinkoControls({
               setRowsOpen(!rowsOpen);
               setDiffOpen(false);
             }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-sm text-white"
+            className="w-full flex items-center justify-between rounded px-2.5 py-2 text-sm text-white"
             style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
           >
             <span>{rows}</span>
@@ -203,7 +202,7 @@ export default function PlinkoControls({
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                className="absolute left-0 right-0 rounded-xl mt-1 z-20 overflow-hidden max-h-36 overflow-y-auto"
+                className="absolute left-0 right-0 rounded mt-1 z-20 overflow-hidden max-h-36 overflow-y-auto"
                 style={{ background: SURFACE, border: "1px solid rgba(200,162,255,0.15)" }}
               >
                 {ROW_OPTIONS.map((r) => (
@@ -235,14 +234,14 @@ export default function PlinkoControls({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="shrink-0"
+            className="shrink-0 order-6 md:order-5"
           >
             <div className="text-[10px] tracking-wider text-white/50 mb-1">NUMBER OF BETS</div>
             <input
               type="number"
               value={autoCount}
               onChange={(e) => onAutoCountChange(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              className="w-full px-2.5 py-1.5 rounded-xl outline-none text-white text-sm"
+              className="w-full px-2.5 py-2.5 rounded outline-none text-white text-sm"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
               min={1}
             />
@@ -255,7 +254,7 @@ export default function PlinkoControls({
           type="button"
           whileTap={{ scale: 0.97 }}
           onClick={onBet}
-          className="w-full py-2 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
+          className="w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212] order-1 md:order-6"
           style={{
             background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
             boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
@@ -268,7 +267,7 @@ export default function PlinkoControls({
           type="button"
           whileTap={{ scale: 0.97 }}
           onClick={onAutoToggle}
-          className="w-full py-2 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
+          className="w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212] order-1 md:order-6"
           style={{
             background: isAutoRunning
               ? "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)"
@@ -281,10 +280,10 @@ export default function PlinkoControls({
       )}
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
+      <div className="flex flex-col flex-1 min-h-0 gap-1 pt-0.5 order-7 md:order-7">
         <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
         <div
-          className="flex-1 min-h-[72px] overflow-y-auto rounded-xl px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
+          className="flex-1 min-h-[72px] overflow-y-auto rounded px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {results.length === 0 ? (
@@ -297,7 +296,7 @@ export default function PlinkoControls({
                 .map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between px-2 py-1 rounded-lg text-[11px] shrink-0"
+                    className="flex items-center justify-between px-2 py-1 rounded text-[11px] shrink-0"
                     style={{ background: "rgba(255,255,255,0.04)" }}
                   >
                     <span className="text-white/45">${r.betAmount.toFixed(2)}</span>
