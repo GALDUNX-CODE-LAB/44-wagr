@@ -60,11 +60,10 @@ export default function GlassControls({
   const winProb = WIN_PROB[difficulty];
 
   return (
-    <div className="flex flex-col h-full min-h-0 gap-2 p-3 overflow-hidden font-sans text-[#ededed]">
-      <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto overscroll-contain pr-0.5">
+    <div className="flex flex-col gap-3.5 p-4 font-sans text-[#ededed] md:min-h-0 md:flex-1 md:gap-3 md:overflow-y-auto md:overscroll-contain md:p-3">
         {autoPicking && (
           <div
-            className="rounded-lg px-2.5 py-1.5 text-center text-[11px] font-semibold tracking-wide"
+            className="order-3 md:order-1 shrink-0 rounded-xl px-3 py-2 text-center text-[11px] font-semibold tracking-wide"
             style={{
               background: "rgba(200,162,255,0.1)",
               border: "1px solid rgba(200,162,255,0.2)",
@@ -76,7 +75,7 @@ export default function GlassControls({
         )}
 
         <div
-          className="flex rounded-xl overflow-hidden shrink-0"
+          className="order-4 md:order-2 flex shrink-0 gap-1 rounded-xl p-1"
           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
         >
           {(["manual", "auto"] as GameMode[]).map((mode) => (
@@ -84,11 +83,10 @@ export default function GlassControls({
               key={mode}
               type="button"
               onClick={() => !isPlaying && onGameModeChange(mode)}
-              className="flex-1 py-1.5 text-xs font-semibold transition-all duration-200 capitalize tracking-wide"
+              className="flex-1 rounded-lg py-2.5 text-xs font-semibold transition-all duration-200 capitalize tracking-wide"
               style={{
                 background: gameMode === mode ? PRIMARY : "transparent",
                 color: gameMode === mode ? SURFACE : "rgba(255,255,255,0.45)",
-                borderRadius: 10,
                 cursor: isPlaying ? "not-allowed" : "pointer",
               }}
             >
@@ -97,10 +95,10 @@ export default function GlassControls({
           ))}
         </div>
 
-        <div className="shrink-0">
-          <div className="text-[10px] tracking-wider text-white/50 mb-1">BET AMOUNT</div>
+        <div className="shrink-0 order-2 md:order-3 space-y-2">
+          <div className="text-[10px] tracking-wider text-white/50">BET AMOUNT</div>
           <div
-            className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5"
             style={{
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(200,162,255,0.1)",
@@ -111,7 +109,7 @@ export default function GlassControls({
               type="number"
               value={betAmount}
               onChange={(e) => !isPlaying && onBetAmountChange(Math.max(0, parseFloat(e.target.value) || 0))}
-              className="flex-1 bg-transparent outline-none text-white text-sm min-w-0"
+              className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1.5 text-sm text-white outline-none focus:border-white/10"
               disabled={isPlaying}
               step={0.01}
               min={0}
@@ -120,7 +118,7 @@ export default function GlassControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount / 2)}
               disabled={isPlaying}
-              className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+              className="shrink-0 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               ½
@@ -129,20 +127,20 @@ export default function GlassControls({
               type="button"
               onClick={() => !isPlaying && onBetAmountChange(betAmount * 2)}
               disabled={isPlaying}
-              className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+              className="shrink-0 rounded-lg border border-white/[0.08] px-3 py-1.5 text-[11px] font-semibold"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
             >
               2×
             </button>
           </div>
           {isIdle && (
-            <div className="flex gap-1 mt-1.5">
+            <div className="flex gap-1.5 pt-0.5">
               {[1, 5, 10, 25].map((v) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => onBetAmountChange(v)}
-                  className="flex-1 py-1 rounded-lg text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
+                  className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] py-2 text-[11px] text-white/55 transition-all"
                 >
                   ${v}
                 </button>
@@ -151,13 +149,13 @@ export default function GlassControls({
           )}
         </div>
 
-        <div className="shrink-0">
-          <div className="text-[10px] tracking-wider text-white/50 mb-1">DIFFICULTY</div>
+        <div className="shrink-0 order-5 md:order-4 space-y-2">
+          <div className="text-[10px] tracking-wider text-white/50">DIFFICULTY</div>
           <div className="relative" style={{ opacity: isPlaying ? 0.5 : 1 }}>
             <button
               type="button"
               onClick={() => !isPlaying && setDiffOpen(!diffOpen)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-sm text-white"
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-white"
               style={{
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(200,162,255,0.1)",
@@ -182,7 +180,7 @@ export default function GlassControls({
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="absolute left-0 right-0 rounded-xl mt-1 z-20 overflow-hidden"
+                  className="absolute left-0 right-0 z-20 mt-1.5 max-h-48 overflow-y-auto rounded-xl"
                   style={{ background: SURFACE, border: "1px solid rgba(200,162,255,0.15)" }}
                 >
                   {GLASS_DIFFICULTY_OPTIONS.map((opt) => (
@@ -193,7 +191,7 @@ export default function GlassControls({
                         onDifficultyChange(opt.value);
                         setDiffOpen(false);
                       }}
-                      className="w-full flex flex-col px-2.5 py-1.5 text-left transition-all"
+                      className="flex w-full flex-col rounded-lg px-2.5 py-2 text-left transition-all"
                       style={{
                         color: difficulty === opt.value ? "#fff" : "rgba(255,255,255,0.65)",
                         background: difficulty === opt.value ? "rgba(200,162,255,0.1)" : "transparent",
@@ -212,16 +210,16 @@ export default function GlassControls({
           </div>
         </div>
 
-        <div className="shrink-0">
-          <div className="text-[10px] tracking-wider text-white/50 mb-1">MULTIPLIER LADDER</div>
-          <div className="flex flex-col gap-0.5 max-h-[120px] overflow-y-auto rounded-xl px-2 py-1 border border-white/[0.08] bg-white/[0.03]">
+        <div className="hidden shrink-0 order-6 md:order-5 md:block space-y-2">
+          <div className="text-[10px] tracking-wider text-white/50">MULTIPLIER LADDER</div>
+          <div className="flex max-h-none flex-col gap-1 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 py-2 md:max-h-[120px]">
             {ladders.map((m, i) => {
               const isCurrentStep = isPlaying && i === currentRow;
               const isPast = isPlaying && i < currentRow;
               return (
                 <div
                   key={i}
-                  className="flex items-center justify-between px-1.5 py-0.5 rounded-lg text-[11px]"
+                  className="flex items-center justify-between rounded-lg px-2 py-1 text-[11px]"
                   style={{
                     background: isPast
                       ? `${diffOption.color}15`
@@ -248,7 +246,7 @@ export default function GlassControls({
         </div>
 
         <div
-          className="rounded-xl px-2.5 py-1.5 shrink-0"
+          className="hidden order-7 md:order-6 md:block shrink-0 rounded-xl px-3 py-2.5"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(200,162,255,0.08)" }}
         >
           <div className="text-[10px] tracking-wider text-white/40 mb-1">ODDS PER JUMP</div>
@@ -266,7 +264,7 @@ export default function GlassControls({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="rounded-xl px-2.5 py-1.5 shrink-0"
+              className="order-8 md:order-7 shrink-0 rounded-xl px-3 py-2"
               style={{
                 background: "rgba(200,162,255,0.08)",
                 border: "1px solid rgba(200,162,255,0.18)",
@@ -281,15 +279,15 @@ export default function GlassControls({
           )}
         </AnimatePresence>
 
-        <div className="shrink-0">
-          <div className="flex justify-between items-baseline text-[10px] tracking-wider text-white/50 mb-1 gap-2">
+        <div className="order-9 md:order-8 shrink-0 space-y-2">
+          <div className="flex items-baseline justify-between gap-2 text-[10px] tracking-wider text-white/50">
             <span className="truncate">TOTAL PROFIT ({currentMultiplier.toFixed(2)}×)</span>
             <span className={`shrink-0 font-semibold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
               {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
             </span>
           </div>
           <div
-            className="rounded-xl px-2.5 py-1.5 border border-white/[0.08] bg-white/[0.04]"
+            className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2"
             style={{ borderColor: "rgba(200,162,255,0.08)" }}
           >
             <span className="text-white text-xs font-semibold">
@@ -297,16 +295,15 @@ export default function GlassControls({
             </span>
           </div>
         </div>
-      </div>
 
       {(isIdle || canCashout) && (
-        <div className="shrink-0 pt-1 border-t border-white/[0.08] space-y-2">
+        <div className="order-1 md:order-9 shrink-0 space-y-2 border-t border-white/[0.08] pt-3 md:border-t-0 md:pt-1">
           {isIdle ? (
             <motion.button
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onBet}
-              className="w-full py-2.5 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
+              className="w-full rounded-xl border border-transparent py-3 font-semibold text-xs tracking-wide text-[#131212]"
               style={{
                 background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
                 boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
@@ -319,7 +316,7 @@ export default function GlassControls({
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onCashout}
-              className="w-full py-2.5 rounded-xl font-semibold text-[11px] tracking-wide text-[#131212]"
+              className="w-full rounded-xl border border-transparent py-3 font-semibold text-xs tracking-wide text-[#131212]"
               style={{
                 background: `linear-gradient(135deg, ${diffOption.color}, ${diffOption.color}bb)`,
                 boxShadow: `0 4px 18px ${diffOption.color}44`,
@@ -331,10 +328,10 @@ export default function GlassControls({
         </div>
       )}
 
-      <div className="flex flex-col shrink-0 min-h-0 max-h-[32%] gap-1 pt-0.5">
-        <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
+      <div className="order-10 md:order-10 flex shrink-0 flex-col gap-2 pt-1 md:max-h-[32%] md:min-h-0 md:flex-1">
+        <div className="shrink-0 text-[10px] tracking-wider text-white/50">RECENT</div>
         <div
-          className="min-h-[64px] max-h-[112px] flex-1 overflow-y-auto rounded-xl px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
+          className="min-h-[72px] max-h-[min(28vh,220px)] shrink-0 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 py-2 md:max-h-[112px] md:min-h-0 md:flex-1"
           style={{ WebkitOverflowScrolling: "touch", borderColor: "rgba(200,162,255,0.08)" }}
         >
           {results.length === 0 ? (
@@ -347,7 +344,7 @@ export default function GlassControls({
                 .map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between px-2 py-1 rounded-lg text-[11px] shrink-0"
+                    className="flex shrink-0 items-center justify-between rounded-lg px-2 py-1.5 text-[11px]"
                     style={{ background: "rgba(255,255,255,0.04)" }}
                   >
                     <span className="text-white/45">S{r.rowsCleared}</span>

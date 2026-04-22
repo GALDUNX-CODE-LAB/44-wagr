@@ -6,8 +6,11 @@ import { Ball, Bucket, Difficulty, DIFFICULTY_BIAS, Peg } from "../interfaces/in
 const GRAVITY = 0.35;
 const DAMPING = 0.58;
 const FRICTION = 0.995;
-const BALL_RADIUS = 5;
-const PEG_RADIUS = 4;
+/** Base radii at scale 1; scaled down on narrow boards so balls always fit between pegs. */
+const BALL_RADIUS_BASE = 5;
+const PEG_RADIUS_BASE = 4;
+/** Minimum gap between peg edges (ball must fit: 2×ball + 2×peg center distance — see buildBoard). */
+const PASSAGE_EDGE_CLEARANCE_PX = 2;
 
 /** App primary purple (`--color-primary`) */
 const BALL_COLOR = "#c8a2ff";
@@ -26,6 +29,8 @@ export function usePlinkoPhysics() {
   const ballsRef = useRef<Ball[]>([]);
   const pegsRef = useRef<Peg[]>([]);
   const bucketsRef = useRef<Bucket[]>([]);
+  /** Latest radii from buildBoard — dropBall must match so collision geometry stays consistent. */
+  const ballRadiusRef = useRef(BALL_RADIUS_BASE);
 
   const buildBoard = useCallback((rows: number, canvasWidth: number, canvasHeight: number, multipliers: number[]) => {
     const pegs: Peg[] = [];
@@ -33,6 +38,21 @@ export function usePlinkoPhysics() {
     const bottomPadding = canvasHeight * 0.14;
     const usableHeight = canvasHeight - topPadding - bottomPadding;
     const rowSpacing = usableHeight / rows;
+
+    /** Tightest peg center distance in any row (worst case = max columns ≈ bottom rows). */
+    let minCenterSpacing = Infinity;
+    for (let row = 0; row < rows; row++) {
+      const cols = row + 3;
+      const spacing = Math.min(canvasWidth / (cols + 1), rowSpacing * 1.1);
+      minCenterSpacing = Math.min(minCenterSpacing, spacing);
+    }
+
+    const minCenterForPassage =
+      2 * PEG_RADIUS_BASE + 2 * BALL_RADIUS_BASE + PASSAGE_EDGE_CLEARANCE_PX;
+    const physicsScale = Math.min(1, minCenterSpacing / minCenterForPassage);
+    const pegRadius = PEG_RADIUS_BASE * physicsScale;
+    const ballRadius = BALL_RADIUS_BASE * physicsScale;
+    ballRadiusRef.current = ballRadius;
 
     for (let row = 0; row < rows; row++) {
       const cols = row + 3;
@@ -45,7 +65,7 @@ export function usePlinkoPhysics() {
         pegs.push({
           x: startX + col * spacing,
           y,
-          radius: PEG_RADIUS,
+          radius: pegRadius,
           lit: false,
           litTimer: 0,
         });
@@ -87,7 +107,7 @@ export function usePlinkoPhysics() {
         y: 8,
         vx: (Math.random() - 0.5) * 0.5,
         vy: 1,
-        radius: BALL_RADIUS,
+        radius: ballRadiusRef.current,
         active: true,
         trail: [],
         color: BALL_COLOR,

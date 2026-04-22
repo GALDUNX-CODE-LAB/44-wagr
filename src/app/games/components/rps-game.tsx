@@ -32,7 +32,7 @@ export default function RPSGame() {
 
   return (
     <div
-      className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] mt-4 md:mt-10 mx-auto min-h-0 overflow-hidden rounded-2xl border border-white/10 font-sans h-[calc(100svh-5.5rem)] max-h-[calc(100svh-4rem)] md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))]"
+      className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] lg:mt-4 md:mt-10 mx-auto min-h-0 rounded-2xl border border-white/10 font-sans md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))] md:overflow-hidden"
       style={{ background: "#131212" }}
     >
       <div className="flex-1 min-h-0 md:flex-none md:h-full h-auto overflow-y-auto overflow-x-hidden flex flex-col w-full md:w-[220px] lg:w-[240px] border-t border-[rgba(200,162,255,0.12)] md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] pt-2 md:pt-0 md:overflow-hidden">
@@ -58,7 +58,7 @@ export default function RPSGame() {
         />
       </div>
 
-      <div className="flex-shrink-0 max-h-[40svh] h-[40svh] md:h-full md:max-h-none md:flex-1 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
+      <div className="flex-shrink-0 min-h-[50vh] w-full md:h-full md:min-h-0 md:flex-1 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
         <RPSBoard gameState={gameState} onPlay={play} />
       </div>
     </div>

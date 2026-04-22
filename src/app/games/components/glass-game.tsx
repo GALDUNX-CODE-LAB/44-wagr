@@ -50,11 +50,11 @@ export default function GlassGame() {
 
   return (
     <div
-      className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] mt-4 md:mt-10 mx-auto min-h-0 overflow-hidden rounded-2xl border border-white/10 font-sans h-[calc(100svh-5.5rem)] max-h-[calc(100svh-4rem)] md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))]"
+      className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] lg:mt-4 md:mt-10 mx-auto rounded-2xl border border-white/10 font-sans md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))] md:overflow-hidden overflow-x-hidden"
       style={{ background: "#131212" }}
     >
-      {/* Sidebar */}
-      <div className="flex flex-col flex-1 min-h-0 md:flex-none md:h-full md:min-h-0 h-auto max-h-[52svh] md:max-h-none overflow-hidden w-full md:w-[220px] lg:w-[240px] border-t border-[rgba(200,162,255,0.12)] md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] pt-2 md:pt-0">
+      {/* Controls — capped scrollable panel at bottom on mobile */}
+      <div className="w-full shrink-0 overflow-y-auto overflow-x-hidden overscroll-contain border-t border-[rgba(200,162,255,0.12)] md:h-full md:w-[220px] md:flex-none md:overflow-hidden md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] lg:w-[240px]">
         <GlassControls
           gameMode={gameMode}
           onGameModeChange={setGameMode}
@@ -77,14 +77,9 @@ export default function GlassGame() {
         />
       </div>
 
-      {/* Board */}
-      <div className="flex-shrink-0 min-h-[min(42svh,320px)] h-[min(48svh,360px)] md:h-full md:max-h-none md:flex-1 md:min-h-0 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
-        <GlassBridge
-          gameState={gameState}
-          difficulty={difficulty}
-          onPickTile={pickTile}
-          boardLocked={boardLocked}
-        />
+      {/* Board — explicit height on mobile so GlassBridge h-full resolves correctly */}
+      <div className="relative h-[min(56vh,520px)] w-full min-w-0 overflow-hidden bg-[#1c1c1c] md:h-full md:flex-1 md:min-h-0">
+        <GlassBridge gameState={gameState} difficulty={difficulty} onPickTile={pickTile} boardLocked={boardLocked} />
       </div>
     </div>
   );

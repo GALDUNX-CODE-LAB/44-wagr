@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { MdOutlineCasino } from "react-icons/md";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
@@ -12,23 +13,39 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
 
-export default function TrendingGames() {
-  const trendingGames = [
-    { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash2.png" },
-    { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip2.png" },
-    { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice2.png" },
-    { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge2.png" },
-    { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines2.png" },
-    { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko2.png" },
-    { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump2.png" },
-    { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light2.png" },
-    { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps2.png" },
-    { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels2.png" },
-  ];
+const TRENDING_GAMES = [
+  { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
+  { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
+  { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
+  { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge2.png", link: "/games/glass" },
+  { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines2.png", link: "/games/mines" },
+  { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko2.png", link: "/games/plinko" },
+  { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump2.png", link: "/games/pump" },
+  { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light2.png", link: "/games/redlight" },
+  { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps2.png", link: "/games/rps" },
+  { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
+] as const;
 
+export default function TrendingGames() {
+  const router = useRouter();
   const swiperRef = useRef<SwiperType | null>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
+
+  const handleSelectGame = (game: (typeof TRENDING_GAMES)[number]) => {
+    try {
+      const stored = localStorage.getItem("continue-playing");
+      let parsed: { name: string; image: string; link: string }[] = stored ? JSON.parse(stored) : [];
+
+      parsed = parsed.filter((g) => g.link !== game.link);
+      parsed.unshift({ name: game.name, image: game.image, link: game.link });
+      localStorage.setItem("continue-playing", JSON.stringify(parsed));
+      router.push(game.link);
+    } catch (err) {
+      console.error("Error updating localStorage:", err);
+      router.push(game.link);
+    }
+  };
 
   return (
     <div className="py-3 rounded-lg relative">
@@ -101,9 +118,20 @@ export default function TrendingGames() {
             releaseOnEdges: true,
           }}
         >
-          {trendingGames.map((game: any, index: number) => (
+          {TRENDING_GAMES.map((game, index) => (
             <SwiperSlide key={index} style={{ width: 'auto' }}>
-              <div className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform duration-200">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSelectGame(game)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSelectGame(game);
+                  }
+                }}
+                className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform duration-200"
+              >
                 <Image
                   src={game.image}
                   fill
