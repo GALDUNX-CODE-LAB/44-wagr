@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { FairnessGame } from "../../../interfaces/interface";
 import { getUserSeeds, verifyFairness } from "../../../lib/api";
@@ -70,8 +71,8 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
           >
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
               <div className="flex items-center gap-2">
-                <span className="grid h-6 w-6 place-items-center rounded-md bg-emerald-500/10 text-emerald-400 text-xs">
-                  ✓
+                <span className="grid h-6 w-6 place-items-center rounded-md bg-emerald-500/10 text-emerald-400">
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
                 </span>
                 <h2 className="text-sm md:text-base font-semibold">Fairness</h2>
               </div>

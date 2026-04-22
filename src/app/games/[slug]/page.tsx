@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useSidebarCollapsed } from "../../../components/sidebar-collapsed-context";
 // import DiceGame from '../components/games/dice'
 
 // Dynamically import components based on slug
@@ -10,12 +11,21 @@ const gamesMap: Record<string, any> = {
   coin: dynamic(() => import("../components/games/coin")),
   crash: dynamic(() => import("../components/games/crash")),
   wheel: dynamic(() => import("../components/games/wheel")),
+  plinko: dynamic(() => import("../components/games/plinko")),
+  mines: dynamic(() => import("../components/games/mines")),
+  pump: dynamic(() => import("../components/games/pump")),
+  redlight: dynamic(() => import("../components/games/redlight")),
+  rps: dynamic(() => import("../components/games/rps")),
+  glass: dynamic(() => import("../components/games/glass")),
 };
 
 export default function GamePage() {
   const { slug } = useParams() as { slug: string };
+  const { collapsed } = useSidebarCollapsed();
 
   const GameComponent = gamesMap[slug];
 
-  return <div>{GameComponent ? <GameComponent /> : <p>Game not found.</p>}</div>;
+  return (
+    <div className={collapsed ? undefined : "px-5"}>{GameComponent ? <GameComponent /> : <p>Game not found.</p>}</div>
+  );
 }

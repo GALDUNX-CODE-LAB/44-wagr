@@ -28,7 +28,7 @@ export default function MarketDetailsPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("❌ Error fetching market:", err);
+        console.error("Error fetching market:", err);
         setError(err.message || "Failed to load market");
         setLoading(false);
       });

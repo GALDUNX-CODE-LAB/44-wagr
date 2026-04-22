@@ -454,7 +454,6 @@ export default function PointsModal({ open, onClose }: PointsModalProps) {
             <div className="bg-[#1a1a1a] border border-white/10 rounded-lg p-4">
               <p className="text-sm text-gray-400">Available Points</p>
               <p className="text-2xl font-bold text-white">{userPoints.toLocaleString()} pts</p>
-              <p className="text-xs text-gray-500 mt-2">Redeemed credits expire after 72 hours</p>
             </div>
 
             <form onSubmit={handleRedeem} className="space-y-3">

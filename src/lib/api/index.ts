@@ -245,11 +245,23 @@ export const placeDiceBet = async ({
   return response;
 };
 
-export const fetchBanners = async (type: "home" | "game") => {
+export type BannerPlacement = "home" | "game" | "lottery";
+
+export interface BannerRecord {
+  _id: string;
+  imageUrl: string;
+  type: BannerPlacement;
+  size: "desktop" | "mobile";
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const fetchBanners = async (type: BannerPlacement) => {
   const response = await apiHandler(`/banner/public?type=${type}`, {
     method: "GET",
   });
-  return response?.data || response || [];
+  return (response?.data ?? response ?? []) as BannerRecord[];
 };
 
 export const fetchMarkets = async () => {
@@ -339,7 +351,7 @@ export const fetchMarketById = async (
   return { market: data.market, commentCount: data.commentCount };
 };
 
-// ✅ Place a market bet
+// Place a market bet
 export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
   return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",

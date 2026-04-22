@@ -40,7 +40,7 @@ export default function ContinuePlaying() {
 
   if (cachedGames.length === 0) {
     return (
-      <div className="bg-black/20 p-6 rounded-lg">
+      <div className="bg-black/20 p-4 rounded-lg">
         <h2 className="text-white font-semibold text-lg mb-2">Continue Playing</h2>
         <p className="text-gray-400 text-sm">Select a game and start</p>
       </div>
@@ -48,7 +48,7 @@ export default function ContinuePlaying() {
   }
 
   return (
-    <div className="py-6 rounded-lg relative">
+    <div className="py-3 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg">Continue Playing</h2>
         <div className="flex gap-2">

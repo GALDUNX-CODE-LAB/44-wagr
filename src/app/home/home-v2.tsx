@@ -12,7 +12,7 @@ import RandomLottery from "./random-lottery";
 
 export default function HomeV2() {
   return (
-    <div className="text-white px-5">
+    <div className="text-white px-5 pb-2">
       <BannerSlider type="home" />
       <GameSearch />
       <ContinuePlaying />

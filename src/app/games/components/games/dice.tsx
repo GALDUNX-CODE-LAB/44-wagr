@@ -95,7 +95,7 @@ export default function DiceGame() {
 
       return true;
     } catch (error: any) {
-      console.error("🎲 Bet Error:", error);
+      console.error("Bet Error:", error);
       alert(`Bet failed: ${error?.message || error}`);
 
       if (diceRef.current) {
@@ -331,14 +331,14 @@ export default function DiceGame() {
             {!isLoggedIn
               ? "Login to Play"
               : autoMode && isBetting
-              ? "Stop Auto"
-              : isBetting
-              ? autoMode
-                ? "Auto Playing..."
-                : "Placing Bet..."
-              : autoMode
-              ? "Start Auto Play"
-              : "Play"}
+                ? "Stop Auto"
+                : isBetting
+                  ? autoMode
+                    ? "Auto Playing..."
+                    : "Placing Bet..."
+                  : autoMode
+                    ? "Start Auto Play"
+                    : "Play"}
           </button>
         </div>
       </div>

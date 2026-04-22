@@ -76,13 +76,13 @@ export default function LiveWinsSection() {
   }, [queryClient]);
 
   return (
-    <section className="mb-20 w-full py-6">
-      <div className="flex items-start gap-2 mb-4">
+    <section className="mb-10 w-full py-3">
+      <div className="flex items-start gap-2 mb-3">
         <Award className="text-[#c8a2ff]" />
         <h2 className="text-xl font-bold text-white">Live Wins</h2>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-3">
         {/* {gameCategories.map((category) => (
           <button
             key={category}

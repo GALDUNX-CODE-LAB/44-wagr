@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Bell } from "lucide-react";
+import { X, Bell, Check, Circle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useUser } from "../hooks/useUserData";
@@ -160,7 +160,11 @@ export default function NotificationsModal({ open, onClose }: NotificationsModal
                           n.read ? "bg-white/5 text-white/60" : "bg-primary/15 text-primary"
                         }`}
                       >
-                        {!n.read ? "•" : "✓"}
+                        {!n.read ? (
+                          <Circle className="h-2 w-2 fill-primary text-primary" aria-hidden />
+                        ) : (
+                          <Check className="h-3.5 w-3.5 text-white/60" strokeWidth={2.5} aria-hidden />
+                        )}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">

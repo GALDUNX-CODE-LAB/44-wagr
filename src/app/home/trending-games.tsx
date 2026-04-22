@@ -31,7 +31,7 @@ export default function TrendingGames() {
   const [isEnd, setIsEnd] = useState(false);
 
   return (
-    <div className="py-6 rounded-lg relative">
+    <div className="py-3 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex gap-1 items-center">
           <MdOutlineCasino className="text-primary" />

@@ -27,9 +27,10 @@ import { logout } from "../lib/api/auth";
 import { getCookie } from "../lib/api/cookie";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getUserData, getNotifications } from "../lib/api";
+import { getNotifications } from "../lib/api";
 import { useUser } from "../hooks/useUserData";
 import NotificationsModal from "./notification-modal";
+import { useSidebarCollapsed } from "./sidebar-collapsed-context";
 
 export default function NavbarV2() {
   const [focused, setFocused] = useState(false);
@@ -61,11 +62,6 @@ export default function NavbarV2() {
     if (token) setIsLoggedIn(true);
   }, []);
 
-  const { data: userData, isLoading } = useQuery({
-    queryKey: ["user-data"],
-    queryFn: getUserData,
-  });
-
   const { balance } = useUser();
 
   const { data: notifications = [] } = useQuery({
@@ -76,6 +72,8 @@ export default function NavbarV2() {
   });
 
   const unreadCount = notifications.filter((n: any) => !n.read).length;
+
+  const { collapsed: sidebarCollapsed } = useSidebarCollapsed();
 
   return (
     <>
@@ -88,18 +86,34 @@ export default function NavbarV2() {
         />
       )}
       <div className="wrap relative h-[65px] w-full" />
-      <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
+      <div className="fixed left-0 top-0 z-50 h-[66px] w-full bg-[#212121] lg:left-[var(--sidebar-width)] lg:w-[calc(100vw-var(--sidebar-width))]">
         <nav className="w-full h-full sm:border-b border-white/15 text-white flex items-center justify-between px-6 py-3">
           <div className="wrap lg:hidden max-h-[70px]" onClick={() => router.push("/")}>
             <Image src={"/assets/44.png"} alt="44-wager" width={70} height={70} />
           </div>
-          <div className="flex-1 max-w-md hidden lg:block">
-            <div className="flex h-[30px] items-center border border-white/20 rounded-md px-3 py-2">
-              <Search className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex lg:max-w-xl">
+            {sidebarCollapsed && (
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="shrink-0 rounded-md py-1 transition-opacity hover:opacity-90"
+                aria-label="Home"
+              >
+                <Image
+                  src="/assets/44.png"
+                  alt="44-wager"
+                  width={100}
+                  height={44}
+                  className="h-9 w-auto max-w-[100px] object-contain"
+                />
+              </button>
+            )}
+            <div className="flex min-w-0 flex-1 items-center border border-white/20 rounded-md px-3 py-2 h-[30px]">
+              <Search className="mr-2 h-4 w-4 shrink-0 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="bg-transparent outline-none flex-1 text-xs"
+                className="min-w-0 flex-1 bg-transparent text-xs outline-none"
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
               />

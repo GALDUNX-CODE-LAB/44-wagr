@@ -70,7 +70,7 @@ const DiceRollerComponent = ({ onClick, betType, target }: DiceRollerProps, ref:
   };
 
   const rollToValue = async (roll: number, isWin: boolean) => {
-    console.log("🎲 Dice Roll API Response:", { roll, isWin });
+    console.log("Dice Roll API Response:", { roll, isWin });
 
     // First do the rolling animation
     await rollDice();
@@ -95,7 +95,7 @@ const DiceRollerComponent = ({ onClick, betType, target }: DiceRollerProps, ref:
     setTimeout(() => {
       onClick();
       isWin && playDiceRollWin();
-      // setResultText(isWin ? `🎉 You WON! Rolled ${roll.toFixed(2)}` : `❌ You LOST! Rolled ${roll.toFixed(2)}`);
+      // setResultText(isWin ? `You WON! Rolled ${roll.toFixed(2)}` : `You LOST! Rolled ${roll.toFixed(2)}`);
       // setShowPopup(true);
       queryClient.invalidateQueries({ queryKey: ["user-data"] });
     }, 100);

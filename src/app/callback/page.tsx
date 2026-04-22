@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { googleLogin, setAuthTokens } from "../../lib/api/auth";
 import SetupProfileModal from "../../components/set-profile-modal";
-import { setupProfile } from "../../lib/api";
+import { CircleCheck, CircleX } from "lucide-react";
 
 export default function AuthCallback() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -43,7 +43,7 @@ export default function AuthCallback() {
       }
 
       try {
-        console.log("🔄 Processing Google login with code:", code);
+        console.log("Processing Google login with code:", code);
 
         // Exchange code for tokens using the existing googleLogin function
         const result = await googleLogin(code);
@@ -55,7 +55,7 @@ export default function AuthCallback() {
           return;
         }
 
-        console.log("🎯 Google login result:", result);
+        console.log("Google login result:", result);
 
         // The googleLogin function already calls setAuthTokens internally,
         // so we just need to verify the tokens were set
@@ -65,7 +65,7 @@ export default function AuthCallback() {
           ?.split("=")[1];
 
         if (storedToken) {
-          console.log("✅ Tokens stored successfully in cookies");
+          console.log("Tokens stored successfully in cookies");
 
           setStatus("success");
           setMessage("Login successful! Redirecting...");
@@ -74,11 +74,11 @@ export default function AuthCallback() {
           window.dispatchEvent(new Event("auth-change"));
           window.location.href = "/";
         } else {
-          console.error("❌ No token found in cookies after login");
+          console.error("No token found in cookies after login");
           throw new Error("Authentication failed - no tokens stored");
         }
       } catch (error) {
-        console.error("❌ Google login failed:", error);
+        console.error("Google login failed:", error);
         setStatus("error");
         setMessage(error instanceof Error ? error.message : "Login failed");
 
@@ -112,7 +112,9 @@ export default function AuthCallback() {
 
           {status === "success" && (
             <>
-              <div className="text-green-500 text-5xl mb-4">✓</div>
+              <div className="flex justify-center mb-4">
+                <CircleCheck className="w-14 h-14 text-green-500" strokeWidth={1.75} aria-hidden />
+              </div>
               <h2 className="text-xl font-bold text-white mb-2">Login Successful!</h2>
               <p className="text-white/70">{message}</p>
             </>
@@ -120,7 +122,9 @@ export default function AuthCallback() {
 
           {status === "error" && (
             <>
-              <div className="text-red-500 text-5xl mb-4">✗</div>
+              <div className="flex justify-center mb-4">
+                <CircleX className="w-14 h-14 text-red-500" strokeWidth={1.75} aria-hidden />
+              </div>
               <h2 className="text-xl font-bold text-white mb-2">Login Failed</h2>
               <p className="text-red-400 text-sm">{message}</p>
               <p className="text-white/50 text-sm mt-2">Redirecting to home page...</p>

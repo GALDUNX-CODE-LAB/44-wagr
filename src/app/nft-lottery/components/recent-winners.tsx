@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Bitcoin } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecentLotteryWinners } from "../../../lib/api";
 
@@ -31,8 +31,8 @@ export default function RecentWinners() {
   return (
     <div className="w-full bg-[#212121] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-3 sm:mb-4">
-        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-          <Bitcoin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-400" />
+        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500/15 border border-amber-400/25 flex items-center justify-center">
+          <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" strokeWidth={2} />
         </div>
         <h2 className="text-xs sm:text-sm font-semibold text-white">Recent Winners</h2>
       </div>
@@ -74,8 +74,8 @@ export default function RecentWinners() {
               </div>
               <div className="text-right flex items-center gap-1.5 flex-shrink-0">
                 <p className="text-xs font-semibold text-[#C8A2FF]">{winner.payout}</p>
-                <div className="w-5 h-5 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-                  <Bitcoin className="w-2.5 h-2.5 text-green-400" />
+                <div className="w-5 h-5 rounded-full bg-amber-500/10 border border-amber-400/20 flex items-center justify-center">
+                  <Trophy className="w-2.5 h-2.5 text-amber-400" strokeWidth={2} />
                 </div>
               </div>
             </div>

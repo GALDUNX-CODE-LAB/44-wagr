@@ -11,6 +11,13 @@ const nextConfig = {
     };
     return config;
   },
+  // Mirrors webpack resolve.fallback for `buffer` when running `next dev --turbopack`.
+  // See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbo
+  turbopack: {
+    resolveAlias: {
+      buffer: "buffer",
+    },
+  },
   images: {
     remotePatterns: [
       {

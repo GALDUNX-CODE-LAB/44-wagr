@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, X, Search } from "lucide-react";
+import { X, Search } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FaCircle } from "react-icons/fa";
@@ -66,11 +66,10 @@ export default function GameSearch() {
   };
 
   return (
-    <div className="w-full mx-auto mt-6 relative py-6" ref={containerRef}>
+    <div className="w-full mx-auto mt-3 relative py-2" ref={containerRef}>
       <div className="flex items-center bg-secondary border border-white/10 rounded-lg px-3 py-2">
-        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary cursor-pointer">
-          <span className="text-sm text-black">{selectedCategory}</span>
-          <ChevronDown className="w-4 h-4 text-black/70" />
+        <div className="flex items-center px-2 py-1 rounded-md bg-primary shrink-0">
+          <span className="text-sm font-medium text-black">{selectedCategory}</span>
         </div>
         <div className="flex items-center flex-1 ml-3">
           <Search className="w-4 h-4 text-white/50 mr-2 shrink-0" />
