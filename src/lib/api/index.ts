@@ -351,7 +351,7 @@ export const fetchMarketById = async (
   return { market: data.market, commentCount: data.commentCount };
 };
 
-// ✅ Place a market bet
+// Place a market bet
 export const placeMarketBet = async (marketId: string, side: "YES" | "NO", stake: number) => {
   return await apiHandler(`/meta-market/${marketId}/bet`, {
     method: "POST",

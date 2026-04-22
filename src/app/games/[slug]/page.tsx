@@ -15,6 +15,8 @@ const gamesMap: Record<string, any> = {
   mines: dynamic(() => import("../components/games/mines")),
   pump: dynamic(() => import("../components/games/pump")),
   redlight: dynamic(() => import("../components/games/redlight")),
+  rps: dynamic(() => import("../components/games/rps")),
+  glass: dynamic(() => import("../components/games/glass")),
 };
 
 export default function GamePage() {

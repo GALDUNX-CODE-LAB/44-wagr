@@ -152,7 +152,10 @@ export default function RLGLControls({
             <span className="flex items-center gap-2 min-w-0">
               <span className="w-2 h-2 shrink-0 rounded-full" style={{ background: diffOption.color }} />
               <span className="truncate">{diffOption.label}</span>
-              <span className="text-[11px] text-white/30 shrink-0">{diffOption.tag}</span>
+              <span className="text-[11px] text-white/30 shrink-0 inline-flex items-center gap-0.5">
+                {diffOption.value === "professional" && <Skull className="w-3 h-3 opacity-70 shrink-0" aria-hidden />}
+                {diffOption.tag}
+              </span>
             </span>
             <ChevronDown
               className="w-3.5 h-3.5 shrink-0 text-white/40 transition-transform duration-200"
@@ -184,7 +187,10 @@ export default function RLGLControls({
                   >
                     <span className="w-2 h-2 shrink-0 rounded-full" style={{ background: opt.color }} />
                     <span>{opt.label}</span>
-                    <span className="ml-auto text-[11px] text-white/30">{opt.tag}</span>
+                    <span className="ml-auto text-[11px] text-white/30 inline-flex items-center gap-0.5">
+                      {opt.value === "professional" && <Skull className="w-3 h-3 opacity-70 shrink-0" aria-hidden />}
+                      {opt.tag}
+                    </span>
                   </button>
                 ))}
               </motion.div>

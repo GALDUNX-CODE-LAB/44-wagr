@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
+import { ShoppingCart } from "lucide-react";
 import NumberSelection from "../components/number-selection";
 import {
   fetchLotteryNumbers,
@@ -221,7 +222,7 @@ export default function LotteryDetailsPage() {
             Back
           </button>
           <div className="w-10 h-10 rounded-full bg-[#212121] border border-white/10 flex items-center justify-center">
-            <span className="text-sm">🛒</span>
+            <ShoppingCart className="w-4 h-4 text-white/80" strokeWidth={2} aria-hidden />
           </div>
         </div>
 

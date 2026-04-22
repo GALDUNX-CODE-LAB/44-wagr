@@ -54,7 +54,7 @@ export const marketData = [
       {
         name: "Satoshi",
         avatar: "/avatars/satoshi.png",
-        text: "HODL 🚀🚀🚀",
+        text: "HODL",
       },
     ],
     trend: [
@@ -74,7 +74,7 @@ export const marketData = [
       {
         name: "Satoshi",
         avatar: "/avatars/satoshi.png",
-        text: "HODL 🚀🚀🚀",
+        text: "HODL",
       },
     ],
     trend: [
@@ -94,7 +94,7 @@ export const marketData = [
       {
         name: "Satoshi",
         avatar: "/avatars/satoshi.png",
-        text: "HODL 🚀🚀🚀",
+        text: "HODL",
       },
     ],
     trend: [
@@ -114,7 +114,7 @@ export const marketData = [
       {
         name: "Satoshi",
         avatar: "/avatars/satoshi.png",
-        text: "HODL 🚀🚀🚀",
+        text: "HODL",
       },
     ],
     trend: [
@@ -124,9 +124,7 @@ export const marketData = [
       { time: "Today", yes: 45, no: 55 },
     ],
   },
-  
 ];
-
 
 export const nftLotteryData = [
   {

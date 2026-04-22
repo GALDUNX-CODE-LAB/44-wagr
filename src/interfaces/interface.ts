@@ -581,7 +581,7 @@ export const REDLIGHT_DIFFICULTY_OPTIONS: { value: RedlightDifficulty; label: st
   { value: "easy", label: "Easy", color: "#22c55e", tag: "chill" },
   { value: "medium", label: "Medium", color: "#f59e0b", tag: "risky" },
   { value: "hard", label: "Hard", color: "#ef4444", tag: "dangerous" },
-  { value: "professional", label: "Professional", color: "#a855f7", tag: "☠️ insane" },
+  { value: "professional", label: "Professional", color: "#a855f7", tag: "insane" },
 ];
 
 export const REDLIGHT_DIFFICULTY_COLORS: Record<RedlightDifficulty, string> = {
@@ -590,3 +590,189 @@ export const REDLIGHT_DIFFICULTY_COLORS: Record<RedlightDifficulty, string> = {
   hard: "#ef4444",
   professional: "#a855f7",
 };
+
+export type RPSGameMode = "manual" | "auto";
+export type RPSChoice = "rock" | "paper" | "scissors";
+export type RoundResult = "win" | "lose" | "draw";
+
+export interface RPSRound {
+  roundIndex: number; // 0-based, how many wins achieved
+  playerChoice: RPSChoice | null;
+  houseChoice: RPSChoice | null;
+  result: RoundResult | null;
+}
+
+export interface RPSGameState {
+  phase: "idle" | "playing" | "won" | "lost" | "draw";
+  currentRound: number; // 0 = not started, 1–5 = active round
+  maxRounds: number; // fixed at 5
+  rounds: RPSRound[];
+  currentMultiplier: number;
+  betAmount: number;
+  profit: number;
+  animating: boolean;
+}
+
+export interface RPSBetResult {
+  id: string;
+  roundsWon: number;
+  multiplier: number;
+  payout: number;
+  betAmount: number;
+  won: boolean;
+}
+
+// Multipliers for each level (winning N rounds)
+// Round 1 win → 1.00x (just moved to level 1)
+// Each win roughly doubles: 1x → 1.96x → 3.92x → 7.84x → 15.68x
+export const ROUND_MULTIPLIERS = [1.0, 1.96, 3.92, 7.84, 15.68];
+
+// House choice is random BUT with difficulty bias (chance house picks winning move)
+// 0 = pure random (33% each), higher = more likely house wins
+export type RPSDifficulty = "easy" | "medium" | "hard";
+
+export const HOUSE_WIN_BIAS: Record<RPSDifficulty, number> = {
+  easy: 0.28, // house wins 28% of non-draw games
+  medium: 0.38,
+  hard: 0.5,
+};
+
+export const BEATS: Record<RPSChoice, RPSChoice> = {
+  rock: "scissors",
+  paper: "rock",
+  scissors: "paper",
+};
+
+export const LOSES_TO: Record<RPSChoice, RPSChoice> = {
+  rock: "paper",
+  paper: "scissors",
+  scissors: "rock",
+};
+
+export function getResult(player: RPSChoice, house: RPSChoice): RoundResult {
+  if (player === house) return "draw";
+  if (BEATS[player] === house) return "win";
+  return "lose";
+}
+
+export function generateHouseChoice(playerChoice: RPSChoice, difficulty: RPSDifficulty): RPSChoice {
+  const r = Math.random();
+  const winBias = HOUSE_WIN_BIAS[difficulty];
+
+  // Bias: house picks winning move with winBias probability,
+  // losing move with (1 - winBias) * 0.5, draw with (1 - winBias) * 0.5
+  if (r < winBias) {
+    // House wins
+    return LOSES_TO[playerChoice];
+  } else if (r < winBias + (1 - winBias) * 0.5) {
+    // Draw
+    return playerChoice;
+  } else {
+    // Player wins
+    return BEATS[playerChoice];
+  }
+}
+
+export const CHOICE_LABELS: Record<RPSChoice, string> = {
+  rock: "Rock",
+  paper: "Paper",
+  scissors: "Scissors",
+};
+
+export const RPS_DIFFICULTY_OPTIONS: { value: RPSDifficulty; label: string; color: string }[] = [
+  { value: "easy", label: "Easy", color: "#22c55e" },
+  { value: "medium", label: "Medium", color: "#f59e0b" },
+  { value: "hard", label: "Hard", color: "#ef4444" },
+];
+
+export type GlassDifficulty = "easy" | "medium" | "hard";
+export type TileState = "hidden" | "safe" | "broken" | "active" | "skipped";
+
+export interface Tile {
+  id: string; // e.g. "row-0-tile-1"
+  rowIndex: number;
+  tileIndex: number;
+  isSafe: boolean;
+  state: TileState;
+}
+
+export interface BridgeRow {
+  rowIndex: number;
+  tiles: Tile[];
+  safeIndex: number; // which tile is safe (0-based)
+  revealed: boolean;
+}
+
+export interface GlassGameState {
+  phase: "idle" | "playing" | "won" | "lost";
+  rows: BridgeRow[];
+  currentRow: number; // 0-based, which row player is choosing
+  currentMultiplier: number;
+  betAmount: number;
+  profit: number;
+  totalRows: number;
+}
+
+export interface GlassBetResult {
+  id: string;
+  rowsCleared: number;
+  multiplier: number;
+  payout: number;
+  betAmount: number;
+  won: boolean;
+}
+
+// Tiles per row per difficulty
+export const TILES_PER_ROW: Record<GlassDifficulty, number> = {
+  easy: 2,
+  medium: 3,
+  hard: 4,
+};
+
+export const TOTAL_ROWS = 6;
+
+// Multiplier at each step (cumulative — what you get if you cash out here)
+// Step 0 = first jump, step 5 = sixth jump (full clear)
+export const STEP_MULTIPLIERS: Record<GlassDifficulty, number[]> = {
+  easy: [1.1, 1.22, 1.35, 1.5, 1.68, 1.9],
+  medium: [1.2, 1.44, 1.73, 2.1, 2.55, 3.15],
+  hard: [1.4, 1.96, 2.74, 3.84, 5.38, 7.55],
+};
+
+export const GLASS_DIFFICULTY_OPTIONS: { value: GlassDifficulty; label: string; color: string; tag: string }[] = [
+  { value: "easy", label: "Easy", color: "#22c55e", tag: "2 tiles · low risk" },
+  { value: "medium", label: "Medium", color: "#f59e0b", tag: "3 tiles · med risk" },
+  { value: "hard", label: "Hard", color: "#ef4444", tag: "4 tiles · high risk" },
+];
+
+export const GLASS_DIFFICULTY_COLORS: Record<GlassDifficulty, string> = {
+  easy: "#22c55e",
+  medium: "#f59e0b",
+  hard: "#ef4444",
+};
+
+// Win probability per jump
+export const WIN_PROB: Record<GlassDifficulty, number> = {
+  easy: 0.5, // 1 in 2
+  medium: 0.333, // 1 in 3
+  hard: 0.25, // 1 in 4
+};
+
+export function buildBridge(difficulty: GlassDifficulty): BridgeRow[] {
+  const tilesPerRow = TILES_PER_ROW[difficulty];
+  return Array.from({ length: TOTAL_ROWS }, (_, rowIdx) => {
+    const safeIndex = Math.floor(Math.random() * tilesPerRow);
+    return {
+      rowIndex: rowIdx,
+      safeIndex,
+      revealed: false,
+      tiles: Array.from({ length: tilesPerRow }, (__, tileIdx) => ({
+        id: `row-${rowIdx}-tile-${tileIdx}`,
+        rowIndex: rowIdx,
+        tileIndex: tileIdx,
+        isSafe: tileIdx === safeIndex,
+        state: "hidden" as TileState,
+      })),
+    };
+  });
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { Bomb, Gem } from "lucide-react";
 
 interface MinesResultOverlayProps {
   phase: "idle" | "playing" | "won" | "lost";
@@ -45,21 +46,23 @@ export default function MinesResultOverlay({
               minWidth: 180,
             }}
           >
-            <div className="text-2xl mb-1">{isLost ? "💥" : "💎"}</div>
+            <div className="mb-1 flex justify-center">
+              {isLost ? (
+                <Bomb className="w-7 h-7 text-red-400" strokeWidth={2} />
+              ) : (
+                <Gem className="w-7 h-7 text-emerald-400" strokeWidth={2} />
+              )}
+            </div>
             <div className={`font-semibold text-sm tracking-wide ${isLost ? "text-red-400" : "text-emerald-400"}`}>
               {isLost ? "BOOM!" : "CASHED OUT"}
             </div>
             {isWon && (
               <>
                 <div className="text-white/45 text-[10px] mt-1">{multiplier}× multiplier</div>
-                <div className="text-emerald-400 text-lg font-semibold mt-1">
-                  +${(payout - betAmount).toFixed(2)}
-                </div>
+                <div className="text-emerald-400 text-lg font-semibold mt-1">+${(payout - betAmount).toFixed(2)}</div>
               </>
             )}
-            {isLost && (
-              <div className="text-red-400 text-base font-semibold mt-1">-${betAmount.toFixed(2)}</div>
-            )}
+            {isLost && <div className="text-red-400 text-base font-semibold mt-1">-${betAmount.toFixed(2)}</div>}
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={onPlayAgain}

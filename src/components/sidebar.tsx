@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Gamepad2,
   ArrowRightLeft,
@@ -13,6 +14,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Bomb,
+  Hand,
+  Layers2,
 } from "lucide-react";
 import { TbBalloon, TbGraph } from "react-icons/tb";
 import { RxDashboard } from "react-icons/rx";
@@ -31,7 +34,29 @@ export default function Sidebar() {
   const [gamesOpen, setGamesOpen] = useState(false);
   const [gamesPopoverOpen, setGamesPopoverOpen] = useState(false);
   const [mobileGamesOpen, setMobileGamesOpen] = useState(false);
+  const [mobileSheetMounted, setMobileSheetMounted] = useState(false);
+  const [sheetTranslateY, setSheetTranslateY] = useState(0);
+  const [sheetDragging, setSheetDragging] = useState(false);
+  const sheetDragActiveRef = useRef(false);
+  const sheetTranslateRef = useRef(0);
+  const sheetDragStartY = useRef(0);
+
+  useEffect(() => {
+    sheetTranslateRef.current = sheetTranslateY;
+  }, [sheetTranslateY]);
   const gamesAnchorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMobileSheetMounted(true);
+  }, []);
+
+  const closeMobileGamesSheet = () => {
+    sheetDragActiveRef.current = false;
+    sheetTranslateRef.current = 0;
+    setSheetDragging(false);
+    setSheetTranslateY(0);
+    setMobileGamesOpen(false);
+  };
 
   useEffect(() => {
     if (!gamesPopoverOpen) return;
@@ -117,6 +142,18 @@ export default function Sidebar() {
       image: "/assets/gamesV2/red-light.png",
       icon: <RiTrafficLightLine className="w-3 h-3" />,
       href: "/games/redlight",
+    },
+    {
+      name: "RPS",
+      image: "/assets/gamesV2/rps.png",
+      icon: <Hand className="w-3 h-3" />,
+      href: "/games/rps",
+    },
+    {
+      name: "Glass",
+      image: "/assets/gamesV2/glass.png",
+      icon: <Layers2 className="w-3 h-3" />,
+      href: "/games/glass",
     },
   ];
 
@@ -224,24 +261,26 @@ export default function Sidebar() {
                     </div>
                   )}
                   {collapsed && gamesPopoverOpen && (
-                    <div className="absolute left-[calc(100%+10px)] top-1/2 z-50 min-w-[200px] max-w-[min(260px,calc(100vw-96px))] -translate-y-1/2 rounded-xl border border-white/10 bg-[#1a1a1a] py-2 shadow-xl">
-                      <p className="border-b border-white/10 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-white/50">
+                    <div className="absolute left-[calc(100%+10px)] top-0 z-50 min-w-[200px] max-w-[min(260px,calc(100vw-96px))] overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] shadow-xl">
+                      <p className="border-b border-white/10 px-3 pb-2 pt-2 text-[11px] font-semibold uppercase tracking-wide text-white/50">
                         Games
                       </p>
-                      <div className="flex flex-col gap-0.5 px-2 pt-2">
-                        {gamesList.map((game) => (
-                          <button
-                            key={game.name}
-                            type="button"
-                            onClick={() => handleGameSelect(game.href)}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-left text-xs transition-all ${
-                              pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white/80 hover:bg-white/10"
-                            }`}
-                          >
-                            {game.icon}
-                            <span>{game.name}</span>
-                          </button>
-                        ))}
+                      <div className="max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain px-2 py-2">
+                        <div className="flex flex-col gap-0.5">
+                          {gamesList.map((game) => (
+                            <button
+                              key={game.name}
+                              type="button"
+                              onClick={() => handleGameSelect(game.href)}
+                              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-left text-xs transition-all ${
+                                pathname === game.href ? "bg-[#C8A2FF] text-black" : "text-white/80 hover:bg-white/10"
+                              }`}
+                            >
+                              {game.icon}
+                              <span>{game.name}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -302,7 +341,15 @@ export default function Sidebar() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setMobileGamesOpen((prev) => !prev);
+                  setMobileGamesOpen((prev) => {
+                    if (prev) {
+                      sheetTranslateRef.current = 0;
+                      setSheetTranslateY(0);
+                      sheetDragActiveRef.current = false;
+                      setSheetDragging(false);
+                    }
+                    return !prev;
+                  });
                 }}
                 className={`flex flex-col items-center justify-center transition ${
                   pathname.startsWith("/games") ? "text-[#C8A2FF]" : "text-white/60"
@@ -311,57 +358,6 @@ export default function Sidebar() {
                 {item.icon}
                 <span className="text-xs">Games</span>
               </button>
-              {mobileGamesOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-[55] bg-black/60 lg:hidden"
-                    aria-hidden
-                    onClick={() => setMobileGamesOpen(false)}
-                  />
-                  <div
-                    className="fixed inset-x-0 bottom-0 z-[60] lg:hidden flex flex-col rounded-t-2xl bg-[#1a1a1a] border-t border-white/10 shadow-[0_-12px_40px_rgba(0,0,0,0.45)] max-h-[min(50vh,440px)] pt-2 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
-                    role="dialog"
-                    aria-label="Games"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 shrink-0" />
-                    <p className="text-center text-sm font-semibold text-white mb-3 px-4 shrink-0">Games</p>
-                    <div className="grid grid-cols-2 gap-3 px-4 pb-2 overflow-y-auto min-h-0 flex-1">
-                      {gamesList.map((game) => (
-                        <button
-                          key={game.name}
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleGameSelect(game.href);
-                          }}
-                          className={`rounded-xl overflow-hidden border text-left transition active:opacity-90 ${
-                            pathname === game.href
-                              ? "border-[#C8A2FF] bg-[#C8A2FF]/10"
-                              : "border-white/10 bg-[#252525] hover:border-white/20"
-                          }`}
-                        >
-                          <div className="relative aspect-[4/3] bg-black">
-                            <Image
-                              src={game.image}
-                              alt={game.name}
-                              fill
-                              className="object-contain p-1"
-                              sizes="(max-width: 768px) 50vw, 160px"
-                              unoptimized
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 px-2.5 py-2">
-                            <span className="text-[#C8A2FF] shrink-0">{game.icon}</span>
-                            <span className="text-xs font-medium text-white truncate">{game.name}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
           ) : (
             <button
@@ -377,6 +373,116 @@ export default function Sidebar() {
           ),
         )}
       </nav>
+
+      {mobileSheetMounted &&
+        mobileGamesOpen &&
+        createPortal(
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-[100] cursor-default border-0 bg-black/60 backdrop-blur-[3px] lg:hidden"
+              aria-label="Close games"
+              onClick={closeMobileGamesSheet}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Pick a game"
+              className="fixed inset-x-3 bottom-0 z-[110] flex h-[min(78dvh,560px)] max-h-[min(78dvh,560px)] flex-col overflow-hidden rounded-t-[1.25rem] border border-white/10 border-b-0 bg-[#131313] shadow-[0_-28px_90px_rgba(0,0,0,0.55)] ring-1 ring-white/5 lg:hidden"
+              style={{
+                transform: `translateY(${sheetTranslateY}px)`,
+                transition: sheetDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
+              }}
+            >
+              <div
+                data-mobile-games-drag
+                className="shrink-0 cursor-grab touch-none px-4 pb-2 pt-3 active:cursor-grabbing"
+                onPointerDown={(e) => {
+                  if (e.button !== 0) return;
+                  sheetDragActiveRef.current = true;
+                  setSheetDragging(true);
+                  sheetDragStartY.current = e.clientY - sheetTranslateRef.current;
+                  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                }}
+                onPointerMove={(e) => {
+                  if (!sheetDragActiveRef.current) return;
+                  const next = Math.max(0, e.clientY - sheetDragStartY.current);
+                  sheetTranslateRef.current = next;
+                  setSheetTranslateY(next);
+                }}
+                onPointerUp={(e) => {
+                  const wasActive = sheetDragActiveRef.current;
+                  sheetDragActiveRef.current = false;
+                  setSheetDragging(false);
+                  try {
+                    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+                  } catch {
+                    /* duplicate release */
+                  }
+                  if (!wasActive) return;
+                  const dismissAt = Math.min(120, typeof window !== "undefined" ? window.innerHeight * 0.18 : 120);
+                  if (sheetTranslateRef.current > dismissAt) {
+                    closeMobileGamesSheet();
+                  } else {
+                    sheetTranslateRef.current = 0;
+                    setSheetTranslateY(0);
+                  }
+                }}
+                onPointerCancel={(e) => {
+                  sheetDragActiveRef.current = false;
+                  setSheetDragging(false);
+                  sheetTranslateRef.current = 0;
+                  setSheetTranslateY(0);
+                  try {
+                    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+                  } catch {
+                    /* noop */
+                  }
+                }}
+              >
+                <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-white/30" />
+                <p className="text-center text-[15px] font-semibold tracking-tight text-white">Games</p>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] [touch-action:pan-y]">
+                <div className="grid grid-cols-3 gap-2.5 pb-1 sm:gap-3">
+                  {gamesList.map((game) => (
+                    <button
+                      key={game.name}
+                      type="button"
+                      onClick={(ev) => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        handleGameSelect(game.href);
+                      }}
+                      className={`group overflow-hidden rounded-2xl border text-left shadow-lg transition active:scale-[0.98] ${
+                        pathname === game.href
+                          ? "border-[#C8A2FF] bg-[#C8A2FF]/12 ring-2 ring-[#C8A2FF]/35"
+                          : "border-white/10 bg-[#1c1c1c] active:border-white/25"
+                      }`}
+                    >
+                      <div className="relative aspect-square bg-gradient-to-br from-black/80 to-[#252525]">
+                        <Image
+                          src={game.image}
+                          alt={game.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 30vw, 140px"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 px-2.5 py-2.5">
+                        <span className="text-[#C8A2FF] shrink-0">{game.icon}</span>
+                        <span className="text-xs font-medium text-white/95 truncate">{game.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
 }

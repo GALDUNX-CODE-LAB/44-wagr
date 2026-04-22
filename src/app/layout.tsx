@@ -47,7 +47,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </div>
             </SidebarCollapsedProvider>
           </WalletProvider>
-          <Toaster />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              classNames: {
+                toast: "group !text-xs !py-2 !px-3 !min-h-0 !gap-1.5 [&>div]:!gap-1",
+                title: "!text-xs !font-medium !leading-tight",
+                description: "!text-[11px] !leading-snug !opacity-90",
+                actionButton: "!text-[11px] !py-1 !px-2",
+                cancelButton: "!text-[11px] !py-1 !px-2",
+              },
+            }}
+          />
         </Suspense>
       </body>
     </html>

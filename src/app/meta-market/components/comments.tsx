@@ -50,7 +50,7 @@ export default function Comments({ market }: { market: Market }) {
         setComments((prev) => [{ ...res.data, user: { _id: res.data.user }, likes: 0 }, ...prev]);
       }
     } catch (err) {
-      console.error("❌ Failed to add comment:", err);
+      console.error("Failed to add comment:", err);
     }
   };
 

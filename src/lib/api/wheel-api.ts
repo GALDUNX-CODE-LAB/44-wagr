@@ -5,7 +5,7 @@ export type DynamicSegment = {
   multiplier: number;
 };
 
-// ✅ Hardcoded segments to match backend (do not change this order)
+// Hardcoded segments to match backend (do not change this order)
 export const HARD_CODED_SEGMENTS: DynamicSegment[] = [
   { color: "green", multiplier: 2 },
   { color: "yellow", multiplier: 1.5 },
