@@ -15,6 +15,8 @@ interface PlinkoResultToastProps {
 }
 
 const PRIMARY = "#c8a2ff";
+const NAVBAR_HEIGHT_PX = 66;
+const TOAST_GAP_PX = 10;
 
 const DISPLAY_MS = 2800;
 
@@ -39,7 +41,10 @@ export default function PlinkoResultToast({ result }: PlinkoResultToastProps) {
   }, [result]);
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-1.5 pointer-events-none">
+    <div
+      className="fixed right-4 z-50 flex flex-col gap-1.5 pointer-events-none"
+      style={{ top: NAVBAR_HEIGHT_PX + TOAST_GAP_PX }}
+    >
       <AnimatePresence>
         {toasts.map((t) => {
           const isWin = t.payout >= t.betAmount;

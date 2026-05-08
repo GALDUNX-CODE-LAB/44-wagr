@@ -6,7 +6,7 @@ import { Check, OctagonAlert, PartyPopper, Skull, Snowflake } from "lucide-react
 import { RedlightDifficulty, REDLIGHT_DIFFICULTY_COLORS } from "../../../interfaces/interface";
 
 interface RunnerTrackProps {
-  phase: "idle" | "green" | "red" | "frozen" | "eliminated" | "cashedout";
+  phase: "idle" | "green" | "red" | "frozen" | "frozen-red" | "eliminated" | "cashedout";
   progress: number;
   currentMultiplier: number;
   difficulty: RedlightDifficulty;
@@ -26,9 +26,9 @@ export default function RunnerTrack({
   const color = REDLIGHT_DIFFICULTY_COLORS[difficulty];
   const isRunning = phase === "green";
   const isEliminated = phase === "eliminated";
-  const isFrozen = phase === "frozen";
+  const isFrozen = phase === "frozen" || phase === "frozen-red";
   const isCashedout = phase === "cashedout";
-  const isRed = phase === "red";
+  const isRed = phase === "red" || phase === "frozen-red";
   const charId = useId().replace(/:/g, "");
 
   if (vertical) {
@@ -110,7 +110,7 @@ export default function RunnerTrack({
           >
             {phase === "idle" ? (
               "place a bet and start"
-            ) : phase === "frozen" ? (
+            ) : phase === "frozen" || phase === "frozen-red" ? (
               <span className="inline-flex items-center justify-center gap-1">
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" strokeWidth={2.5} aria-hidden />
                 safely frozen
@@ -466,7 +466,7 @@ function RunnerCharacter({
 }) {
   const isRunning = phase === "green";
   const isEliminated = phase === "eliminated";
-  const isFrozen = phase === "frozen" || phase === "red";
+  const isFrozen = phase === "frozen" || phase === "frozen-red" || phase === "red";
 
   return (
     <motion.div

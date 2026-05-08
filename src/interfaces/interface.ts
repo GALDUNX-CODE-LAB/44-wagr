@@ -521,7 +521,7 @@ export const DIFFICULTY_COLORS: Record<PumpDifficulty, { body: string; shine: st
 export type RedlightDifficulty = "easy" | "medium" | "hard" | "professional";
 
 export interface RLGLGameState {
-  phase: "idle" | "green" | "red" | "frozen" | "eliminated" | "cashedout";
+  phase: "idle" | "green" | "red" | "frozen" | "frozen-red" | "eliminated" | "cashedout";
   progress: number; // 0–100
   currentMultiplier: number;
   betAmount: number;

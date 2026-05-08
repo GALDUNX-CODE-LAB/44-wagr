@@ -15,19 +15,28 @@ export default function MinesGrid({ cells, phase, onCellClick }: MinesGridProps)
   return (
     <div className="w-full h-full min-h-0 flex items-center justify-center p-2 sm:p-3 md:p-4">
       <div
-        className="grid gap-1 sm:gap-1.5 md:gap-2 w-full max-w-[min(100%,380px)] md:max-w-[min(100%,440px)] lg:max-w-[min(100%,500px)] aspect-square max-h-full"
+        className="w-full max-w-[min(100%,404px)] md:max-w-[min(100%,468px)] lg:max-w-[min(100%,528px)] rounded-2xl p-2 sm:p-2.5 md:p-3"
         style={{
-          gridTemplateColumns: "repeat(5, 1fr)",
+          background: "rgba(19,18,18,0.92)",
+          border: "1px solid rgba(200,162,255,0.1)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
         }}
       >
-        {cells.map((cell, i) => (
-          <MinesCell
-            key={i}
-            cell={cell}
-            phase={phase}
-            onClick={() => isClickable && !cell.isRevealed && onCellClick(i)}
-          />
-        ))}
+        <div
+          className="grid gap-1 sm:gap-1.5 md:gap-2 w-full aspect-square max-h-full"
+          style={{
+            gridTemplateColumns: "repeat(5, 1fr)",
+          }}
+        >
+          {cells.map((cell, i) => (
+            <MinesCell
+              key={i}
+              cell={cell}
+              phase={phase}
+              onClick={() => isClickable && !cell.isRevealed && onCellClick(i)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -67,10 +76,10 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
               background: isClickable
-                ? "linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%)"
-                : "linear-gradient(145deg, #242424 0%, #161616 100%)",
-              border: "1px solid rgba(200,162,255,0.1)",
-              boxShadow: isClickable ? "0 2px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" : "none",
+                ? "linear-gradient(145deg, #1f1f1f 0%, #111111 100%)"
+                : "linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%)",
+              border: "1px solid rgba(200,162,255,0.12)",
+              boxShadow: isClickable ? "0 2px 8px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.04)" : "none",
             }}
           >
             {isClickable && (
@@ -92,8 +101,8 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
             transition={{ duration: 0.25, type: "spring", stiffness: 260, damping: 18 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
-              background: "linear-gradient(145deg, #3d1515 0%, #1f0a0a 100%)",
-              border: "1px solid rgba(248,113,113,0.25)",
+              background: "linear-gradient(145deg, #271112 0%, #14090a 100%)",
+              border: "1px solid rgba(248,113,113,0.2)",
             }}
           >
             <MineSVG isExploded={cell.state === "mine" && phase === "lost"} />
@@ -107,9 +116,9 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
             transition={{ duration: 0.25, type: "spring", stiffness: 260, damping: 18 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
-              background: "linear-gradient(145deg, #142e1f 0%, #0c1a12 100%)",
-              border: "1px solid rgba(74,222,128,0.22)",
-              boxShadow: "0 0 16px rgba(34,197,94,0.12)",
+              background: "linear-gradient(145deg, #102319 0%, #09140f 100%)",
+              border: "1px solid rgba(74,222,128,0.18)",
+              boxShadow: "0 0 12px rgba(34,197,94,0.09)",
             }}
           >
             <GemSVG />

@@ -47,7 +47,7 @@ export default function MinesGame() {
         />
       </div>
 
-      <div className="flex-shrink-0 min-h-[50vh] w-full md:h-full md:min-h-0 md:flex-1 min-w-0 relative overflow-hidden">
+      <div className="flex-shrink-0 min-h-[50vh] w-full md:h-full md:min-h-0 md:flex-1 min-w-0 relative overflow-hidden bg-[#1c1c1c]">
         <MinesGrid cells={gameState.cells} phase={gameState.phase} onCellClick={revealCell} />
 
         <MinesResultOverlay

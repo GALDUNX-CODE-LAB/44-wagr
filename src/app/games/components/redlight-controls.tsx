@@ -12,6 +12,9 @@ import {
   MULT_INCREMENT,
 } from "../../../interfaces/interface";
 
+const PRIMARY = "#c8a2ff";
+const SURFACE = "#131212";
+
 interface RLGLControlsProps {
   gameMode: GameMode;
   onGameModeChange: (m: GameMode) => void;
@@ -19,7 +22,7 @@ interface RLGLControlsProps {
   onBetAmountChange: (v: number) => void;
   difficulty: RedlightDifficulty;
   onDifficultyChange: (d: RedlightDifficulty) => void;
-  phase: "idle" | "green" | "red" | "frozen" | "eliminated" | "cashedout";
+  phase: "idle" | "green" | "red" | "frozen" | "frozen-red" | "eliminated" | "cashedout";
   currentMultiplier: number;
   profit: number;
   betAmountUsed: number;
@@ -49,7 +52,7 @@ export default function RLGLControls({
 }: RLGLControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
   const isPlaying = phase === "green" || phase === "red";
-  const isFrozen = phase === "frozen";
+  const isFrozen = phase === "frozen" || phase === "frozen-red";
   const isIdle = phase === "idle" || phase === "eliminated" || phase === "cashedout";
   const diffOption = REDLIGHT_DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)!;
 
@@ -67,8 +70,8 @@ export default function RLGLControls({
             onClick={() => !isPlaying && onGameModeChange(mode)}
             className="flex-1 py-1.5 text-xs font-semibold transition-all duration-200 capitalize tracking-wide"
             style={{
-              background: gameMode === mode ? "#1a9fff" : "transparent",
-              color: gameMode === mode ? "#fff" : "rgba(255,255,255,0.45)",
+              background: gameMode === mode ? PRIMARY : "transparent",
+              color: gameMode === mode ? SURFACE : "rgba(255,255,255,0.45)",
               borderRadius: 10,
               cursor: isPlaying ? "not-allowed" : "pointer",
             }}
