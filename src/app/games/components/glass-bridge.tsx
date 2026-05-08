@@ -28,6 +28,10 @@ const TILE_LABELS: Record<number, string[]> = {
 // Height of each row slot (tile + header + gap) in px — keep in sync with the row sizing below
 const ROW_SLOT_PX = 120;
 
+/** Matches games board panel in `glass-game.tsx` (#1c1c1c) */
+const BOARD_BG_RGBA = "rgba(28, 28, 28";
+const PRIMARY_RGB = "200,162,255";
+
 export default function GlassBridge({ gameState, difficulty, onPickTile, boardLocked }: GlassBridgeProps) {
   const { phase, rows, currentRow } = gameState;
   const ladders = STEP_MULTIPLIERS[difficulty];
@@ -225,7 +229,7 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
-            style={{ background: "rgba(40,0,0,0.45)" }}
+            style={{ background: `${BOARD_BG_RGBA}, 0.88)` }}
           >
             <motion.div
               initial={{ scale: 0.92, opacity: 0 }}
@@ -234,27 +238,27 @@ export default function GlassBridge({ gameState, difficulty, onPickTile, boardLo
               transition={{ type: "spring", stiffness: 380, damping: 22 }}
               className="rounded-2xl px-6 py-5 text-center font-sans max-w-[min(280px,92vw)]"
               style={{
-                background: "linear-gradient(135deg, #1a0404, #131212)",
-                border: "1px solid rgba(239,68,68,0.35)",
-                boxShadow: "0 16px 40px rgba(239,68,68,0.18)",
+                background: "linear-gradient(135deg, #131212 0%, #1a1520 100%)",
+                border: `1px solid rgba(${PRIMARY_RGB},0.35)`,
+                boxShadow: `0 16px 40px rgba(${PRIMARY_RGB},0.15)`,
                 minWidth: 200,
               }}
             >
               <motion.div
                 animate={{ rotate: [-4, 4, -4, 4, 0] }}
                 transition={{ duration: 0.35 }}
-                className="flex justify-center text-red-500"
+                className="flex justify-center text-primary"
               >
                 <Bomb className="w-8 h-8" strokeWidth={1.75} aria-hidden />
               </motion.div>
               <div
-                className="text-[15px] sm:text-base mt-1.5 tracking-wide"
-                style={{ color: "#ef4444", fontWeight: 800 }}
+                className="text-[15px] sm:text-base mt-1.5 tracking-wide text-primary"
+                style={{ fontWeight: 800 }}
               >
                 GLASS BROKE!
               </div>
               <div className="text-[11px] text-white/40 mt-1">You fell into the abyss</div>
-              <div className="text-red-500 text-lg font-bold mt-1.5">-${gameState.betAmount.toFixed(2)}</div>
+              <div className="text-primary text-lg font-bold mt-1.5">-${gameState.betAmount.toFixed(2)}</div>
             </motion.div>
           </motion.div>
         )}
@@ -302,7 +306,7 @@ function GlassTile({ state, label, multiplier, isActive, canClick, diffColor, co
         className="absolute inset-0 rounded-2xl"
         style={{
           background: isBroken
-            ? "linear-gradient(135deg, rgba(100,10,10,0.6), rgba(60,5,5,0.8))"
+            ? `linear-gradient(135deg, rgba(${PRIMARY_RGB},0.14), rgba(80,55,115,0.45))`
             : isSafe
               ? `linear-gradient(135deg, ${diffColor}20, ${diffColor}35)`
               : isSkipped
@@ -311,7 +315,7 @@ function GlassTile({ state, label, multiplier, isActive, canClick, diffColor, co
                   ? "linear-gradient(135deg, rgba(200,162,255,0.14), rgba(157,111,216,0.22))"
                   : "linear-gradient(135deg, rgba(60,55,75,0.35), rgba(35,33,38,0.45))",
           border: isBroken
-            ? "1.5px solid rgba(220,50,50,0.4)"
+            ? `1.5px solid rgba(${PRIMARY_RGB},0.45)`
             : isSafe
               ? `1.5px solid ${diffColor}66`
               : isActive
@@ -413,7 +417,7 @@ function CrackSVG() {
     >
       <defs>
         <radialGradient id="crackGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(255,100,100,0.3)" />
+          <stop offset="0%" stopColor="rgba(200,162,255,0.35)" />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
       </defs>
@@ -421,24 +425,24 @@ function CrackSVG() {
       {/* Main crack lines */}
       <path
         d="M 55 20 L 48 38 L 60 42 L 40 72"
-        stroke="rgba(255,80,80,0.8)"
+        stroke="rgba(200,162,255,0.85)"
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
       />
       <path
         d="M 65 15 L 72 35 L 58 40 L 80 68"
-        stroke="rgba(255,80,80,0.6)"
+        stroke="rgba(200,162,255,0.65)"
         strokeWidth="1.5"
         fill="none"
         strokeLinecap="round"
       />
-      <path d="M 60 42 L 35 55" stroke="rgba(255,80,80,0.5)" strokeWidth="1" fill="none" strokeLinecap="round" />
-      <path d="M 60 42 L 88 50" stroke="rgba(255,80,80,0.5)" strokeWidth="1" fill="none" strokeLinecap="round" />
-      <path d="M 48 38 L 28 32" stroke="rgba(255,80,80,0.4)" strokeWidth="1" fill="none" strokeLinecap="round" />
+      <path d="M 60 42 L 35 55" stroke="rgba(200,162,255,0.55)" strokeWidth="1" fill="none" strokeLinecap="round" />
+      <path d="M 60 42 L 88 50" stroke="rgba(200,162,255,0.55)" strokeWidth="1" fill="none" strokeLinecap="round" />
+      <path d="M 48 38 L 28 32" stroke="rgba(200,162,255,0.45)" strokeWidth="1" fill="none" strokeLinecap="round" />
       {/* Shatter fragments */}
-      <circle cx="60" cy="42" r="3" fill="rgba(255,120,120,0.4)" />
-      <circle cx="48" cy="38" r="2" fill="rgba(255,120,120,0.3)" />
+      <circle cx="60" cy="42" r="3" fill="rgba(200,162,255,0.45)" />
+      <circle cx="48" cy="38" r="2" fill="rgba(200,162,255,0.35)" />
     </svg>
   );
 }

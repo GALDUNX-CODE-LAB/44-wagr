@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 import { Check, Circle, CircleDot, OctagonAlert, Snowflake } from "lucide-react";
 
 interface TrafficLightProps {
-  phase: "idle" | "green" | "red" | "frozen" | "eliminated" | "cashedout";
+  phase: "idle" | "green" | "red" | "frozen" | "frozen-red" | "eliminated" | "cashedout";
   /** Narrower SVG + tinier label for mobile corner HUD */
   compact?: boolean;
 }
 
 export default function TrafficLight({ phase, compact }: TrafficLightProps) {
   const rid = useId().replace(/:/g, "");
-  const isRed = phase === "red" || phase === "eliminated";
+  const isRed = phase === "red" || phase === "frozen-red" || phase === "eliminated";
   const isGreen = phase === "green";
   const w = compact ? 30 : 90;
   const h = compact ? Math.round((w * 200) / 90) : 200;

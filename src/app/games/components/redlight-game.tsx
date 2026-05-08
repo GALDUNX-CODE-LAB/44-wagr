@@ -34,10 +34,10 @@ export default function RedLightGame() {
     }
   };
 
-  const isRed = gameState.phase === "red";
+  const isRed = gameState.phase === "red" || gameState.phase === "frozen-red";
   const isEliminated = gameState.phase === "eliminated";
   const isPlaying = gameState.phase === "green" || gameState.phase === "red";
-  const isFrozen = gameState.phase === "frozen";
+  const isFrozen = gameState.phase === "frozen" || gameState.phase === "frozen-red";
   const diffOption = REDLIGHT_DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)!;
   const stakeHud = gameState.phase === "idle" ? betAmount : gameState.betAmount;
   const payoutHud = stakeHud * gameState.currentMultiplier;
@@ -72,7 +72,7 @@ export default function RedLightGame() {
 
       <div
         className="relative flex min-h-[50vh] w-full flex-shrink-0 flex-col overflow-hidden md:h-full md:min-h-0 md:flex-1"
-        style={{ background: "#0d1520" }}
+        style={{ background: "#1c1c1c" }}
       >
         {/* Red light flash overlay */}
         <AnimatePresence>
@@ -161,7 +161,7 @@ export default function RedLightGame() {
           className="hidden md:block flex-shrink-0 w-full"
           style={{
             height: 48,
-            background: "linear-gradient(to top, #0a1320 0%, transparent 100%)",
+            background: "linear-gradient(to top, #131212 0%, transparent 100%)",
           }}
         />
 

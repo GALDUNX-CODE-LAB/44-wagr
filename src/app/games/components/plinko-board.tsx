@@ -97,7 +97,7 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
 
       ctx.clearRect(0, 0, W, H);
 
-      ctx.fillStyle = "#131212";
+      ctx.fillStyle = "#1c1c1c";
       ctx.fillRect(0, 0, W, H);
 
       for (const peg of pegsRef.current) {

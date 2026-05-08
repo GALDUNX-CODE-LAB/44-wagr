@@ -5,7 +5,6 @@ import {
   RedlightDifficulty,
   GameMode,
   RLGLGameState,
-  BetResult,
   PROGRESS_SPEED,
   MULT_INCREMENT,
   BASE_MULT,
@@ -15,7 +14,9 @@ import {
 } from "../interfaces/interface";
 
 const STARTING_BALANCE = 1000;
-const MULT_TICK_MS = 2000; // multiplier updates every 2s
+const MULT_TICK_MS = 2000;
+// How long the red light is shown while the player is already frozen (safe pass-through)
+const FROZEN_RED_DISPLAY_MS = 900;
 
 export function useRLGLGame() {
   const [balance, setBalance] = useState(STARTING_BALANCE);
@@ -35,7 +36,6 @@ export function useRLGLGame() {
     round: 0,
   });
 
-  // Refs for RAF loop
   const rafRef = useRef<number | null>(null);
   const stateRef = useRef(gameState);
   const difficultyRef = useRef(difficulty);
@@ -43,6 +43,9 @@ export function useRLGLGame() {
   const lastMultTickRef = useRef<number>(0);
   const redLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eliminationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frozenRedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Stable ref so timers can always call the latest scheduleRedLight without stale closure issues
+  const scheduleRedLightRef = useRef<(diff: RedlightDifficulty) => void>(() => {});
 
   stateRef.current = gameState;
   difficultyRef.current = difficulty;
@@ -61,11 +64,9 @@ export function useRLGLGame() {
 
       if (s.phase !== "green") return;
 
-      // Progress
       const speed = PROGRESS_SPEED[diff];
       const newProgress = Math.min(100, s.progress + (speed * dt) / 1000);
 
-      // Multiplier tick every 2s
       let newMult = s.currentMultiplier;
       if (now - lastMultTickRef.current >= MULT_TICK_MS) {
         newMult = +(s.currentMultiplier + MULT_INCREMENT[diff]).toFixed(2);
@@ -85,7 +86,6 @@ export function useRLGLGame() {
         };
       });
 
-      // Reached 100% — auto cashout
       if (newProgress >= 100) {
         handleCashout();
         return;
@@ -102,47 +102,73 @@ export function useRLGLGame() {
   }, []);
 
   // ─── Red light scheduling ─────────────────────────────────────────────────
+  // Red lights fire continuously regardless of frozen state.
+  // • During "green"  → player must freeze in time or they're eliminated
+  // • During "frozen" → player is safe; show red briefly then reschedule
   const scheduleRedLight = useCallback(
     (diff: RedlightDifficulty) => {
       const [min, max] = RED_LIGHT_WINDOW[diff];
       const delay = min + Math.random() * (max - min);
 
       redLightTimerRef.current = setTimeout(() => {
-        stopLoop();
-        const grace = FREEZE_GRACE_MS[diff];
+        const s = stateRef.current;
 
-        setGameState((prev) => {
-          if (prev.phase !== "green") return prev;
-          return { ...prev, phase: "red", redLightAt: performance.now() };
-        });
+        if (s.phase === "green") {
+          // Player is running — stop loop and start the elimination countdown
+          stopLoop();
+          const grace = FREEZE_GRACE_MS[diff];
 
-        // If player doesn't freeze within grace window → eliminated
-        eliminationTimerRef.current = setTimeout(() => {
           setGameState((prev) => {
-            if (prev.phase !== "red") return prev;
-            // Eliminated
-            setResults((r) => [
-              ...r,
-              {
-                id: `${Date.now()}`,
-                multiplier: 0,
-                payout: 0,
-                betAmount: prev.betAmount,
-                won: false,
-                round: prev.round,
-              },
-            ]);
-            return { ...prev, phase: "eliminated", profit: -prev.betAmount };
+            if (prev.phase !== "green") return prev;
+            return { ...prev, phase: "red", redLightAt: performance.now() };
           });
-        }, grace);
+
+          eliminationTimerRef.current = setTimeout(() => {
+            setGameState((prev) => {
+              if (prev.phase !== "red") return prev;
+              setResults((r) => [
+                ...r,
+                {
+                  id: `${Date.now()}`,
+                  multiplier: 0,
+                  payout: 0,
+                  betAmount: prev.betAmount,
+                  won: false,
+                  round: prev.round,
+                },
+              ]);
+              return { ...prev, phase: "eliminated", profit: -prev.betAmount };
+            });
+          }, grace);
+
+        } else if (s.phase === "frozen") {
+          // Player is already frozen — safe, but show the red light visually
+          setGameState((prev) => {
+            if (prev.phase !== "frozen") return prev;
+            return { ...prev, phase: "frozen-red", redLightAt: performance.now() };
+          });
+
+          frozenRedTimerRef.current = setTimeout(() => {
+            setGameState((prev) => {
+              if (prev.phase !== "frozen-red") return prev;
+              return { ...prev, phase: "frozen", redLightAt: null };
+            });
+            // Keep scheduling red lights continuously
+            scheduleRedLightRef.current(diff);
+          }, FROZEN_RED_DISPLAY_MS);
+        }
+        // Any other phase (idle, red, frozen-red, eliminated, cashedout): ignore
       }, delay);
     },
     [stopLoop],
   );
 
+  scheduleRedLightRef.current = scheduleRedLight;
+
   const clearTimers = useCallback(() => {
     if (redLightTimerRef.current) clearTimeout(redLightTimerRef.current);
     if (eliminationTimerRef.current) clearTimeout(eliminationTimerRef.current);
+    if (frozenRedTimerRef.current) clearTimeout(frozenRedTimerRef.current);
     stopLoop();
   }, [stopLoop]);
 
@@ -174,24 +200,25 @@ export function useRLGLGame() {
     const s = stateRef.current;
     if (s.phase !== "green" && s.phase !== "red") return;
 
-    clearTimers();
+    const savedDuringRed = s.phase === "red";
 
-    if (s.phase === "green") {
-      // Froze during green light — safe, move to frozen (can cashout or continue)
-      setGameState((prev) => ({
-        ...prev,
-        phase: "frozen",
-        frozenAt: performance.now(),
-      }));
-    } else if (s.phase === "red") {
-      // Froze in time during red light — safe! Continue to next round
-      setGameState((prev) => ({
-        ...prev,
-        phase: "frozen",
-        frozenAt: performance.now(),
-      }));
+    // Only clear the elimination countdown; keep the red light scheduler alive
+    if (eliminationTimerRef.current) clearTimeout(eliminationTimerRef.current);
+    stopLoop();
+
+    setGameState((prev) => {
+      if (prev.phase !== "green" && prev.phase !== "red") return prev;
+      return { ...prev, phase: "frozen", frozenAt: performance.now() };
+    });
+
+    // If we froze during a red-light event (saved ourselves), reschedule the next
+    // red light so the continuous stream continues while frozen
+    if (savedDuringRed) {
+      scheduleRedLightRef.current(difficultyRef.current);
     }
-  }, [clearTimers]);
+    // If we froze during green, the pending red light timer is still running —
+    // it will fire and appear as "frozen-red" automatically
+  }, [stopLoop]);
 
   const handleCashout = useCallback(() => {
     clearTimers();
@@ -215,18 +242,17 @@ export function useRLGLGame() {
   }, [clearTimers]);
 
   const continueRun = useCallback(() => {
-    // After a successful freeze, continue the run from current progress
+    // Transition back to running; the red light scheduler is already active
+    // (was kept alive through freeze/frozen-red cycles)
     setGameState((prev) => {
       if (prev.phase !== "frozen") return prev;
       return { ...prev, phase: "green", round: prev.round + 1, redLightAt: null, frozenAt: null };
     });
 
-    // Restart loop and schedule next red light
     setTimeout(() => {
       startLoop();
-      scheduleRedLight(difficulty);
     }, 50);
-  }, [startLoop, scheduleRedLight, difficulty]);
+  }, [startLoop]);
 
   const resetGame = useCallback(() => {
     clearTimers();
@@ -243,7 +269,6 @@ export function useRLGLGame() {
     });
   }, [clearTimers]);
 
-  // Cleanup on unmount
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   return {

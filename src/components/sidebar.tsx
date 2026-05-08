@@ -191,11 +191,12 @@ export default function Sidebar() {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`hidden lg:flex flex-col justify-between fixed top-0 left-0 z-40 h-[100vh] shrink-0 overflow-visible border-r border-white/10 bg-[#212121] text-xs transition-[width] duration-200 ease-out ${
+        className={`hidden lg:flex flex-col justify-between fixed top-0 left-0 z-40 h-[100dvh] shrink-0 overflow-hidden border-r border-white/10 bg-[#212121] text-xs transition-[width] duration-200 ease-out ${
           collapsed ? "w-[72px]" : "w-[220px]"
         }`}
       >
-        <div className="wrap min-h-0 flex flex-col overflow-visible">
+        <div className="wrap min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="min-h-0 flex flex-col">
           <div
             className={`flex shrink-0 items-center border-b border-white/20 mt-4 pb-3 ${
               collapsed ? "justify-center px-1" : "h-[50px] justify-between px-2"
@@ -244,7 +245,7 @@ export default function Sidebar() {
                     }}
                   />
                   {!collapsed && gamesOpen && (
-                    <div className="mt-2 flex flex-col gap-1 pl-8">
+                    <div className="mt-2 flex max-h-[min(45dvh,360px)] flex-col gap-1 overflow-y-auto overscroll-contain pl-8 pr-1">
                       {gamesList.map((game) => (
                         <button
                           key={game.name}
@@ -297,8 +298,9 @@ export default function Sidebar() {
               ),
             )}
           </div>
+          </div>
         </div>
-        <div className="wrap relative flex flex-col justify-end p-2">
+        <div className="wrap relative shrink-0 border-t border-white/10 p-2">
           <ul className={`mb-3 space-y-2 rounded-lg bg-black/20 ${collapsed ? "p-2" : "p-3"}`}>
             <li>
               <button

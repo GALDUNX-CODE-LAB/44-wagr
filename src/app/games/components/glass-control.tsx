@@ -282,7 +282,7 @@ export default function GlassControls({
         <div className="order-9 md:order-8 shrink-0 space-y-2">
           <div className="flex items-baseline justify-between gap-2 text-[10px] tracking-wider text-white/50">
             <span className="truncate">TOTAL PROFIT ({currentMultiplier.toFixed(2)}×)</span>
-            <span className={`shrink-0 font-semibold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <span className={`shrink-0 font-semibold ${profit >= 0 ? "text-emerald-400" : "text-primary"}`}>
               {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
             </span>
           </div>
@@ -348,10 +348,10 @@ export default function GlassControls({
                     style={{ background: "rgba(255,255,255,0.04)" }}
                   >
                     <span className="text-white/45">S{r.rowsCleared}</span>
-                    <span style={{ color: r.won ? PRIMARY : "#ef4444" }} className="font-bold">
+                    <span style={{ color: PRIMARY }} className="font-bold">
                       {r.won ? `${r.multiplier.toFixed(2)}×` : "FELL"}
                     </span>
-                    <span className={r.won ? "text-emerald-400" : "text-red-400"}>
+                    <span className={r.won ? "text-emerald-400" : "text-primary"}>
                       {r.won ? `+$${(r.payout - r.betAmount).toFixed(2)}` : `-$${r.betAmount.toFixed(2)}`}
                     </span>
                   </div>
