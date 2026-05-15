@@ -1,33 +1,64 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Difficulty, GameMode, BetResult, MULTIPLIERS } from "../../../interfaces/interface";
+import { Difficulty, GameMode, BetResult } from "../../../interfaces/interface";
 import PlinkoBoard, { PlinkoBoardHandle } from "./plinko-board";
 import PlinkoControls from "./plinko-controls";
 import PlinkoResultToast from "./plinko-result-toast";
-
-const STARTING_BALANCE = 1000;
+import { placePlinkoBet } from "../../../lib/api";
+import { useUser } from "../../../hooks/useUserData";
+import { useQueryClient } from "@tanstack/react-query";
+import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
+import LoginModal from "../../../components/login-modal";
 
 export default function PlinkoGame() {
   const [gameMode, setGameMode] = useState<GameMode>("manual");
   const [betAmount, setBetAmount] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [rows, setRows] = useState(16);
-  const [balance, setBalance] = useState(STARTING_BALANCE);
-  const [results, setResults] = useState<BetResult[]>([]);
   const [lastResult, setLastResult] = useState<BetResult | null>(null);
   const [activeBucketIndex, setActiveBucketIndex] = useState<number | null>(null);
   const [isAutoRunning, setIsAutoRunning] = useState(false);
   const [autoCount, setAutoCount] = useState(10);
+  const [isBetting, setIsBetting] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const autoRemainingRef = useRef(0);
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const boardRef = useRef<PlinkoBoardHandle>(null);
+  // Holds the exact server-confirmed result, applied on ball land
+  const pendingResultRef = useRef<{ bucketIndex: number; multiplier: number; payout: number; newBalance: number } | null>(null);
+
+  const { balance } = useUser();
+  const queryClient = useQueryClient();
+  const isLoggedIn = useIsLoggedIn();
+
+  const showError = useCallback((msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(null), 3000);
+  }, []);
 
   const handleBallLand = useCallback(
-    (bucketIndex: number, multiplier: number, payout: number) => {
+    (_physBucket: number, _physMult: number, _physPayout: number) => {
+      // Always use the server-confirmed result — physics is visual only
+      const srv = pendingResultRef.current;
+      pendingResultRef.current = null;
+
+      const bucketIndex = srv?.bucketIndex ?? _physBucket;
+      const multiplier  = srv?.multiplier  ?? _physMult;
+      const payout      = srv?.payout      ?? _physPayout;
+
       setActiveBucketIndex(bucketIndex);
       setTimeout(() => setActiveBucketIndex(null), 500);
+
+      if (srv?.newBalance !== undefined) {
+        queryClient.setQueryData(["user-data"], (old: any) => {
+          if (!old) return old;
+          return { ...old, balance: srv.newBalance };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["plinko-history"] });
 
       const result: BetResult = {
         id: `${Date.now()}-${Math.random()}`,
@@ -36,21 +67,40 @@ export default function PlinkoGame() {
         betAmount,
         payout,
         timestamp: Date.now(),
-        won: payout > 0,
+        won: payout >= betAmount,
       };
 
-      setResults((prev) => [...prev, result]);
       setLastResult(result);
-      setBalance((prev) => +(prev + payout).toFixed(2));
     },
-    [betAmount],
+    [betAmount, queryClient],
   );
 
-  const handleBet = useCallback(() => {
-    if (betAmount <= 0 || betAmount > balance) return;
-    setBalance((prev) => +(prev - betAmount).toFixed(2));
-    boardRef.current?.dropBall();
-  }, [betAmount, balance]);
+  const handleBet = useCallback(async () => {
+    if (!isLoggedIn || betAmount <= 0 || isBetting) return;
+    if (betAmount > balance) {
+      showError("Insufficient balance");
+      return;
+    }
+
+    setIsBetting(true);
+    try {
+      const response: any = await placePlinkoBet({ betAmount, rows, difficulty });
+      const data = response?.data ?? response;
+
+      pendingResultRef.current = {
+        bucketIndex: data?.bucketIndex ?? 0,
+        multiplier:  data?.multiplier  ?? 1,
+        payout:      data?.payout      ?? 0,
+        newBalance:  data?.newBalance  ?? 0,
+      };
+
+      boardRef.current?.dropBall(data?.bucketIndex ?? 0);
+    } catch (err: any) {
+      showError(err?.message || "Bet failed");
+    } finally {
+      setIsBetting(false);
+    }
+  }, [isLoggedIn, betAmount, rows, difficulty, balance, isBetting, queryClient, showError]);
 
   const handleAutoToggle = useCallback(() => {
     if (isAutoRunning) {
@@ -61,35 +111,53 @@ export default function PlinkoGame() {
       setIsAutoRunning(true);
       autoRemainingRef.current = autoCount;
 
-      const runNext = () => {
+      const runNext = async () => {
         if (autoRemainingRef.current <= 0) {
           setIsAutoRunning(false);
           return;
         }
         autoRemainingRef.current--;
-        setBalance((prev) => {
-          const next = +(prev - betAmount).toFixed(2);
-          if (next < 0) {
-            setIsAutoRunning(false);
-            autoRemainingRef.current = 0;
-            return prev;
-          }
-          return next;
-        });
-        boardRef.current?.dropBall();
-        autoTimerRef.current = setTimeout(runNext, 800);
+
+        if (!isLoggedIn) {
+          setIsAutoRunning(false);
+          autoRemainingRef.current = 0;
+          return;
+        }
+
+        // Read latest balance from cache each iteration
+        const cached: any = queryClient.getQueryData(["user-data"]);
+        const latestBalance: number = cached?.balance ?? 0;
+        if (betAmount > latestBalance) {
+          showError("Insufficient balance");
+          setIsAutoRunning(false);
+          autoRemainingRef.current = 0;
+          return;
+        }
+
+        try {
+          const response: any = await placePlinkoBet({ betAmount, rows, difficulty });
+          const data = response?.data ?? response;
+
+          pendingResultRef.current = {
+            bucketIndex: data?.bucketIndex ?? 0,
+            multiplier:  data?.multiplier  ?? 1,
+            payout:      data?.payout      ?? 0,
+            newBalance:  data?.newBalance  ?? 0,
+          };
+
+          boardRef.current?.dropBall(data?.bucketIndex ?? 0);
+        } catch (err: any) {
+          showError(err?.message || "Bet failed");
+          setIsAutoRunning(false);
+          autoRemainingRef.current = 0;
+          return;
+        }
+
+        autoTimerRef.current = setTimeout(runNext, 900);
       };
       runNext();
     }
-  }, [isAutoRunning, autoCount, betAmount]);
-
-  useEffect(() => {
-    if (balance < betAmount && isAutoRunning) {
-      setIsAutoRunning(false);
-      autoRemainingRef.current = 0;
-      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
-    }
-  }, [balance, betAmount, isAutoRunning]);
+  }, [isAutoRunning, autoCount, betAmount, rows, difficulty, isLoggedIn, queryClient, showError]);
 
   useEffect(
     () => () => {
@@ -102,9 +170,7 @@ export default function PlinkoGame() {
     <>
       <div
         className="flex flex-col-reverse md:flex-row w-full max-w-[1600px] lg:mt-4 md:mt-10 mx-auto min-h-0 rounded-2xl border border-white/10 font-sans md:h-[min(520px,calc(100svh-7.5rem))] md:max-h-[min(520px,calc(100svh-7.5rem))] md:overflow-hidden"
-        style={{
-          background: "#131212",
-        }}
+        style={{ background: "#131212" }}
       >
         <div className="flex-1 min-h-0 md:flex-none md:h-full h-auto overflow-y-auto overflow-x-hidden flex flex-col w-full md:w-[220px] lg:w-[240px] border-t border-[rgba(200,162,255,0.12)] md:border-t-0 md:border-r md:border-r-[rgba(200,162,255,0.12)] pt-2 md:pt-0 md:overflow-hidden">
           <PlinkoControls
@@ -121,7 +187,10 @@ export default function PlinkoGame() {
             onAutoToggle={handleAutoToggle}
             autoCount={autoCount}
             onAutoCountChange={setAutoCount}
-            results={results}
+            isBetting={isBetting}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={() => setLoginModalOpen(true)}
+            errorMsg={errorMsg}
           />
         </div>
 
@@ -146,6 +215,7 @@ export default function PlinkoGame() {
         </div>
       </div>
       <PlinkoResultToast result={lastResult} />
+      <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </>
   );
 }

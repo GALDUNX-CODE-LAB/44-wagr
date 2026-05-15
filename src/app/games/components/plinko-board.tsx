@@ -6,7 +6,7 @@ import { usePlinkoPhysics, getBucketBand } from "../../../hooks/usePlinkoPhysics
 import { useGameLoop } from "../../../hooks/useGameLoop";
 
 export interface PlinkoBoardHandle {
-  dropBall: () => void;
+  dropBall: (targetBucketIndex?: number) => void;
 }
 
 interface PlinkoBoardProps {
@@ -35,11 +35,11 @@ function fillBucketLabel(
   cy: number,
   maxWidth: number,
 ) {
-  let fontPx = Math.max(5, Math.min(Math.floor(maxWidth * 0.28), 8));
+  let fontPx = Math.max(7, Math.min(Math.floor(maxWidth * 0.42), 13));
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  for (let i = 0; i < 6 && fontPx >= 5; i++) {
-    ctx.font = `600 ${fontPx}px ${CANVAS_FONT}`;
+  for (let i = 0; i < 6 && fontPx >= 7; i++) {
+    ctx.font = `700 ${fontPx}px ${CANVAS_FONT}`;
     if (ctx.measureText(text).width <= maxWidth * 0.88) break;
     fontPx -= 1;
   }
@@ -58,31 +58,36 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      buildBoard(rows, canvas.width, canvas.height, multipliers);
+      const dpr = window.devicePixelRatio || 1;
+      buildBoard(rows, canvas.width / dpr, canvas.height / dpr, multipliers);
     }, [rows, difficulty, buildBoard, multipliers]);
 
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
+
+      function applySize(cssW: number, cssH: number) {
+        const dpr = window.devicePixelRatio || 1;
+        canvas!.width = Math.round(cssW * dpr);
+        canvas!.height = Math.round(cssH * dpr);
+        canvas!.style.width = cssW + "px";
+        canvas!.style.height = cssH + "px";
+        buildBoard(
+          configRef.current.rows,
+          cssW,
+          cssH,
+          MULTIPLIERS[configRef.current.difficulty][configRef.current.rows],
+        );
+      }
+
       const resizeObserver = new ResizeObserver(() => {
         const parent = canvas.parentElement;
         if (!parent) return;
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-        buildBoard(
-          configRef.current.rows,
-          canvas.width,
-          canvas.height,
-          MULTIPLIERS[configRef.current.difficulty][configRef.current.rows],
-        );
+        applySize(parent.clientWidth, parent.clientHeight);
       });
       resizeObserver.observe(canvas.parentElement!);
       const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-        buildBoard(rows, canvas.width, canvas.height, multipliers);
-      }
+      if (parent) applySize(parent.clientWidth, parent.clientHeight);
       return () => resizeObserver.disconnect();
     }, [buildBoard, rows, multipliers]);
 
@@ -92,8 +97,13 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      const W = canvas.width;
-      const H = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+      // CSS dimensions (game coordinates live here)
+      const W = canvas.width / dpr;
+      const H = canvas.height / dpr;
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
 
       ctx.clearRect(0, 0, W, H);
 
@@ -101,18 +111,17 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
       ctx.fillRect(0, 0, W, H);
 
       for (const peg of pegsRef.current) {
+        if (peg.lit) {
+          // Soft glow ring — no shadowBlur (too expensive on retina displays)
+          ctx.beginPath();
+          ctx.arc(peg.x, peg.y, peg.radius * 2.4, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(200,162,255,0.18)";
+          ctx.fill();
+        }
         ctx.beginPath();
         ctx.arc(peg.x, peg.y, peg.radius, 0, Math.PI * 2);
-        if (peg.lit) {
-          ctx.fillStyle = "#f5e9ff";
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = "rgba(200,162,255,0.85)";
-        } else {
-          ctx.fillStyle = "rgba(200,162,255,0.35)";
-          ctx.shadowBlur = 0;
-        }
+        ctx.fillStyle = peg.lit ? "#f5e9ff" : "rgba(200,162,255,0.35)";
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
 
       const buckets = bucketsRef.current;
@@ -169,35 +178,45 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, PlinkoBoardProps>(
         gradient.addColorStop(0.45, ball.color);
         gradient.addColorStop(1, darken(ball.color, 45));
 
+        // Glow ring without shadowBlur
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius * 1.7, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(200,162,255,0.12)";
+        ctx.fill();
+
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "rgba(200,162,255,0.55)";
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
+
+      ctx.restore();
     }, [pegsRef, bucketsRef, ballsRef, multipliers, activeBucketIndex]);
 
     const tick = useCallback(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      step(canvas.height, multipliers);
+      const dpr = window.devicePixelRatio || 1;
+      step(canvas.height / dpr, multipliers);
       draw();
     }, [step, draw, multipliers]);
 
     useGameLoop(tick, true);
 
+    // One-shot redraw when bucket highlight changes (loop may be paused at that point)
+    useEffect(() => { draw(); }, [activeBucketIndex, draw]);
+
     useImperativeHandle(
       ref,
       () => ({
-        dropBall: () => {
+        dropBall: (targetBucketIndex?: number) => {
           const canvas = canvasRef.current;
           if (!canvas) return;
-          dropBall(canvas.width, configRef.current.difficulty, (bucketIdx, mult) => {
+          const dpr = window.devicePixelRatio || 1;
+          dropBall(canvas.width / dpr, configRef.current.difficulty, (bucketIdx, mult) => {
             const payout = betAmount * mult;
             onBallLand(bucketIdx, mult, payout);
-          });
+          }, targetBucketIndex);
         },
       }),
       [dropBall, betAmount, onBallLand],

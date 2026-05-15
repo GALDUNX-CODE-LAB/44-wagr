@@ -34,6 +34,32 @@ export const fetchWheelsWins = async () => {
   return response;
 };
 
+export const fetchPlinkoWins = async () => {
+  const response = await apiHandler("/live-wins/plinko", { method: "GET" });
+  return response;
+};
+
+export const placePlinkoBet = async ({
+  betAmount,
+  rows,
+  difficulty,
+}: {
+  betAmount: number;
+  rows: number;
+  difficulty: "low" | "medium" | "high";
+}) => {
+  const response = await apiHandler("/plinko/bet", {
+    method: "POST",
+    data: { betAmount, rows, difficulty },
+  });
+  return response;
+};
+
+export const fetchPlinkoHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=plinko&page=${page}`, { method: "GET" });
+  return response;
+};
+
 export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
 
 export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {

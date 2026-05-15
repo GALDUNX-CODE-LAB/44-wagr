@@ -24,6 +24,8 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
   const [diceTarget, setDiceTarget] = useState(50);
   const [diceBetType, setDiceBetType] = useState<"over" | "under">("over");
   const [coinChoice, setCoinChoice] = useState<"heads" | "tails">("heads");
+  const [plinkoRows, setPlinkoRows] = useState(16);
+  const [plinkoDifficulty, setPlinkoDifficulty] = useState<"low" | "medium" | "high">("medium");
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
   const seedsQuery = useQuery({
@@ -48,6 +50,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
     let body: any = base;
     if (game === "coinflip") body = { ...base, choice: coinChoice };
     if (game === "dice") body = { ...base, target: diceTarget, betType: diceBetType };
+    if (game === "plinko") body = { ...base, rows: plinkoRows, difficulty: plinkoDifficulty };
     verifyMutation.mutate(body);
   };
 
@@ -185,6 +188,22 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                         </p>
                       </>
                     )}
+                    {verifyResult.game === "plinko" && (
+                      <>
+                        <p>
+                          <span className="text-white/60">Bucket Index:</span> {verifyResult.bucketIndex}
+                        </p>
+                        <p>
+                          <span className="text-white/60">Rows:</span> {verifyResult.rows}
+                        </p>
+                        <p>
+                          <span className="text-white/60">Difficulty:</span> {verifyResult.difficulty}
+                        </p>
+                        <p>
+                          <span className="text-white/60">Multiplier:</span> {verifyResult.multiplier}x
+                        </p>
+                      </>
+                    )}
                     <p className="break-all">
                       <span className="text-white/60">HMAC:</span> {verifyResult.hmac}
                     </p>
@@ -202,6 +221,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                       <option value="coinflip">Coin Flip</option>
                       <option value="dice">Dice</option>
                       <option value="wheel">Wheel</option>
+                      <option value="plinko">Plinko</option>
                     </select>
                   </div>
 
@@ -290,6 +310,34 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                         >
                           <option value="over">Roll Over</option>
                           <option value="under">Roll Under</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {game === "plinko" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <p className="text-white/60">Rows</p>
+                        <input
+                          type="number"
+                          min={8}
+                          max={16}
+                          value={plinkoRows}
+                          onChange={(e) => setPlinkoRows(Math.max(8, Math.min(16, Number(e.target.value) || 16)))}
+                          className="w-full rounded-lg bg-[#10151c] px-3 py-2 text-xs outline-none border border-white/5"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white/60">Difficulty</p>
+                        <select
+                          value={plinkoDifficulty}
+                          onChange={(e) => setPlinkoDifficulty(e.target.value as "low" | "medium" | "high")}
+                          className="w-full rounded-lg bg-[#10151c] px-3 py-2 text-xs outline-none border border-white/5"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
                         </select>
                       </div>
                     </div>
