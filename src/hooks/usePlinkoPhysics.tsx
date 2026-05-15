@@ -3,33 +3,44 @@
 import { useRef, useCallback } from "react";
 import { Ball, Bucket, Difficulty, DIFFICULTY_BIAS, Peg } from "../interfaces/interface";
 
-const GRAVITY = 0.35;
+const GRAVITY = 0.45;
 const DAMPING = 0.58;
 const FRICTION = 0.995;
-/** Base radii at scale 1; scaled down on narrow boards so balls always fit between pegs. */
 const BALL_RADIUS_BASE = 5;
 const PEG_RADIUS_BASE = 4;
-/** Minimum gap between peg edges (ball must fit: 2×ball + 2×peg center distance — see buildBoard). */
 const PASSAGE_EDGE_CLEARANCE_PX = 2;
 
-/** App primary purple (`--color-primary`) */
 const BALL_COLOR = "#c8a2ff";
 
-/** Padding under bucket row; must match canvas draw (`plinko-board`). */
 export const PLINKO_BUCKET_BOTTOM_PAD_RATIO = 0.02;
 
-/** Buckets are square (height === width). Shared layout for draw + hit testing. */
 export function getBucketBand(canvasHeight: number, bucketWidth: number) {
   const size = bucketWidth;
   const top = canvasHeight - size - canvasHeight * PLINKO_BUCKET_BOTTOM_PAD_RATIO;
   return { top, size };
 }
 
+/**
+ * Generates a valid left/right path (true = right) that sums to exactly
+ * `bucketIndex` right-turns across `rows` rows. Uses a weighted-random
+ * approach so every run looks different while always landing in the same bucket.
+ */
+function generatePath(bucketIndex: number, rows: number): boolean[] {
+  const path: boolean[] = [];
+  let rightsLeft = bucketIndex;
+  for (let i = 0; i < rows; i++) {
+    const stepsLeft = rows - i;
+    const goRight = Math.random() < rightsLeft / stepsLeft;
+    path.push(goRight);
+    if (goRight) rightsLeft--;
+  }
+  return path;
+}
+
 export function usePlinkoPhysics() {
   const ballsRef = useRef<Ball[]>([]);
   const pegsRef = useRef<Peg[]>([]);
   const bucketsRef = useRef<Bucket[]>([]);
-  /** Latest radii from buildBoard — dropBall must match so collision geometry stays consistent. */
   const ballRadiusRef = useRef(BALL_RADIUS_BASE);
 
   const buildBoard = useCallback((rows: number, canvasWidth: number, canvasHeight: number, multipliers: number[]) => {
@@ -39,7 +50,6 @@ export function usePlinkoPhysics() {
     const usableHeight = canvasHeight - topPadding - bottomPadding;
     const rowSpacing = usableHeight / rows;
 
-    /** Tightest peg center distance in any row (worst case = max columns ≈ bottom rows). */
     let minCenterSpacing = Infinity;
     for (let row = 0; row < rows; row++) {
       const cols = row + 3;
@@ -47,8 +57,7 @@ export function usePlinkoPhysics() {
       minCenterSpacing = Math.min(minCenterSpacing, spacing);
     }
 
-    const minCenterForPassage =
-      2 * PEG_RADIUS_BASE + 2 * BALL_RADIUS_BASE + PASSAGE_EDGE_CLEARANCE_PX;
+    const minCenterForPassage = 2 * PEG_RADIUS_BASE + 2 * BALL_RADIUS_BASE + PASSAGE_EDGE_CLEARANCE_PX;
     const physicsScale = Math.min(1, minCenterSpacing / minCenterForPassage);
     const pegRadius = PEG_RADIUS_BASE * physicsScale;
     const ballRadius = BALL_RADIUS_BASE * physicsScale;
@@ -68,11 +77,11 @@ export function usePlinkoPhysics() {
           radius: pegRadius,
           lit: false,
           litTimer: 0,
+          row,        // ← row index used for path lookup
         });
       }
     }
 
-    // Buckets align to gaps between pegs on the bottom row (same geometry as last peg row).
     const lastRowIndex = rows - 1;
     const colsLast = lastRowIndex + 3;
     const spacingLast = Math.min(canvasWidth / (colsLast + 1), rowSpacing * 1.1);
@@ -98,8 +107,18 @@ export function usePlinkoPhysics() {
   }, []);
 
   const dropBall = useCallback(
-    (canvasWidth: number, difficulty: Difficulty, onLand: (bucketIndex: number, multiplier: number) => void) => {
+    (
+      canvasWidth: number,
+      difficulty: Difficulty,
+      onLand: (bucketIndex: number, multiplier: number) => void,
+      targetBucketIndex?: number,
+    ) => {
       const id = `ball-${Date.now()}-${Math.random()}`;
+
+      // Derive total rows from peg structure (last peg row = max row value)
+      const rows = pegsRef.current.length > 0
+        ? pegsRef.current[pegsRef.current.length - 1].row + 1
+        : 16;
 
       const ball: Ball = {
         id,
@@ -116,6 +135,13 @@ export function usePlinkoPhysics() {
 
       ball._onLand = onLand;
       ball._difficulty = difficulty;
+      ball._targetBucketIndex = targetBucketIndex;
+
+      // Pre-compute the path so each peg collision goes in the right direction
+      if (targetBucketIndex !== undefined) {
+        ball._path = generatePath(targetBucketIndex, rows);
+        ball._lastRow = -1;
+      }
 
       ballsRef.current.push(ball);
       return id;
@@ -147,6 +173,12 @@ export function usePlinkoPhysics() {
       ball.x += ball.vx;
       ball.y += ball.vy;
 
+      // Sub-visual safety drift only — kinematic targeting does the real work
+      if (ball._targetBucketIndex !== undefined && buckets[ball._targetBucketIndex]) {
+        const tb = buckets[ball._targetBucketIndex];
+        ball.vx += (tb.x + tb.width / 2 - ball.x) * 0.0015;
+      }
+
       for (const peg of pegs) {
         const dx = ball.x - peg.x;
         const dy = ball.y - peg.y;
@@ -160,12 +192,53 @@ export function usePlinkoPhysics() {
           const nx = dx / dist;
           const ny = dy / dist;
           const dot = ball.vx * nx + ball.vy * ny;
+          const preVy = ball.vy; // capture before reflection changes it
 
           ball.vx = (ball.vx - 2 * dot * nx) * DAMPING;
           ball.vy = (ball.vy - 2 * dot * ny) * DAMPING;
 
-          const bias = DIFFICULTY_BIAS[ball._difficulty || "medium"];
-          ball.vx += (Math.random() - 0.5) * bias * 4;
+          if (ball._path && peg.row > (ball._lastRow ?? -1) && preVy > 0) {
+            ball._lastRow = peg.row;
+            const goRight = ball._path[peg.row];
+
+            const nextRowPegs = pegs
+              .filter(p => p.row === peg.row + 1)
+              .sort((a, b) => a.x - b.x);
+            const targetPeg = goRight
+              ? nextRowPegs.find(p => p.x > peg.x)
+              : [...nextRowPegs].reverse().find(p => p.x < peg.x);
+
+            if (targetPeg) {
+              // Compute exact vx needed to reach targetPeg under gravity + friction.
+              // Solve: 0 = 0.5*G*t^2 + vy0*t - tdy  →  t = (-vy0 + sqrt(vy0²+2G·tdy)) / G
+              const tdx = targetPeg.x - ball.x;
+              const tdy = Math.max(6, targetPeg.y - ball.y);
+              const vy0 = Math.max(0, ball.vy); // post-reflection; 0 if bounced upward
+              const disc = vy0 * vy0 + 2 * GRAVITY * tdy;
+              const tFrames = Math.max(4, (-vy0 + Math.sqrt(disc)) / GRAVITY);
+              // x-displacement with friction: dx = vx0 * (1 - FRICTION^n) / (1 - FRICTION)
+              const fSum = Math.max(1, (1 - Math.pow(FRICTION, tFrames)) / (1 - FRICTION));
+              ball.vx = tdx / fSum + (Math.random() - 0.5) * 0.12;
+            } else {
+              // Last peg row — aim kinematically at the target bucket centre
+              const tb = ball._targetBucketIndex !== undefined ? buckets[ball._targetBucketIndex] : null;
+              if (tb) {
+                const tdx = (tb.x + tb.width / 2) - ball.x;
+                const tdy = Math.max(6, canvasHeight - peg.y);
+                const vy0 = Math.max(0, ball.vy);
+                const disc = vy0 * vy0 + 2 * GRAVITY * tdy;
+                const tFrames = Math.max(4, (-vy0 + Math.sqrt(disc)) / GRAVITY);
+                const fSum = Math.max(1, (1 - Math.pow(FRICTION, tFrames)) / (1 - FRICTION));
+                ball.vx = tdx / fSum + (Math.random() - 0.5) * 0.12;
+              } else {
+                ball.vx = (goRight ? 1 : -1) * 1.2;
+              }
+            }
+          } else if (!ball._path) {
+            const bias = DIFFICULTY_BIAS[ball._difficulty || "medium"];
+            ball.vx += (Math.random() - 0.5) * bias * 4;
+          }
+
           if (ball.vy < 0.5) ball.vy = 0.5;
 
           const overlap = minDist - dist + 0.5;
@@ -185,40 +258,42 @@ export function usePlinkoPhysics() {
       }
 
       const band = buckets.length > 0 ? getBucketBand(canvasHeight, buckets[0].width) : null;
-      if (
-        band &&
-        ball.y >= band.top &&
-        ball.y <= band.top + band.size &&
-        buckets.length > 0
-      ) {
+
+      if (band && ball.y >= band.top && ball.y <= band.top + band.size && buckets.length > 0) {
+        let landIndex = -1;
         for (let i = 0; i < buckets.length; i++) {
           const b = buckets[i];
           if (ball.x >= b.x && ball.x <= b.x + b.width) {
-            ball.landed = true;
-            ball.bucketIndex = i;
-            ball.active = false;
-            if (ball._onLand) {
-              ball._onLand(i, multipliers[i]);
-            }
-            balls.splice(bi, 1);
+            landIndex = i;
             break;
           }
         }
+        if (landIndex >= 0) {
+          ball.landed = true;
+          ball.active = false;
+          if (ball._onLand) ball._onLand(landIndex, multipliers[landIndex]);
+          balls.splice(bi, 1);
+        } else if (ball._targetBucketIndex !== undefined) {
+          // Ball in bucket zone but x didn't align — force the server-correct bucket
+          ball.landed = true;
+          ball.active = false;
+          if (ball._onLand) ball._onLand(ball._targetBucketIndex, multipliers[ball._targetBucketIndex]);
+          balls.splice(bi, 1);
+        }
       } else if (buckets.length > 0 && ball.y > canvasHeight) {
-        let closest = 0;
-        let minDist2 = Infinity;
-        for (let i = 0; i < buckets.length; i++) {
-          const cx = buckets[i].x + buckets[i].width / 2;
-          const d = Math.abs(ball.x - cx);
-          if (d < minDist2) {
-            minDist2 = d;
-            closest = i;
+        // Off-canvas fallback — use target if available, else closest by x
+        let fallback = ball._targetBucketIndex ?? 0;
+        if (ball._targetBucketIndex === undefined) {
+          let minD = Infinity;
+          for (let i = 0; i < buckets.length; i++) {
+            const cx = buckets[i].x + buckets[i].width / 2;
+            const d = Math.abs(ball.x - cx);
+            if (d < minD) { minD = d; fallback = i; }
           }
         }
         ball.landed = true;
-        ball.bucketIndex = closest;
         ball.active = false;
-        if (ball._onLand) ball._onLand(closest, multipliers[closest]);
+        if (ball._onLand) ball._onLand(fallback, multipliers[fallback]);
         balls.splice(bi, 1);
       }
     }
@@ -236,4 +311,3 @@ function getBucketColor(mult: number): string {
   if (mult >= 0.5) return "#4caf50";
   return "#2d8c4e";
 }
-

@@ -107,6 +107,7 @@ export interface MarketResponse {
 }
 
 export enum GameType {
+  Plinko = "Plinko",
   Coinflip = "Coinflip",
   Dice = "Dice",
   Crash = "Crash",
@@ -267,7 +268,7 @@ export interface VerifyRequestBase {
   serverSeed: string;
   nonce: number;
 }
-export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels";
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko";
 
 export interface INotification {
   _id: string;
@@ -302,6 +303,9 @@ export interface Ball {
   bucketIndex?: number;
   _onLand?: (bucketIndex: number, multiplier: number) => void;
   _difficulty?: Difficulty;
+  _targetBucketIndex?: number;
+  _path?: boolean[];
+  _lastRow?: number;
 }
 
 export interface Peg {
@@ -310,6 +314,7 @@ export interface Peg {
   radius: number;
   lit: boolean;
   litTimer: number;
+  row: number;
 }
 
 export interface Bucket {

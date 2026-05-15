@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Difficulty, GameMode, ROW_OPTIONS, BetResult } from "../../../interfaces/interface";
+import { Difficulty, GameMode, ROW_OPTIONS } from "../../../interfaces/interface";
 
 interface PlinkoControlsProps {
   betAmount: number;
@@ -18,7 +18,10 @@ interface PlinkoControlsProps {
   onAutoToggle: () => void;
   autoCount: number;
   onAutoCountChange: (n: number) => void;
-  results: BetResult[];
+  isBetting?: boolean;
+  isLoggedIn?: boolean;
+  onLoginClick?: () => void;
+  errorMsg?: string | null;
 }
 
 const PRIMARY = "#c8a2ff";
@@ -44,7 +47,10 @@ export default function PlinkoControls({
   onAutoToggle,
   autoCount,
   onAutoCountChange,
-  results,
+  isBetting,
+  isLoggedIn = true,
+  onLoginClick,
+  errorMsg,
 }: PlinkoControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
   const [rowsOpen, setRowsOpen] = useState(false);
@@ -249,18 +255,39 @@ export default function PlinkoControls({
         )}
       </AnimatePresence>
 
-      {gameMode === "manual" ? (
+      {errorMsg && (
+        <div className="order-1 md:order-6 rounded px-2.5 py-1.5 text-[11px] font-medium text-red-400 bg-red-500/10 border border-red-500/20 text-center">
+          {errorMsg}
+        </div>
+      )}
+
+      {!isLoggedIn ? (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.97 }}
+          onClick={onLoginClick}
+          className="w-full py-2.5 rounded font-semibold text-xs tracking-wide order-1 md:order-6"
+          style={{
+            background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
+            boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
+            color: "#131212",
+          }}
+        >
+          Login to Play
+        </motion.button>
+      ) : gameMode === "manual" ? (
         <motion.button
           type="button"
           whileTap={{ scale: 0.97 }}
           onClick={onBet}
-          className="w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212] order-1 md:order-6"
+          disabled={isBetting}
+          className="w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212] order-1 md:order-6 disabled:opacity-60"
           style={{
             background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
             boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
           }}
         >
-          BET
+          {isBetting ? "..." : "BET"}
         </motion.button>
       ) : (
         <motion.button
@@ -279,46 +306,6 @@ export default function PlinkoControls({
         </motion.button>
       )}
       </div>
-
-      <div className="flex flex-col flex-1 min-h-0 gap-1 pt-0.5 order-7 md:order-7">
-        <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
-        <div
-          className="flex-1 min-h-[72px] overflow-y-auto rounded px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {results.length === 0 ? (
-            <p className="text-[11px] text-white/35 text-center py-5 px-2 leading-snug">No recent game.</p>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              {[...results]
-                .reverse()
-                .slice(0, 50)
-                .map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex items-center justify-between px-2 py-1 rounded text-[11px] shrink-0"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  >
-                    <span className="text-white/45">${r.betAmount.toFixed(2)}</span>
-                    <span style={{ color: getMultColor(r.multiplier) }} className="font-bold">
-                      {r.multiplier}×
-                    </span>
-                    <span className={r.payout >= r.betAmount ? "text-emerald-400" : "text-red-400"}>
-                      ${r.payout.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
-}
-
-function getMultColor(mult: number): string {
-  if (mult >= 10) return PRIMARY;
-  if (mult >= 2) return "#f59e0b";
-  if (mult >= 1) return "#4caf50";
-  return "#ef4444";
 }
