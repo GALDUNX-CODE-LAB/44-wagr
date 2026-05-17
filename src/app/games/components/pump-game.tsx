@@ -17,6 +17,9 @@ export default function PumpGame() {
     gameState,
     results,
     ladder,
+    isLoading,
+    isPumping,
+    error,
     startGame,
     pump,
     cashout,
@@ -31,10 +34,8 @@ export default function PumpGame() {
   const handleBet = () => {
     if (gameState.phase === "busted" || gameState.phase === "cashedout") {
       resetGame();
-      setTimeout(startGame, 50);
-    } else {
-      startGame();
     }
+    startGame();
   };
 
   return (
@@ -67,6 +68,9 @@ export default function PumpGame() {
           onStartAuto={startAuto}
           onStopAuto={stopAuto}
           results={results}
+          isLoading={isLoading}
+          isPumping={isPumping}
+          error={error}
         />
       </div>
 

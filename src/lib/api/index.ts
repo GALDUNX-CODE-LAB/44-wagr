@@ -85,6 +85,31 @@ export const fetchMinesHistory = async (page = 1) => {
   return response;
 };
 
+export const fetchPumpWins = async () => {
+  const response = await apiHandler("/live-wins/pump", { method: "GET" });
+  return response;
+};
+
+export const startPumpGame = async ({ betAmount, difficulty }: { betAmount: number; difficulty: string }) => {
+  const response = await apiHandler("/pump/start", { method: "POST", data: { betAmount, difficulty } });
+  return response;
+};
+
+export const pumpGameAction = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/pump/pump", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const cashoutPumpGame = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/pump/cashout", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const fetchPumpHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=pump&page=${page}`, { method: "GET" });
+  return response;
+};
+
 export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
 
 export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {

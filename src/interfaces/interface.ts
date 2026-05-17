@@ -113,6 +113,7 @@ export enum GameType {
   Crash = "Crash",
   Wheels = "Wheels",
   Mines = "Mines",
+  Pump = "Pump",
 }
 
 export interface CrashBetPayload {

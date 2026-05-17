@@ -29,6 +29,9 @@ interface PumpControlsProps {
   onStartAuto: () => void;
   onStopAuto: () => void;
   results: PumpBetResult[];
+  isLoading?: boolean;
+  isPumping?: boolean;
+  error?: string | null;
 }
 
 export default function PumpControls({
@@ -52,6 +55,9 @@ export default function PumpControls({
   onStartAuto,
   onStopAuto,
   results,
+  isLoading = false,
+  isPumping = false,
+  error,
 }: PumpControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
   const isPlaying = phase === "playing";
@@ -289,19 +295,26 @@ export default function PumpControls({
         </div>
 
         {/* Action Buttons */}
+        {error && (
+          <div className="order-0 shrink-0 rounded px-2.5 py-1.5 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20">
+            {error}
+          </div>
+        )}
+
         {gameMode === "manual" ? (
           isIdle ? (
             <motion.button
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onBet}
-              className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs tracking-wide text-[#131212]"
+              disabled={isLoading}
+              className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs tracking-wide text-[#131212] disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
                 boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
               }}
             >
-              BET
+              {isLoading ? "Starting..." : "BET"}
             </motion.button>
           ) : (
             <div className="order-1 md:order-7 flex shrink-0 flex-col gap-1.5">
@@ -309,7 +322,7 @@ export default function PumpControls({
                 type="button"
                 whileTap={{ scale: 0.97 }}
                 onClick={onCashout}
-                disabled={currentStep === 0}
+                disabled={currentStep === 0 || isLoading}
                 className="w-full py-2 rounded font-semibold text-[11px]"
                 style={{
                   background:
@@ -327,7 +340,8 @@ export default function PumpControls({
                 type="button"
                 whileTap={{ scale: 0.97 }}
                 onClick={onPump}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/12 bg-white/[0.06] py-2 text-[11px] font-semibold text-white/85"
+                disabled={isPumping}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/12 bg-white/[0.06] py-2 text-[11px] font-semibold text-white/85 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Wind className="size-3.5 shrink-0 opacity-90" aria-hidden strokeWidth={2.25} />
                 PUMP
@@ -339,7 +353,8 @@ export default function PumpControls({
             type="button"
             whileTap={{ scale: 0.97 }}
             onClick={isAutoRunning ? onStopAuto : onStartAuto}
-            className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs"
+            disabled={isLoading}
+            className="order-1 md:order-7 w-full shrink-0 rounded py-2.5 font-semibold text-xs disabled:opacity-60 disabled:cursor-not-allowed"
             style={{
               background: isAutoRunning
                 ? "linear-gradient(135deg, #ef4444, #b91c1c)"
