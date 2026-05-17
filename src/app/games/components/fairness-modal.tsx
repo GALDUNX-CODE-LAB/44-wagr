@@ -26,6 +26,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
   const [coinChoice, setCoinChoice] = useState<"heads" | "tails">("heads");
   const [plinkoRows, setPlinkoRows] = useState(16);
   const [plinkoDifficulty, setPlinkoDifficulty] = useState<"low" | "medium" | "high">("medium");
+  const [minesCount, setMinesCount] = useState(3);
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
   const seedsQuery = useQuery({
@@ -51,6 +52,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
     if (game === "coinflip") body = { ...base, choice: coinChoice };
     if (game === "dice") body = { ...base, target: diceTarget, betType: diceBetType };
     if (game === "plinko") body = { ...base, rows: plinkoRows, difficulty: plinkoDifficulty };
+    if (game === "mines") body = { ...base, mineCount: minesCount };
     verifyMutation.mutate(body);
   };
 
@@ -204,6 +206,28 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                         </p>
                       </>
                     )}
+                    {verifyResult.game === "mines" && (
+                      <>
+                        <p>
+                          <span className="text-white/60">Mine Count:</span> {verifyResult.mineCount}
+                        </p>
+                        <p className="text-white/60">Mine Positions (0–24):</p>
+                        <div className="grid grid-cols-5 gap-1 mt-1">
+                          {Array.from({ length: 25 }, (_, i) => (
+                            <div
+                              key={i}
+                              className={`h-6 w-full rounded text-[10px] flex items-center justify-center font-semibold ${
+                                verifyResult.minePositions?.includes(i)
+                                  ? "bg-red-500/80 text-white"
+                                  : "bg-white/5 text-white/40"
+                              }`}
+                            >
+                              {i}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                     <p className="break-all">
                       <span className="text-white/60">HMAC:</span> {verifyResult.hmac}
                     </p>
@@ -222,6 +246,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                       <option value="dice">Dice</option>
                       <option value="wheel">Wheel</option>
                       <option value="plinko">Plinko</option>
+                      <option value="mines">Mines</option>
                     </select>
                   </div>
 
@@ -340,6 +365,20 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                           <option value="high">High</option>
                         </select>
                       </div>
+                    </div>
+                  )}
+
+                  {game === "mines" && (
+                    <div className="space-y-1">
+                      <p className="text-white/60">Mine Count</p>
+                      <input
+                        type="number"
+                        min={1}
+                        max={24}
+                        value={minesCount}
+                        onChange={(e) => setMinesCount(Math.max(1, Math.min(24, Number(e.target.value) || 1)))}
+                        className="w-full rounded-lg bg-[#10151c] px-3 py-2 text-xs outline-none border border-white/5"
+                      />
                     </div>
                   )}
                 </div>

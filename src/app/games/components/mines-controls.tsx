@@ -24,6 +24,8 @@ interface MinesControlsProps {
   onCashout: () => void;
   onRandomPick: () => void;
   results: { multiplier: number; payout: number; bet: number; won: boolean }[];
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 export default function MinesControls({
@@ -42,6 +44,8 @@ export default function MinesControls({
   onCashout,
   onRandomPick,
   results,
+  isLoading = false,
+  error,
 }: MinesControlsProps) {
   const [minesOpen, setMinesOpen] = useState(false);
   const isPlaying = phase === "playing";
@@ -231,18 +235,25 @@ export default function MinesControls({
           </div>
         </div>
 
+        {error && (
+          <div className="order-0 text-[11px] text-red-400 bg-red-400/10 border border-red-400/20 rounded px-2 py-1.5">
+            {error}
+          </div>
+        )}
+
         {isIdle || phase === "won" || phase === "lost" ? (
           <motion.button
             type="button"
             whileTap={{ scale: 0.97 }}
             onClick={onBet}
-            className="order-1 md:order-7 w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212]"
+            disabled={isLoading}
+            className="order-1 md:order-7 w-full py-2.5 rounded font-semibold text-xs tracking-wide text-[#131212] disabled:opacity-60 disabled:cursor-not-allowed"
             style={{
               background: `linear-gradient(135deg, ${PRIMARY} 0%, #9d6fd8 100%)`,
               boxShadow: "0 4px 18px rgba(200,162,255,0.28)",
             }}
           >
-            BET
+            {isLoading ? "Starting..." : "BET"}
           </motion.button>
         ) : (
           <div className="order-1 md:order-7 flex flex-col gap-1.5">
@@ -250,23 +261,24 @@ export default function MinesControls({
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onCashout}
-              disabled={gemsFound === 0}
+              disabled={gemsFound === 0 || isLoading}
               className="w-full py-2.5 rounded font-semibold text-xs tracking-wide"
               style={{
                 background:
-                  gemsFound > 0 ? "linear-gradient(135deg, #22c55e 0%, #15803d 100%)" : "rgba(255,255,255,0.08)",
-                color: gemsFound > 0 ? "#fff" : "rgba(255,255,255,0.3)",
-                boxShadow: gemsFound > 0 ? "0 4px 18px rgba(34,197,94,0.25)" : "none",
-                cursor: gemsFound === 0 ? "not-allowed" : "pointer",
+                  gemsFound > 0 && !isLoading ? "linear-gradient(135deg, #22c55e 0%, #15803d 100%)" : "rgba(255,255,255,0.08)",
+                color: gemsFound > 0 && !isLoading ? "#fff" : "rgba(255,255,255,0.3)",
+                boxShadow: gemsFound > 0 && !isLoading ? "0 4px 18px rgba(34,197,94,0.25)" : "none",
+                cursor: gemsFound === 0 || isLoading ? "not-allowed" : "pointer",
               }}
             >
-              CASHOUT {gemsFound > 0 ? `$${(betAmountUsed * currentMultiplier).toFixed(2)}` : ""}
+              {isLoading ? "..." : `CASHOUT ${gemsFound > 0 ? `$${(betAmountUsed * currentMultiplier).toFixed(2)}` : ""}`}
             </motion.button>
             <motion.button
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={onRandomPick}
-              className="w-full py-2 rounded font-semibold text-[11px] tracking-wide border border-white/12 bg-white/[0.06] text-white/85"
+              disabled={isLoading}
+              className="w-full py-2 rounded font-semibold text-[11px] tracking-wide border border-white/12 bg-white/[0.06] text-white/85 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               RANDOM PICK
             </motion.button>

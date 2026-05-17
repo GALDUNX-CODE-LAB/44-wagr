@@ -60,6 +60,31 @@ export const fetchPlinkoHistory = async (page = 1) => {
   return response;
 };
 
+export const fetchMinesWins = async () => {
+  const response = await apiHandler("/live-wins/mines", { method: "GET" });
+  return response;
+};
+
+export const startMinesGame = async ({ betAmount, mineCount }: { betAmount: number; mineCount: number }) => {
+  const response = await apiHandler("/mines/start", { method: "POST", data: { betAmount, mineCount } });
+  return response;
+};
+
+export const revealMinesCell = async ({ gameId, cellIndex }: { gameId: string; cellIndex: number }) => {
+  const response = await apiHandler("/mines/reveal", { method: "POST", data: { gameId, cellIndex } });
+  return response;
+};
+
+export const cashoutMinesGame = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/mines/cashout", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const fetchMinesHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=mines&page=${page}`, { method: "GET" });
+  return response;
+};
+
 export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
 
 export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {
