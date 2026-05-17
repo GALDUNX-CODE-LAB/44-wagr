@@ -270,7 +270,7 @@ export interface VerifyRequestBase {
   serverSeed: string;
   nonce: number;
 }
-export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines";
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines" | "pump";
 
 export interface INotification {
   _id: string;
