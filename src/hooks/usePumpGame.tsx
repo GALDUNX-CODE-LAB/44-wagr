@@ -1,24 +1,32 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   PumpDifficulty,
   GameMode,
   PumpGameState,
-  BetResult,
-  MULTIPLIER_LADDERS,
-  BUST_PROBABILITY,
   PumpBetResult,
+  MULTIPLIER_LADDERS,
 } from "../interfaces/interface";
-
-const STARTING_BALANCE = 1000;
+import { startPumpGame, pumpGameAction, cashoutPumpGame } from "../lib/api";
+import { useUser } from "./useUserData";
+import useIsLoggedIn from "./useIsLoggedIn";
 
 export function usePumpGame() {
-  const [balance, setBalance] = useState(STARTING_BALANCE);
+  const queryClient = useQueryClient();
+  const { balance } = useUser();
+  const isLoggedIn = useIsLoggedIn();
+
   const [gameMode, setGameMode] = useState<GameMode>("manual");
   const [betAmount, setBetAmount] = useState(1);
   const [difficulty, setDifficulty] = useState<PumpDifficulty>("hard");
   const [results, setResults] = useState<PumpBetResult[]>([]);
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPumping, setIsPumping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [gameState, setGameState] = useState<PumpGameState>({
     phase: "idle",
     currentStep: 0,
@@ -28,86 +36,127 @@ export function usePumpGame() {
     bustedAtStep: null,
   });
 
-  // Auto mode state
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isAutoRunning, setIsAutoRunning] = useState(false);
-  const [autoPumpCount, setAutoPumpCount] = useState(5); // pumps before auto-cashout
-  const autoStateRef = useRef({ pumpsLeft: 0, running: false });
+  const [autoPumpCount, setAutoPumpCount] = useState(5);
+  const autoStateRef = useRef({ pumpsLeft: 0, running: false, gameId: null as string | null });
 
   const ladder = MULTIPLIER_LADDERS[difficulty];
-  const bustProbs = BUST_PROBABILITY[difficulty];
 
-  const startGame = useCallback(() => {
-    if (betAmount <= 0 || betAmount > balance) return;
-    setBalance((prev) => +(prev - betAmount).toFixed(2));
-    setGameState({
-      phase: "playing",
-      currentStep: 0,
-      currentMultiplier: ladder[0],
-      betAmount,
-      profit: 0,
-      bustedAtStep: null,
-    });
-  }, [betAmount, balance, ladder]);
+  const startGame = useCallback(async () => {
+    if (!isLoggedIn) { setError("Please login to play"); return; }
+    if (betAmount <= 0) { setError("Enter a valid bet amount"); return; }
+    if (betAmount > balance) { setError("Insufficient balance"); return; }
 
-  const pump = useCallback(() => {
-    setGameState((prev) => {
-      if (prev.phase !== "playing") return prev;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await startPumpGame({ betAmount, difficulty });
+      const { gameId: newGameId } = res.data;
+      setGameId(newGameId);
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
+      setGameState({
+        phase: "playing",
+        currentStep: 0,
+        currentMultiplier: ladder[0],
+        betAmount,
+        profit: 0,
+        bustedAtStep: null,
+      });
+    } catch (err: any) {
+      setError(err?.message || "Failed to start game");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, betAmount, difficulty, balance, ladder, queryClient]);
 
-      const nextStep = prev.currentStep + 1;
-      const bustChance = bustProbs[prev.currentStep] ?? 0.95;
-      const busted = Math.random() < bustChance;
+  const pump = useCallback(async () => {
+    if (!gameId || isPumping || gameState.phase !== "playing") return null;
 
-      if (busted || nextStep >= ladder.length) {
-        // Bust
-        const result: PumpBetResult = {
-          id: `${Date.now()}`,
-          multiplier: 0,
-          payout: 0,
-          betAmount: prev.betAmount,
-          won: false,
-        };
-        setResults((r) => [...r, result]);
-        return {
+    setIsPumping(true);
+    setError(null);
+    try {
+      const res = await pumpGameAction({ gameId });
+      const data = res.data;
+
+      if (data.busted) {
+        setGameState((prev) => ({
           ...prev,
           phase: "busted",
-          bustedAtStep: prev.currentStep,
+          bustedAtStep: data.currentStep,
           profit: -prev.betAmount,
-        };
+        }));
+        setResults((r) => [...r, { id: Date.now().toString(), multiplier: 0, payout: 0, betAmount, won: false }]);
+        queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+        queryClient.invalidateQueries({ queryKey: ["user-data"] });
+        setGameId(null);
+        return { busted: true };
       }
 
-      const mult = ladder[nextStep];
-      return {
-        ...prev,
-        currentStep: nextStep,
-        currentMultiplier: mult,
-        profit: +(prev.betAmount * mult - prev.betAmount).toFixed(2),
-      };
-    });
-  }, [ladder, bustProbs]);
+      if (data.autoCashedOut) {
+        setGameState((prev) => ({
+          ...prev,
+          phase: "cashedout",
+          currentStep: data.currentStep,
+          currentMultiplier: data.multiplier,
+          profit: +(data.payout - prev.betAmount).toFixed(2),
+        }));
+        setResults((r) => [
+          ...r,
+          { id: Date.now().toString(), multiplier: data.multiplier, payout: data.payout, betAmount, won: true },
+        ]);
+        queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+        queryClient.invalidateQueries({ queryKey: ["user-data"] });
+        setGameId(null);
+        return { busted: false, autoCashedOut: true };
+      }
 
-  const cashout = useCallback(() => {
-    setGameState((prev) => {
-      if (prev.phase !== "playing" || prev.currentStep === 0) return prev;
-      const payout = +(prev.betAmount * prev.currentMultiplier).toFixed(2);
-      setBalance((b) => +(b + payout).toFixed(2));
-      const result: PumpBetResult = {
-        id: `${Date.now()}`,
-        multiplier: prev.currentMultiplier,
-        payout,
-        betAmount: prev.betAmount,
-        won: true,
-      };
-      setResults((r) => [...r, result]);
-      return {
+      setGameState((prev) => ({
+        ...prev,
+        currentStep: data.currentStep,
+        currentMultiplier: data.multiplier,
+        profit: +(prev.betAmount * data.multiplier - prev.betAmount).toFixed(2),
+      }));
+      return { busted: false };
+    } catch (err: any) {
+      setError(err?.message || "Failed to pump");
+      return null;
+    } finally {
+      setIsPumping(false);
+    }
+  }, [gameId, isPumping, gameState.phase, betAmount, queryClient]);
+
+  const cashout = useCallback(async () => {
+    if (!gameId || gameState.currentStep === 0 || gameState.phase !== "playing" || isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await cashoutPumpGame({ gameId });
+      const data = res.data;
+      setGameState((prev) => ({
         ...prev,
         phase: "cashedout",
-        profit: +(payout - prev.betAmount).toFixed(2),
-      };
-    });
-  }, []);
+        profit: +(data.payout - prev.betAmount).toFixed(2),
+        currentMultiplier: data.multiplier,
+      }));
+      setResults((r) => [
+        ...r,
+        { id: Date.now().toString(), multiplier: data.multiplier, payout: data.payout, betAmount, won: true },
+      ]);
+      queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
+      setGameId(null);
+    } catch (err: any) {
+      setError(err?.message || "Failed to cashout");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [gameId, gameState.currentStep, gameState.phase, isLoading, betAmount, queryClient]);
 
   const resetGame = useCallback(() => {
+    setGameId(null);
+    setError(null);
     setGameState({
       phase: "idle",
       currentStep: 0,
@@ -118,81 +167,129 @@ export function usePumpGame() {
     });
   }, [ladder]);
 
-  // Auto mode
-  const startAuto = useCallback(() => {
-    if (betAmount <= 0 || betAmount > balance) return;
-    setIsAutoRunning(true);
-    autoStateRef.current = { pumpsLeft: autoPumpCount, running: true };
+  const startAuto = useCallback(async () => {
+    if (!isLoggedIn) { setError("Please login to play"); return; }
+    if (betAmount <= 0) { setError("Enter a valid bet amount"); return; }
+    if (betAmount > balance) { setError("Insufficient balance"); return; }
 
-    // Start a game then schedule pumps
-    setBalance((prev) => +(prev - betAmount).toFixed(2));
-    const currentLadder = MULTIPLIER_LADDERS[difficulty];
-    setGameState({
-      phase: "playing",
-      currentStep: 0,
-      currentMultiplier: currentLadder[0],
-      betAmount,
-      profit: 0,
-      bustedAtStep: null,
-    });
-
-    let step = 0;
-    let bet = betAmount;
-
-    const tick = () => {
-      if (!autoStateRef.current.running) return;
-
-      if (autoStateRef.current.pumpsLeft <= 0) {
-        // Auto cashout
-        const mult = currentLadder[step];
-        const payout = +(bet * mult).toFixed(2);
-        setBalance((b) => +(b + payout).toFixed(2));
-        setResults((r) => [...r, { id: `${Date.now()}`, multiplier: mult, payout, betAmount: bet, won: true }]);
-        setGameState((s) => ({ ...s, phase: "cashedout", profit: +(payout - bet).toFixed(2) }));
-        setIsAutoRunning(false);
-        autoStateRef.current.running = false;
-        return;
-      }
-
-      const bustChance = BUST_PROBABILITY[difficulty][step] ?? 0.95;
-      const busted = Math.random() < bustChance;
-      autoStateRef.current.pumpsLeft--;
-
-      if (busted || step + 1 >= currentLadder.length) {
-        setResults((r) => [...r, { id: `${Date.now()}`, multiplier: 0, payout: 0, betAmount: bet, won: false }]);
-        setGameState((s) => ({ ...s, phase: "busted", bustedAtStep: step, profit: -bet }));
-        setIsAutoRunning(false);
-        autoStateRef.current.running = false;
-        return;
-      }
-
-      step++;
-      const mult = currentLadder[step];
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await startPumpGame({ betAmount, difficulty });
+      const { gameId: newGameId } = res.data;
+      setGameId(newGameId);
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
       setGameState({
         phase: "playing",
-        currentStep: step,
-        currentMultiplier: mult,
-        betAmount: bet,
-        profit: +(bet * mult - bet).toFixed(2),
+        currentStep: 0,
+        currentMultiplier: ladder[0],
+        betAmount,
+        profit: 0,
         bustedAtStep: null,
       });
+      setIsAutoRunning(true);
+      autoStateRef.current = { pumpsLeft: autoPumpCount, running: true, gameId: newGameId };
+
+      const tick = async () => {
+        if (!autoStateRef.current.running || !autoStateRef.current.gameId) return;
+        const currentGameId = autoStateRef.current.gameId;
+
+        if (autoStateRef.current.pumpsLeft <= 0) {
+          try {
+            const cashoutRes = await cashoutPumpGame({ gameId: currentGameId });
+            const cashoutData = cashoutRes.data;
+            setGameState((prev) => ({
+              ...prev,
+              phase: "cashedout",
+              profit: +(cashoutData.payout - prev.betAmount).toFixed(2),
+              currentMultiplier: cashoutData.multiplier,
+            }));
+            setResults((r) => [
+              ...r,
+              { id: Date.now().toString(), multiplier: cashoutData.multiplier, payout: cashoutData.payout, betAmount, won: true },
+            ]);
+            queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+            queryClient.invalidateQueries({ queryKey: ["user-data"] });
+          } catch (err: any) {
+            setError(err?.message || "Auto cashout failed");
+          }
+          setGameId(null);
+          autoStateRef.current.gameId = null;
+          setIsAutoRunning(false);
+          return;
+        }
+
+        try {
+          const pumpRes = await pumpGameAction({ gameId: currentGameId });
+          const data = pumpRes.data;
+
+          if (data.busted) {
+            setGameState((prev) => ({
+              ...prev,
+              phase: "busted",
+              bustedAtStep: data.currentStep,
+              profit: -prev.betAmount,
+            }));
+            setResults((r) => [...r, { id: Date.now().toString(), multiplier: 0, payout: 0, betAmount, won: false }]);
+            queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+            queryClient.invalidateQueries({ queryKey: ["user-data"] });
+            setGameId(null);
+            autoStateRef.current.gameId = null;
+            setIsAutoRunning(false);
+            return;
+          }
+
+          if (data.autoCashedOut) {
+            setGameState((prev) => ({
+              ...prev,
+              phase: "cashedout",
+              currentStep: data.currentStep,
+              currentMultiplier: data.multiplier,
+              profit: +(data.payout - prev.betAmount).toFixed(2),
+            }));
+            setResults((r) => [
+              ...r,
+              { id: Date.now().toString(), multiplier: data.multiplier, payout: data.payout, betAmount, won: true },
+            ]);
+            queryClient.invalidateQueries({ queryKey: ["pump-history"] });
+            queryClient.invalidateQueries({ queryKey: ["user-data"] });
+            setGameId(null);
+            autoStateRef.current.gameId = null;
+            setIsAutoRunning(false);
+            return;
+          }
+
+          setGameState((prev) => ({
+            ...prev,
+            currentStep: data.currentStep,
+            currentMultiplier: data.multiplier,
+            profit: +(prev.betAmount * data.multiplier - prev.betAmount).toFixed(2),
+          }));
+          autoStateRef.current.pumpsLeft--;
+          autoTimerRef.current = setTimeout(tick, 900);
+        } catch (err: any) {
+          setError(err?.message || "Auto pump failed");
+          setIsAutoRunning(false);
+          autoStateRef.current.running = false;
+        }
+      };
 
       autoTimerRef.current = setTimeout(tick, 900);
-    };
-
-    autoTimerRef.current = setTimeout(tick, 900);
-  }, [betAmount, balance, autoPumpCount, difficulty]);
+    } catch (err: any) {
+      setError(err?.message || "Failed to start auto game");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, betAmount, difficulty, balance, autoPumpCount, ladder, queryClient]);
 
   const stopAuto = useCallback(() => {
     autoStateRef.current.running = false;
     setIsAutoRunning(false);
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
-    // Cashout current position if playing
     cashout();
   }, [cashout]);
 
   return {
-    balance,
     gameMode,
     setGameMode,
     betAmount,
@@ -202,6 +299,9 @@ export function usePumpGame() {
     gameState,
     results,
     ladder,
+    isLoading,
+    isPumping,
+    error,
     startGame,
     pump,
     cashout,

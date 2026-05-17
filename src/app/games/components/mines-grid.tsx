@@ -33,7 +33,7 @@ export default function MinesGrid({ cells, phase, onCellClick }: MinesGridProps)
               key={i}
               cell={cell}
               phase={phase}
-              onClick={() => isClickable && !cell.isRevealed && onCellClick(i)}
+              onClick={() => isClickable && !cell.isRevealed && !cell.animating && onCellClick(i)}
             />
           ))}
         </div>
@@ -65,14 +65,14 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
         padding: 0,
       }}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {!cell.isRevealed ? (
           /* Hidden cell */
           <motion.div
             key="hidden"
             initial={{ rotateY: 0 }}
-            exit={{ rotateY: 90 }}
-            transition={{ duration: 0.15 }}
+            exit={{ rotateY: 90, scale: 0.85 }}
+            transition={{ duration: 0.08 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
               background: isClickable
@@ -98,7 +98,7 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
             key="mine"
             initial={{ rotateY: -90, scale: 0.8 }}
             animate={{ rotateY: 0, scale: 1 }}
-            transition={{ duration: 0.25, type: "spring", stiffness: 260, damping: 18 }}
+            transition={{ duration: 0.15, type: "spring", stiffness: 380, damping: 22 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
               background: "linear-gradient(145deg, #271112 0%, #14090a 100%)",
@@ -113,7 +113,7 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
             key="gem"
             initial={{ rotateY: -90, scale: 0.8 }}
             animate={{ rotateY: 0, scale: 1 }}
-            transition={{ duration: 0.25, type: "spring", stiffness: 260, damping: 18 }}
+            transition={{ duration: 0.15, type: "spring", stiffness: 380, damping: 22 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
             style={{
               background: "linear-gradient(145deg, #102319 0%, #09140f 100%)",

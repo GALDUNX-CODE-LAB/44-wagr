@@ -15,6 +15,8 @@ export default function MinesGame() {
     setMineCount,
     gameState,
     results,
+    isLoading,
+    error,
     startGame,
     revealCell,
     cashout,
@@ -44,6 +46,8 @@ export default function MinesGame() {
           onCashout={cashout}
           onRandomPick={randomPick}
           results={results}
+          isLoading={isLoading}
+          error={error}
         />
       </div>
 
