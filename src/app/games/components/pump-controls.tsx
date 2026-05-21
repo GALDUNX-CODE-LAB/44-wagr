@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Skull, Wind, XCircle } from "lucide-react";
+import { Skull, Wind } from "lucide-react";
 import { PumpDifficulty, GameMode, DIFFICULTY_OPTIONS, PumpBetResult } from "../../../interfaces/interface";
 
 const PRIMARY = "#c8a2ff";
@@ -368,45 +368,6 @@ export default function PumpControls({
         )}
       </div>
 
-      <div className="order-8 md:order-8 flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
-        <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
-        <div
-          className="flex-1 min-h-[72px] overflow-y-auto rounded px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {results.length === 0 ? (
-            <p className="text-[11px] text-white/35 text-center py-5 px-2 leading-snug">No recent game.</p>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              {[...results]
-                .reverse()
-                .slice(0, 50)
-                .map((r, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-2 py-1 rounded text-[11px] shrink-0"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  >
-                    <span className="inline-flex shrink-0" aria-hidden>
-                      {r.won ? (
-                        <Check className="size-3.5 text-emerald-400" strokeWidth={2.5} />
-                      ) : (
-                        <XCircle className="size-3.5 text-red-400" strokeWidth={2} />
-                      )}
-                    </span>
-                    <span style={{ color: "rgba(255,255,255,0.5)" }}>${r.betAmount.toFixed(2)}</span>
-                    <span style={{ color: r.won ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
-                      {r.won ? `${r.multiplier.toFixed(2)}×` : "BUST"}
-                    </span>
-                    <span style={{ color: r.won ? "#22c55e" : "#ef4444" }}>
-                      {r.won ? `+$${(r.payout - r.betAmount).toFixed(2)}` : `-$${r.betAmount.toFixed(2)}`}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

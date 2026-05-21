@@ -110,6 +110,56 @@ export const fetchPumpHistory = async (page = 1) => {
   return response;
 };
 
+export const fetchRedlightWins = async () => {
+  const response = await apiHandler("/live-wins/redlight", { method: "GET" });
+  return response;
+};
+
+export const startRedlightGame = async ({ betAmount, difficulty }: { betAmount: number; difficulty: string }) => {
+  const response = await apiHandler("/redlight/start", { method: "POST", data: { betAmount, difficulty } });
+  return response;
+};
+
+export const cashoutRedlightGame = async ({ gameId, multiplier }: { gameId: string; multiplier: number }) => {
+  const response = await apiHandler("/redlight/cashout", { method: "POST", data: { gameId, multiplier } });
+  return response;
+};
+
+export const eliminateRedlightGame = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/redlight/eliminate", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const fetchRedlightHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=redlight&page=${page}`, { method: "GET" });
+  return response;
+};
+
+export const fetchRPSWins = async () => {
+  const response = await apiHandler("/live-wins/rps", { method: "GET" });
+  return response;
+};
+
+export const startRPSGame = async ({ betAmount, difficulty, playerChoice }: { betAmount: number; difficulty: string; playerChoice: string }) => {
+  const response = await apiHandler("/rps/start", { method: "POST", data: { betAmount, difficulty, playerChoice } });
+  return response;
+};
+
+export const playRPS = async ({ gameId, playerChoice }: { gameId: string; playerChoice: string }) => {
+  const response = await apiHandler("/rps/play", { method: "POST", data: { gameId, playerChoice } });
+  return response;
+};
+
+export const cashoutRPS = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/rps/cashout", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const fetchRPSHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=rps&page=${page}`, { method: "GET" });
+  return response;
+};
+
 export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
 
 export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchPumpWins } from "../lib/api";
+import { fetchRPSWins } from "../lib/api";
 import { GameType } from "../interfaces/interface";
 
 interface Win {
@@ -14,14 +14,14 @@ interface Win {
   payout: string;
 }
 
-export default function LivePumpWins() {
+export default function LiveRPSWins() {
   const queryClient = useQueryClient();
   const ws = useRef<WebSocket | null>(null);
 
   const { data: liveWins = [] } = useQuery<Win[]>({
-    queryKey: ["live-wins-pump"],
+    queryKey: ["live-wins-rps"],
     queryFn: async () => {
-      const raw = await fetchPumpWins();
+      const raw = await fetchRPSWins();
       return (Array.isArray(raw) ? raw : []).map((item: any) => ({
         game: item.game,
         user: item.user,
@@ -47,7 +47,7 @@ export default function LivePumpWins() {
     socket.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        if (msg.event === "liveWin" && msg.data.game === GameType.Pump) {
+        if (msg.event === "liveWin" && msg.data.game === GameType.RPS) {
           const win: Win = {
             game: msg.data.game,
             user: msg.data.user,
@@ -56,7 +56,7 @@ export default function LivePumpWins() {
             multiplier: String(msg.data.multiplier),
             payout: String(msg.data.payout),
           };
-          queryClient.setQueryData<Win[]>(["live-wins-pump"], (old = []) => {
+          queryClient.setQueryData<Win[]>(["live-wins-rps"], (old = []) => {
             return [win, ...old].slice(0, 10);
           });
         }
@@ -96,7 +96,7 @@ export default function LivePumpWins() {
               <td className="whitespace-nowrap px-5 py-3">
                 <div className="flex items-center gap-2">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-white/5">
-                    <span className="h-2 w-2 rounded-full bg-white" />
+                    <span className="h-2 w-2 rounded-full bg-blue-400" />
                   </span>
                   <span>{win.game}</span>
                 </div>
@@ -106,7 +106,7 @@ export default function LivePumpWins() {
               <td className="whitespace-nowrap px-5 py-3 hidden md:table-cell">
                 <span className="text-white/90">${win.bet}</span>
               </td>
-              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.multiplier}</td>
+              <td className="whitespace-nowrap px-5 py-3 text-white/80">{win.multiplier}×</td>
               <td className="whitespace-nowrap px-5 py-3 text-right">
                 <span className={Number(win.payout) >= Number(win.bet) ? "text-[#00ff5f]" : "text-white/80"}>
                   ${win.payout}

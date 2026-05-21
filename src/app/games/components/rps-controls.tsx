@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X } from "lucide-react";
 import {
   RPSGameMode,
   RPSDifficulty,
-  RPSBetResult,
   RPS_DIFFICULTY_OPTIONS,
   ROUND_MULTIPLIERS,
 } from "../../../interfaces/interface";
@@ -29,7 +27,6 @@ interface RPSControlsProps {
   onBet: () => void;
   onCashout: () => void;
   onRandomPick: () => void;
-  results: RPSBetResult[];
 }
 
 export default function RPSControls({
@@ -47,7 +44,6 @@ export default function RPSControls({
   onBet,
   onCashout,
   onRandomPick,
-  results,
 }: RPSControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
   const inActiveGame = phase === "playing" || phase === "draw";
@@ -284,41 +280,6 @@ export default function RPSControls({
         )}
       </div>
 
-      <div className="order-7 md:order-7 flex flex-col flex-1 min-h-0 gap-1 pt-0.5">
-        <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
-        <div
-          className="flex-1 min-h-[72px] overflow-y-auto rounded px-2 py-1.5 border border-white/[0.08] bg-white/[0.03]"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {results.length === 0 ? (
-            <p className="text-[11px] text-white/35 text-center py-5 px-2 leading-snug">No recent game.</p>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              {[...results]
-                .reverse()
-                .slice(0, 50)
-                .map((r, i) => (
-                  <div
-                    key={r.id ?? i}
-                    className="flex items-center justify-between px-2 py-1 rounded text-[11px] shrink-0"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  >
-                    <span className="inline-flex items-center justify-center w-4" style={{ color: r.won ? "#22c55e" : "#ef4444" }}>
-                      {r.won ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : <X className="w-3.5 h-3.5" strokeWidth={2.5} />}
-                    </span>
-                    <span style={{ color: "rgba(255,255,255,0.5)" }}>${r.betAmount.toFixed(2)}</span>
-                    <span style={{ color: r.won ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
-                      {r.won ? `${r.multiplier.toFixed(2)}×` : "OUT"}
-                    </span>
-                    <span style={{ color: r.won ? "#22c55e" : "#ef4444" }}>
-                      {r.won ? `+$${(r.payout - r.betAmount).toFixed(2)}` : `-$${r.betAmount.toFixed(2)}`}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,20 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   RPSChoice,
   RPSGameState,
-  BetResult,
   RPSDifficulty,
   RPSGameMode,
   ROUND_MULTIPLIERS,
-  getResult,
-  generateHouseChoice,
   RPSRound,
   RPSBetResult,
+  RoundResult,
 } from "../interfaces/interface";
+import { startRPSGame, playRPS, cashoutRPS } from "../lib/api";
 
-const STARTING_BALANCE = 1000;
 const MAX_ROUNDS = 5;
 
 function makeEmptyRounds(): RPSRound[] {
@@ -27,11 +26,15 @@ function makeEmptyRounds(): RPSRound[] {
 }
 
 export function useRPSGame() {
-  const [balance, setBalance] = useState(STARTING_BALANCE);
+  const queryClient = useQueryClient();
   const [gameMode, setGameMode] = useState<RPSGameMode>("manual");
   const [betAmount, setBetAmount] = useState(1);
   const [difficulty, setDifficulty] = useState<RPSDifficulty>("medium");
   const [results, setResults] = useState<RPSBetResult[]>([]);
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [serverSeedHash, setServerSeedHash] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [gameState, setGameState] = useState<RPSGameState>({
     phase: "idle",
     currentRound: 0,
@@ -43,9 +46,16 @@ export function useRPSGame() {
     animating: false,
   });
 
+  const stateRef = useRef(gameState);
+  stateRef.current = gameState;
+  const gameIdRef = useRef<string | null>(null);
+
   const startGame = useCallback(() => {
-    if (betAmount <= 0 || betAmount > balance) return;
-    setBalance((prev) => +(prev - betAmount).toFixed(2));
+    if (betAmount <= 0) return;
+    setError(null);
+    setGameId(null);
+    gameIdRef.current = null;
+    setServerSeedHash(null);
     setGameState({
       phase: "playing",
       currentRound: 1,
@@ -56,130 +66,163 @@ export function useRPSGame() {
       profit: 0,
       animating: false,
     });
-  }, [betAmount, balance]);
+  }, [betAmount]);
 
   const play = useCallback(
-    (playerChoice: RPSChoice) => {
-      setGameState((prev) => {
-        if (prev.phase !== "playing" || prev.animating) return prev;
+    async (playerChoice: RPSChoice) => {
+      const s = stateRef.current;
+      if (s.animating || s.phase !== "playing") return;
 
-        const houseChoice = generateHouseChoice(playerChoice, difficulty);
-        const result = getResult(playerChoice, houseChoice);
-        const roundIdx = prev.currentRound - 1;
+      setIsLoading(true);
+      setError(null);
 
-        const newRounds = prev.rounds.map((r, i) => (i === roundIdx ? { ...r, playerChoice, houseChoice, result } : r));
+      try {
+        let res: any;
+        const isFirstPlay = !gameIdRef.current;
 
-        if (result === "lose") {
-          // Lost
-          setResults((r) => [
-            ...r,
-            {
-              id: `${Date.now()}`,
-              roundsWon: roundIdx,
-              multiplier: 0,
-              payout: 0,
-              betAmount: prev.betAmount,
-              won: false,
-            },
-          ]);
-          return {
-            ...prev,
-            phase: "lost",
-            rounds: newRounds,
-            profit: -prev.betAmount,
-            animating: true,
-          };
+        if (isFirstPlay) {
+          res = await startRPSGame({ betAmount, difficulty, playerChoice });
+          const gid = res?.gameId ?? res?.data?.gameId;
+          const seedHash = res?.serverSeedHash ?? res?.data?.serverSeedHash;
+          setGameId(gid);
+          setServerSeedHash(seedHash);
+          gameIdRef.current = gid;
+          queryClient.invalidateQueries({ queryKey: ["user-data"] });
+        } else {
+          res = await playRPS({ gameId: gameIdRef.current!, playerChoice });
         }
 
-        if (result === "draw") {
-          // Draw — replay same round (no advancement, no loss)
-          return {
-            ...prev,
-            phase: "draw",
-            rounds: newRounds,
-            animating: true,
-          };
-        }
+        const data = res?.data ?? res;
+        const { phase: apiPhase, result, houseChoice, currentRound: roundsWon, currentMultiplier, payout } = data;
 
-        // Win
-        const nextRound = prev.currentRound + 1;
-        const mult = ROUND_MULTIPLIERS[Math.min(roundIdx + 1, ROUND_MULTIPLIERS.length - 1)];
-
-        if (nextRound > MAX_ROUNDS) {
-          // All 5 rounds won — max payout
-          const finalMult = ROUND_MULTIPLIERS[MAX_ROUNDS - 1];
-          const payout = +(prev.betAmount * finalMult).toFixed(2);
-          setBalance((b) => +(b + payout).toFixed(2));
-          setResults((r) => [
-            ...r,
-            {
-              id: `${Date.now()}`,
-              roundsWon: MAX_ROUNDS,
-              multiplier: finalMult,
-              payout,
-              betAmount: prev.betAmount,
-              won: true,
-            },
-          ]);
-          return {
-            ...prev,
-            phase: "won",
-            rounds: newRounds,
-            currentMultiplier: finalMult,
-            profit: +(payout - prev.betAmount).toFixed(2),
-            animating: true,
-          };
-        }
-
-        return {
-          ...prev,
-          phase: "playing",
-          currentRound: nextRound,
-          rounds: newRounds,
-          currentMultiplier: mult,
-          profit: +(prev.betAmount * mult - prev.betAmount).toFixed(2),
-          animating: true,
-        };
-      });
-
-      // Clear animating flag after animation
-      setTimeout(() => {
         setGameState((prev) => {
-          // If draw, reset to playing to allow replay
-          if (prev.phase === "draw") {
-            return { ...prev, phase: "playing", animating: false };
+          if (prev.phase !== "playing") return prev;
+
+          const roundIdx = prev.currentRound - 1;
+          const newRounds = prev.rounds.map((r, i) =>
+            i === roundIdx
+              ? { ...r, playerChoice, houseChoice: houseChoice as RPSChoice, result: result as RoundResult }
+              : r,
+          );
+
+          if (result === "lose") {
+            setResults((r) => [
+              ...r,
+              {
+                id: `${Date.now()}`,
+                roundsWon: roundIdx,
+                multiplier: 0,
+                payout: 0,
+                betAmount: prev.betAmount,
+                won: false,
+              },
+            ]);
+            queryClient.invalidateQueries({ queryKey: ["rps-history"] });
+            return { ...prev, phase: "lost", rounds: newRounds, profit: -prev.betAmount, animating: true };
           }
-          return { ...prev, animating: false };
+
+          if (result === "draw") {
+            return { ...prev, phase: "playing", rounds: newRounds, animating: true };
+          }
+
+          // Win
+          const nextRound = prev.currentRound + 1;
+
+          if (apiPhase === "cashed_out" || nextRound > prev.maxRounds) {
+            const finalMult = currentMultiplier ?? ROUND_MULTIPLIERS[MAX_ROUNDS - 1];
+            const finalPayout = payout ?? +(prev.betAmount * finalMult).toFixed(2);
+            setResults((r) => [
+              ...r,
+              {
+                id: `${Date.now()}`,
+                roundsWon: prev.maxRounds,
+                multiplier: finalMult,
+                payout: finalPayout,
+                betAmount: prev.betAmount,
+                won: true,
+              },
+            ]);
+            queryClient.invalidateQueries({ queryKey: ["user-data"] });
+            queryClient.invalidateQueries({ queryKey: ["rps-history"] });
+            return {
+              ...prev,
+              phase: "won",
+              rounds: newRounds,
+              currentMultiplier: finalMult,
+              profit: +(finalPayout - prev.betAmount).toFixed(2),
+              animating: true,
+            };
+          }
+
+          const newMult = currentMultiplier ?? ROUND_MULTIPLIERS[Math.min(nextRound - 1, ROUND_MULTIPLIERS.length - 1)];
+          return {
+            ...prev,
+            phase: "playing",
+            currentRound: nextRound,
+            rounds: newRounds,
+            currentMultiplier: newMult,
+            profit: +(prev.betAmount * newMult - prev.betAmount).toFixed(2),
+            animating: true,
+          };
         });
-      }, 700);
+
+        setTimeout(() => {
+          setGameState((prev) => {
+            if (prev.phase === "draw") return { ...prev, phase: "playing", animating: false };
+            return { ...prev, animating: false };
+          });
+        }, 700);
+      } catch (err: any) {
+        setError(err?.message || "Failed to play");
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [difficulty],
+    [betAmount, difficulty],
   );
 
-  const cashout = useCallback(() => {
-    setGameState((prev) => {
-      if (prev.phase !== "playing" || prev.currentRound <= 1) return prev;
-      // Cashout at current multiplier (the one earned by last win)
-      const mult = prev.currentMultiplier;
-      const payout = +(prev.betAmount * mult).toFixed(2);
-      setBalance((b) => +(b + payout).toFixed(2));
-      setResults((r) => [
-        ...r,
-        {
-          id: `${Date.now()}`,
-          roundsWon: prev.currentRound - 1,
-          multiplier: mult,
-          payout,
-          betAmount: prev.betAmount,
-          won: true,
-        },
-      ]);
-      return {
-        ...prev,
-        phase: "won",
-        profit: +(payout - prev.betAmount).toFixed(2),
-      };
-    });
+  const cashout = useCallback(async () => {
+    const s = stateRef.current;
+    if (s.phase !== "playing" || s.currentRound <= 1) return;
+
+    const gid = gameIdRef.current;
+    if (!gid) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await cashoutRPS({ gameId: gid });
+      const data = res?.data ?? res;
+      const { payout, multiplier } = data;
+
+      setGameState((prev) => {
+        if (prev.phase !== "playing") return prev;
+        const finalPayout = payout ?? +(prev.betAmount * prev.currentMultiplier).toFixed(2);
+        const finalMult = multiplier ?? prev.currentMultiplier;
+        setResults((r) => [
+          ...r,
+          {
+            id: `${Date.now()}`,
+            roundsWon: prev.currentRound - 1,
+            multiplier: finalMult,
+            payout: finalPayout,
+            betAmount: prev.betAmount,
+            won: true,
+          },
+        ]);
+        return { ...prev, phase: "won", profit: +(finalPayout - prev.betAmount).toFixed(2) };
+      });
+
+      setGameId(null);
+      gameIdRef.current = null;
+      queryClient.invalidateQueries({ queryKey: ["user-data"] });
+      queryClient.invalidateQueries({ queryKey: ["rps-history"] });
+    } catch (err: any) {
+      setError(err?.message || "Failed to cashout");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const randomPick = useCallback(() => {
@@ -189,6 +232,10 @@ export function useRPSGame() {
   }, [play]);
 
   const resetGame = useCallback(() => {
+    setGameId(null);
+    gameIdRef.current = null;
+    setServerSeedHash(null);
+    setError(null);
     setGameState({
       phase: "idle",
       currentRound: 0,
@@ -202,7 +249,6 @@ export function useRPSGame() {
   }, []);
 
   return {
-    balance,
     gameMode,
     setGameMode,
     betAmount,
@@ -211,6 +257,10 @@ export function useRPSGame() {
     setDifficulty,
     gameState,
     results,
+    gameId,
+    serverSeedHash,
+    isLoading,
+    error,
     startGame,
     play,
     cashout,
