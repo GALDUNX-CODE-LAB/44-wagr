@@ -114,6 +114,8 @@ export enum GameType {
   Wheels = "Wheels",
   Mines = "Mines",
   Pump = "Pump",
+  RedLight = "RedLight",
+  RPS = "RPS",
 }
 
 export interface CrashBetPayload {
@@ -270,7 +272,7 @@ export interface VerifyRequestBase {
   serverSeed: string;
   nonce: number;
 }
-export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines" | "pump";
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines" | "pump" | "redlight" | "rps";
 
 export interface INotification {
   _id: string;
@@ -570,10 +572,10 @@ export const BASE_MULT = 1.0;
 // Red light fires randomly between these ms windows (after green starts)
 // Shorter window = harder (less time to react)
 export const RED_LIGHT_WINDOW: Record<RedlightDifficulty, [number, number]> = {
-  easy: [4000, 10000],
-  medium: [2500, 7000],
-  hard: [1500, 5000],
-  professional: [800, 3500],
+  easy: [1200, 5000],
+  medium: [700, 3200],
+  hard: [400, 2200],
+  professional: [200, 1400],
 };
 
 // Player has this many ms to freeze after red light fires
@@ -582,6 +584,14 @@ export const FREEZE_GRACE_MS: Record<RedlightDifficulty, number> = {
   medium: 500,
   hard: 350,
   professional: 200,
+};
+
+// Total game duration — player must cashout or finish before this expires
+export const GAME_DURATION_MS: Record<RedlightDifficulty, number> = {
+  easy: 120000,
+  medium: 90000,
+  hard: 60000,
+  professional: 40000,
 };
 
 export const REDLIGHT_DIFFICULTY_OPTIONS: { value: RedlightDifficulty; label: string; color: string; tag: string }[] = [

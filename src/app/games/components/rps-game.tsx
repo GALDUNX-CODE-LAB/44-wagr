@@ -54,7 +54,6 @@ export default function RPSGame() {
           onBet={handleBet}
           onCashout={cashout}
           onRandomPick={randomPick}
-          results={results}
         />
       </div>
 

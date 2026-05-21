@@ -18,6 +18,9 @@ export default function RedLightGame() {
     setDifficulty,
     gameState,
     results,
+    isLoading,
+    error,
+    gameTimeLeft,
     startGame,
     freeze,
     handleCashout,
@@ -67,6 +70,9 @@ export default function RedLightGame() {
           onCashout={handleCashout}
           onContinue={continueRun}
           results={results}
+          isLoading={isLoading}
+          error={error}
+          gameTimeLeft={gameTimeLeft}
         />
       </div>
 

@@ -9,6 +9,7 @@ import {
   REDLIGHT_DIFFICULTY_OPTIONS,
   RedlightBetResult,
   FREEZE_GRACE_MS,
+  GAME_DURATION_MS,
   MULT_INCREMENT,
 } from "../../../interfaces/interface";
 
@@ -31,6 +32,9 @@ interface RLGLControlsProps {
   onCashout: () => void;
   onContinue: () => void;
   results: RedlightBetResult[];
+  isLoading?: boolean;
+  error?: string | null;
+  gameTimeLeft?: number;
 }
 
 export default function RLGLControls({
@@ -49,6 +53,9 @@ export default function RLGLControls({
   onCashout,
   onContinue,
   results,
+  isLoading = false,
+  error,
+  gameTimeLeft = -1,
 }: RLGLControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
   const isPlaying = phase === "green" || phase === "red";
@@ -58,6 +65,31 @@ export default function RLGLControls({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-1.5 overflow-y-auto overflow-x-hidden p-2 font-sans text-[#ededed] md:gap-2 md:p-3">
+      {/* Global game clock */}
+      {gameTimeLeft >= 0 && (() => {
+        const total = GAME_DURATION_MS[difficulty];
+        const pct = (gameTimeLeft / total) * 100;
+        const totalSecs = Math.ceil(gameTimeLeft / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        const timeStr = mins > 0 ? `${mins}:${secs.toString().padStart(2, "0")}` : `${secs}s`;
+        const color = pct > 50 ? "#22c55e" : pct > 20 ? "#f59e0b" : "#ef4444";
+        return (
+          <div className="shrink-0 flex flex-col gap-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>TIME LEFT</span>
+              <span className="tabular-nums font-bold" style={{ color }}>{timeStr}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${pct}%`, background: color, transition: "width 0.1s linear, background 0.3s" }}
+              />
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Mode toggle */}
       <div
         className="order-4 md:order-1 flex shrink-0 rounded overflow-hidden"
@@ -269,19 +301,25 @@ export default function RLGLControls({
 
       {/* Action Buttons */}
       <div className="order-1 md:order-7 mt-auto flex flex-col gap-2">
+      {error && (
+        <div className="rounded px-2.5 py-1.5 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20">
+          {error}
+        </div>
+      )}
       {isIdle && (
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={onStartRun}
           type="button"
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tracking-wide text-[#131212]"
+          disabled={isLoading}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tracking-wide text-[#131212] disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
             background: "linear-gradient(135deg, #22c55e 0%, #15803d 100%)",
             boxShadow: "0 4px 18px rgba(34,197,94,0.28)",
           }}
         >
           <CirclePlay className="h-3 w-3 shrink-0" aria-hidden />
-          START RUN
+          {isLoading ? "Starting..." : "START RUN"}
         </motion.button>
       )}
 
@@ -319,6 +357,7 @@ export default function RLGLControls({
 
       {isFrozen && (
         <div className="flex flex-col gap-2">
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={onCashout}
@@ -345,39 +384,6 @@ export default function RLGLControls({
       )}
       </div>
 
-      {/* Recent results */}
-      {results.length > 0 && (
-        <div className="order-7 md:order-8 flex min-h-0 flex-1 flex-col gap-1 pt-0.5">
-          <div className="text-[10px] tracking-wider text-white/50 shrink-0">RECENT</div>
-          <div className="flex max-h-28 flex-col gap-0.5 overflow-y-auto rounded border border-white/[0.08] bg-white/[0.03] px-2 py-1.5">
-            {[...results]
-              .reverse()
-              .slice(0, 6)
-              .map((r, i) => (
-                <div
-                  key={i}
-                  className="flex shrink-0 items-center justify-between gap-1 rounded px-2 py-1 text-[11px] tabular-nums leading-snug"
-                  style={{ background: "rgba(255,255,255,0.04)" }}
-                >
-                  <span className="flex w-4 shrink-0 items-center justify-center" aria-hidden>
-                    {r.won ? (
-                      <Check className="h-3 w-3 text-emerald-500" strokeWidth={2.5} />
-                    ) : (
-                      <Skull className="h-3 w-3 text-red-500" strokeWidth={2} />
-                    )}
-                  </span>
-                  <span className="text-white/45">${r.betAmount.toFixed(2)}</span>
-                  <span className="font-bold" style={{ color: r.won ? "#22c55e" : "#ef4444" }}>
-                    {r.won ? `${r.multiplier.toFixed(2)}×` : "ELIM"}
-                  </span>
-                  <span style={{ color: r.won ? "#22c55e" : "#ef4444" }}>
-                    {r.won ? `+$${(r.payout - r.betAmount).toFixed(2)}` : `-$${r.betAmount.toFixed(2)}`}
-                  </span>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
