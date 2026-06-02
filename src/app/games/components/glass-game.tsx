@@ -15,7 +15,6 @@ export default function GlassGame() {
     difficulty,
     setDifficulty,
     gameState,
-    results,
     startGame,
     pickTile,
     cashout,
@@ -73,7 +72,6 @@ export default function GlassGame() {
           betAmountUsed={gameState.betAmount}
           onBet={handleBet}
           onCashout={cashout}
-          results={results}
         />
       </div>
 
