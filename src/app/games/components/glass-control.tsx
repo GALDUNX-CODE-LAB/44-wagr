@@ -2,15 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
 import {
   GameMode,
   GlassDifficulty,
-  GlassBetResult,
   GLASS_DIFFICULTY_OPTIONS,
-  STEP_MULTIPLIERS,
-  WIN_PROB,
-  TOTAL_ROWS,
 } from "../../../interfaces/interface";
 
 const PRIMARY = "#c8a2ff";
@@ -30,7 +25,6 @@ interface GlassControlsProps {
   betAmountUsed: number;
   onBet: () => void;
   onCashout: () => void;
-  results: GlassBetResult[];
   autoPicking?: boolean;
 }
 
@@ -48,7 +42,6 @@ export default function GlassControls({
   betAmountUsed,
   onBet,
   onCashout,
-  results,
   autoPicking = false,
 }: GlassControlsProps) {
   const [diffOpen, setDiffOpen] = useState(false);
@@ -56,11 +49,9 @@ export default function GlassControls({
   const isIdle = phase === "idle" || phase === "won" || phase === "lost";
   const canCashout = isPlaying && currentRow > 0;
   const diffOption = GLASS_DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)!;
-  const ladders = STEP_MULTIPLIERS[difficulty];
-  const winProb = WIN_PROB[difficulty];
 
   return (
-    <div className="flex flex-col gap-3.5 p-4 font-sans text-[#ededed] md:min-h-0 md:flex-1 md:gap-3 md:overflow-y-auto md:overscroll-contain md:p-3">
+    <div className="flex flex-col gap-3.5 p-4 font-sans text-[#ededed] md:min-h-0 md:flex-1 md:gap-3 md:p-3">
         {autoPicking && (
           <div
             className="order-3 md:order-1 shrink-0 rounded-xl px-3 py-2 text-center text-[11px] font-semibold tracking-wide"
@@ -180,7 +171,7 @@ export default function GlassControls({
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="absolute left-0 right-0 z-20 mt-1.5 max-h-48 overflow-y-auto rounded-xl"
+                  className="absolute left-0 right-0 z-50 mt-1.5 rounded-xl overflow-hidden"
                   style={{ background: SURFACE, border: "1px solid rgba(200,162,255,0.15)" }}
                 >
                   {GLASS_DIFFICULTY_OPTIONS.map((opt) => (
@@ -207,54 +198,6 @@ export default function GlassControls({
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </div>
-
-        <div className="hidden shrink-0 order-6 md:order-5 md:block space-y-2">
-          <div className="text-[10px] tracking-wider text-white/50">MULTIPLIER LADDER</div>
-          <div className="flex max-h-none flex-col gap-1 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 py-2 md:max-h-[120px]">
-            {ladders.map((m, i) => {
-              const isCurrentStep = isPlaying && i === currentRow;
-              const isPast = isPlaying && i < currentRow;
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-lg px-2 py-1 text-[11px]"
-                  style={{
-                    background: isPast
-                      ? `${diffOption.color}15`
-                      : isCurrentStep
-                        ? "rgba(200,162,255,0.08)"
-                        : "transparent",
-                    border: `1px solid ${isPast ? `${diffOption.color}35` : isCurrentStep ? "rgba(200,162,255,0.15)" : "transparent"}`,
-                  }}
-                >
-                  <span className={isPast || isCurrentStep ? "text-white/65" : "text-white/25"}>Step {i + 1}</span>
-                  <span
-                    className="font-bold inline-flex items-center gap-0.5"
-                    style={{
-                      color: isPast ? diffOption.color : isCurrentStep ? "#fff" : "rgba(255,255,255,0.28)",
-                    }}
-                  >
-                    {m.toFixed(2)}×
-                    {isPast && <Check className="w-3 h-3" strokeWidth={3} aria-hidden />}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div
-          className="hidden order-7 md:order-6 md:block shrink-0 rounded-xl px-3 py-2.5"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(200,162,255,0.08)" }}
-        >
-          <div className="text-[10px] tracking-wider text-white/40 mb-1">ODDS PER JUMP</div>
-          <div className="font-bold text-sm" style={{ color: diffOption.color }}>
-            1 in {Math.round(1 / winProb)} · {(winProb * 100).toFixed(0)}% safe
-          </div>
-          <div className="text-[10px] text-white/30 mt-0.5">
-            All {TOTAL_ROWS} clear: {(winProb ** TOTAL_ROWS * 100).toFixed(2)}% chance
           </div>
         </div>
 
@@ -297,7 +240,7 @@ export default function GlassControls({
         </div>
 
       {(isIdle || canCashout) && (
-        <div className="order-1 md:order-9 shrink-0 space-y-2 border-t border-white/[0.08] pt-3 md:border-t-0 md:pt-1">
+        <div className="order-1 md:order-9 shrink-0 space-y-2">
           {isIdle ? (
             <motion.button
               type="button"
@@ -328,38 +271,6 @@ export default function GlassControls({
         </div>
       )}
 
-      <div className="order-10 md:order-10 flex shrink-0 flex-col gap-2 pt-1 md:max-h-[32%] md:min-h-0 md:flex-1">
-        <div className="shrink-0 text-[10px] tracking-wider text-white/50">RECENT</div>
-        <div
-          className="min-h-[72px] max-h-[min(28vh,220px)] shrink-0 overflow-y-auto rounded-xl border border-white/[0.08] bg-white/[0.03] px-2 py-2 md:max-h-[112px] md:min-h-0 md:flex-1"
-          style={{ WebkitOverflowScrolling: "touch", borderColor: "rgba(200,162,255,0.08)" }}
-        >
-          {results.length === 0 ? (
-            <p className="text-[11px] text-white/35 text-center py-5 px-2 leading-snug">No recent game.</p>
-          ) : (
-            <div className="flex flex-col gap-0.5">
-              {[...results]
-                .reverse()
-                .slice(0, 50)
-                .map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex shrink-0 items-center justify-between rounded-lg px-2 py-1.5 text-[11px]"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  >
-                    <span className="text-white/45">S{r.rowsCleared}</span>
-                    <span style={{ color: PRIMARY }} className="font-bold">
-                      {r.won ? `${r.multiplier.toFixed(2)}×` : "FELL"}
-                    </span>
-                    <span className={r.won ? "text-emerald-400" : "text-primary"}>
-                      {r.won ? `+$${(r.payout - r.betAmount).toFixed(2)}` : `-$${r.betAmount.toFixed(2)}`}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

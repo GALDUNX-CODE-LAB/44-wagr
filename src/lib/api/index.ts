@@ -160,6 +160,31 @@ export const fetchRPSHistory = async (page = 1) => {
   return response;
 };
 
+export const fetchGlassWins = async () => {
+  const response = await apiHandler("/live-wins/glass", { method: "GET" });
+  return response;
+};
+
+export const startGlassGame = async ({ betAmount, difficulty }: { betAmount: number; difficulty: string }) => {
+  const response = await apiHandler("/glass/start", { method: "POST", data: { betAmount, difficulty } });
+  return response;
+};
+
+export const pickGlassTile = async ({ gameId, rowIndex, tileIndex }: { gameId: string; rowIndex: number; tileIndex: number }) => {
+  const response = await apiHandler("/glass/pick", { method: "POST", data: { gameId, rowIndex, tileIndex } });
+  return response;
+};
+
+export const cashoutGlass = async ({ gameId }: { gameId: string }) => {
+  const response = await apiHandler("/glass/cashout", { method: "POST", data: { gameId } });
+  return response;
+};
+
+export const fetchGlassHistory = async (page = 1) => {
+  const response = await apiHandler(`/user/my-bets?game=glass&page=${page}`, { method: "GET" });
+  return response;
+};
+
 export type OriginalsPlayerCounts = { crash: number; dice: number; coin: number; wheel: number };
 
 export const fetchOriginalsPlayerCounts = async (): Promise<OriginalsPlayerCounts> => {

@@ -30,6 +30,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
   const [pumpDifficulty, setPumpDifficulty] = useState<"easy" | "medium" | "hard" | "extreme">("hard");
   const [redlightDifficulty, setRedlightDifficulty] = useState<"easy" | "medium" | "hard" | "professional">("hard");
   const [rpsDifficulty, setRpsDifficulty] = useState<"easy" | "medium" | "hard">("medium");
+  const [glassDifficulty, setGlassDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [verifyResult, setVerifyResult] = useState<any>(null);
 
   const seedsQuery = useQuery({
@@ -59,6 +60,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
     if (game === "pump") body = { ...base, difficulty: pumpDifficulty };
     if (game === "redlight") body = { ...base, difficulty: redlightDifficulty };
     if (game === "rps") body = { ...base, difficulty: rpsDifficulty };
+    if (game === "glass") body = { ...base, difficulty: glassDifficulty };
     verifyMutation.mutate(body);
   };
 
@@ -285,6 +287,36 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                         </div>
                       </>
                     )}
+                    {verifyResult.game === "glass" && (
+                      <>
+                        <p>
+                          <span className="text-white/60">Difficulty:</span> {verifyResult.difficulty}
+                        </p>
+                        <p className="text-white/60 mt-1">Safe Tile per Row (0-based index):</p>
+                        <div className="mt-1 flex flex-col gap-1">
+                          {(verifyResult.safeIndices as number[]).map((safeIdx: number, row: number) => {
+                            const tilesPerRow = verifyResult.difficulty === "easy" ? 2 : verifyResult.difficulty === "medium" ? 3 : 4;
+                            return (
+                              <div key={row} className="flex items-center gap-1">
+                                <span className="text-white/40 text-[10px] w-12">Row {row + 1}:</span>
+                                <div className="flex gap-1">
+                                  {Array.from({ length: tilesPerRow }, (_, ti) => (
+                                    <div
+                                      key={ti}
+                                      className={`h-6 w-10 rounded text-[10px] flex items-center justify-center font-semibold ${
+                                        ti === safeIdx ? "bg-green-500/80 text-white" : "bg-white/5 text-white/40"
+                                      }`}
+                                    >
+                                      {ti === safeIdx ? "✓" : ti}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                     <p className="break-all">
                       <span className="text-white/60">HMAC:</span> {verifyResult.hmac}
                     </p>
@@ -307,6 +339,7 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                       <option value="pump">Pump</option>
                       <option value="redlight">Red Light Green Light</option>
                       <option value="rps">Rock Paper Scissors</option>
+                      <option value="glass">Glass Bridge</option>
                     </select>
                   </div>
 
@@ -485,6 +518,21 @@ export default function FairnessModal({ open, onClose }: FairnessModalProps) {
                         <option value="easy">Easy</option>
                         <option value="medium">Medium</option>
                         <option value="hard">Hard</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {game === "glass" && (
+                    <div className="space-y-1">
+                      <p className="text-white/60">Difficulty</p>
+                      <select
+                        value={glassDifficulty}
+                        onChange={(e) => setGlassDifficulty(e.target.value as "easy" | "medium" | "hard")}
+                        className="w-full rounded-lg bg-[#10151c] px-3 py-2 text-xs outline-none border border-white/5"
+                      >
+                        <option value="easy">Easy (2 tiles)</option>
+                        <option value="medium">Medium (3 tiles)</option>
+                        <option value="hard">Hard (4 tiles)</option>
                       </select>
                     </div>
                   )}

@@ -116,6 +116,7 @@ export enum GameType {
   Pump = "Pump",
   RedLight = "RedLight",
   RPS = "RPS",
+  GlassBridge = "GlassBridge",
 }
 
 export interface CrashBetPayload {
@@ -272,7 +273,7 @@ export interface VerifyRequestBase {
   serverSeed: string;
   nonce: number;
 }
-export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines" | "pump" | "redlight" | "rps";
+export type FairnessGame = "coinflip" | "dice" | "crash" | "wheels" | "plinko" | "mines" | "pump" | "redlight" | "rps" | "glass";
 
 export interface INotification {
   _id: string;
