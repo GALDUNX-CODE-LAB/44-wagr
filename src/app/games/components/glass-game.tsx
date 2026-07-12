@@ -5,6 +5,7 @@ import { useGlassGame } from "../../../hooks/useGlassGame";
 import GlassBridge from "./glass-bridge";
 import GlassControls from "./glass-control";
 import { TILES_PER_ROW } from "../../../interfaces/interface";
+import { playGameWin, playGameLose } from "../../../lib/sound-player";
 
 export default function GlassGame() {
   const {
@@ -23,6 +24,11 @@ export default function GlassGame() {
 
   const pickTileRef = useRef(pickTile);
   pickTileRef.current = pickTile;
+
+  useEffect(() => {
+    if (gameState.phase === "won") playGameWin();
+    else if (gameState.phase === "lost") playGameLose();
+  }, [gameState.phase]);
 
   useEffect(() => {
     if (gameMode !== "auto" || gameState.phase !== "playing") return;

@@ -12,6 +12,7 @@ import {
   TILES_PER_ROW,
 } from "../interfaces/interface";
 import { startGlassGame, pickGlassTile, cashoutGlass } from "../lib/api";
+import { playGameAction } from "../lib/sound-player";
 import { useUser } from "./useUserData";
 import useIsLoggedIn from "./useIsLoggedIn";
 
@@ -185,6 +186,7 @@ export function useGlassGame() {
         }
 
         // Safe, not last row — advance
+        playGameAction(); // safe tile
         setGameState((prev) => {
           const newRows = prev.rows.map((r, ri) => {
             if (ri === rowIndex) {
