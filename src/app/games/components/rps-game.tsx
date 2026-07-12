@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRPSGame } from "../../../hooks/useRpsGame";
 import RPSBoard from "./rps-board";
 import RPSControls from "./rps-controls";
+import { playGameWin, playGameLose } from "../../../lib/sound-player";
 
 export default function RPSGame() {
   const {
@@ -20,6 +22,11 @@ export default function RPSGame() {
     randomPick,
     resetGame,
   } = useRPSGame();
+
+  useEffect(() => {
+    if (gameState.phase === "won") playGameWin();
+    else if (gameState.phase === "lost") playGameLose();
+  }, [gameState.phase]);
 
   const handleBet = () => {
     if (gameState.phase === "won" || gameState.phase === "lost") {

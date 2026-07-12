@@ -10,6 +10,7 @@ import {
   MULTIPLIER_LADDERS,
 } from "../interfaces/interface";
 import { startPumpGame, pumpGameAction, cashoutPumpGame } from "../lib/api";
+import { playGameAction } from "../lib/sound-player";
 import { useUser } from "./useUserData";
 import useIsLoggedIn from "./useIsLoggedIn";
 
@@ -111,6 +112,7 @@ export function usePumpGame() {
         return { busted: false, autoCashedOut: true };
       }
 
+      playGameAction(); // successful pump
       setGameState((prev) => ({
         ...prev,
         currentStep: data.currentStep,
