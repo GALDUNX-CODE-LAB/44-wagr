@@ -2,16 +2,13 @@ import { setCookie, getCookie, removeCookie } from "./cookie";
 
 export const requestNonce = async (walletAddress: string) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/nonce`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ walletAddress }),
-      }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/nonce`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ walletAddress }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -20,28 +17,18 @@ export const requestNonce = async (walletAddress: string) => {
 
     return await response.json();
   } catch (error) {
-    throw new Error(
-      error instanceof Error
-        ? error.message
-        : "Network error while requesting nonce"
-    );
+    throw new Error(error instanceof Error ? error.message : "Network error while requesting nonce");
   }
 };
 
-export const verifySignature = async (
-  walletAddress: string,
-  signature: string
-) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ walletAddress, signature }),
-    }
-  );
+export const verifySignature = async (walletAddress: string, signature: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ walletAddress, signature }),
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -83,6 +70,7 @@ export const clearAuthTokens = () => {
 
 export const logout = (disconnect?: () => void, preventRedirect = false) => {
   try {
+    alert("here");
     clearAuthTokens();
     if (disconnect) {
       disconnect();
@@ -109,7 +97,7 @@ export const googleLogin = async (code: string) => {
     const url = `${baseUrl}/auth/google/callback?code=${encodedCode}`;
 
     const response = await fetch(url, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
@@ -117,9 +105,7 @@ export const googleLogin = async (code: string) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `Authentication failed: ${response.status} - ${errorText}`
-      );
+      throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -127,13 +113,9 @@ export const googleLogin = async (code: string) => {
       data.access_token ||
       data.accessToken ||
       data.token ||
-      (data.data
-        ? data.data.access_token || data.data.accessToken || data.data.token
-        : null);
+      (data.data ? data.data.access_token || data.data.accessToken || data.data.token : null);
     const refreshToken =
-      data.refresh_token ||
-      data.refreshToken ||
-      (data.data ? data.data.refresh_token || data.data.refreshToken : null);
+      data.refresh_token || data.refreshToken || (data.data ? data.data.refresh_token || data.data.refreshToken : null);
 
     if (!accessToken) {
       throw new Error("No access token received from server");
@@ -143,13 +125,9 @@ export const googleLogin = async (code: string) => {
     return data;
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch")) {
-      throw new Error(
-        `Network error: Cannot connect to ${process.env.NEXT_PUBLIC_API_BASE_URL}`
-      );
+      throw new Error(`Network error: Cannot connect to ${process.env.NEXT_PUBLIC_API_BASE_URL}`);
     }
-    throw new Error(
-      error instanceof Error ? error.message : "Google login failed"
-    );
+    throw new Error(error instanceof Error ? error.message : "Google login failed");
   }
 };
 

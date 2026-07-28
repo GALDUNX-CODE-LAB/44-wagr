@@ -4,6 +4,7 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Dice6 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { playDiceRoll, playDiceRollWin } from "../../../lib/sound-player";
 
 export type DiceRollerRef = {
   rollDice: () => void;
@@ -13,9 +14,11 @@ export type DiceRollerRef = {
 
 type DiceRollerProps = {
   onClick?: () => void; // optional onClick prop
+  betType: "over" | "under";
+  target: number;
 };
 
-const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRollerRef>) => {
+const DiceRollerComponent = ({ onClick, betType, target }: DiceRollerProps, ref: React.Ref<DiceRollerRef>) => {
   const [result, setResult] = useState<number | null>(null);
   const [win, setWin] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
@@ -67,7 +70,7 @@ const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRo
   };
 
   const rollToValue = async (roll: number, isWin: boolean) => {
-    console.log("🎲 Dice Roll API Response:", { roll, isWin });
+    console.log("Dice Roll API Response:", { roll, isWin });
 
     // First do the rolling animation
     await rollDice();
@@ -90,8 +93,10 @@ const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRo
 
     // Show result after animation completes
     setTimeout(() => {
-      setResultText(isWin ? `🎉 You WON! Rolled ${roll.toFixed(2)}` : `❌ You LOST! Rolled ${roll.toFixed(2)}`);
-      setShowPopup(true);
+      onClick();
+      isWin && playDiceRollWin();
+      // setResultText(isWin ? `You WON! Rolled ${roll.toFixed(2)}` : `You LOST! Rolled ${roll.toFixed(2)}`);
+      // setShowPopup(true);
       queryClient.invalidateQueries({ queryKey: ["user-data"] });
     }, 100);
   };
@@ -112,6 +117,20 @@ const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRo
     resetDice,
   }));
 
+  const getTrackGradient = (betType: "over" | "under", target: number) => {
+    const lose = "#FF0000";
+    const win = "#C8A2FF";
+
+    const clamped = Math.max(0, Math.min(99, target));
+    const targetPercent = (clamped / 99) * 100;
+
+    if (betType === "over") {
+      return `linear-gradient(90deg, ${lose} 0%, ${lose} ${targetPercent}%, ${win} ${targetPercent}%, ${win} 100%)`;
+    }
+
+    return `linear-gradient(90deg, ${win} 0%, ${win} ${targetPercent}%, ${lose} ${targetPercent}%, ${lose} 100%)`;
+  };
+
   return (
     <div className="flex flex-col items-center gap-8 w-full lg:px-4 relative">
       <div className="relative w-full max-w-[850px] mx-auto">
@@ -119,7 +138,7 @@ const DiceRollerComponent = ({ onClick }: DiceRollerProps, ref: React.Ref<DiceRo
           <div
             className="w-full h-0 border-t-[10px]"
             style={{
-              borderImageSource: "linear-gradient(90deg, #FF0000 50%, #C8A2FF 50%)",
+              borderImageSource: getTrackGradient(betType, target),
               borderImageSlice: 1,
             }}
           ></div>

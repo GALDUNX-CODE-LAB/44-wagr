@@ -13,11 +13,16 @@ const apiHandler = async <T = any>(
   options: AxiosOptions = {}
 ): Promise<T> => {
   const token = getCookie("access-token");
-  const headers = {
-    "Content-Type": "application/json",
+  const isFormData = options.data instanceof FormData;
+  const headers: Record<string, string> = {
     ...(options.headers || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  } else if ("Content-Type" in headers) {
+    delete headers["Content-Type"];
+  }
 
   try {
     const response = await axios({

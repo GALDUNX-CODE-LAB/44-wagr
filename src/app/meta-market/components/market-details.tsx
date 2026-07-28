@@ -16,15 +16,15 @@ export default function MarketDetails({ market }: MarketDetailsProps) {
   const [betAmount, setBetAmount] = useState(10);
 
   return (
-    <div className="p-4 sm:p-6 text-white min-h-screen flex flex-col gap-10 lg:max-w-6xl mx-auto">
-      <div className="lg:bg-[#212121] rounded-xl  sm:p-6 flex flex-col lg:flex-row gap-6">
+    <div className="p-4 sm:p-6 text-white min-h-screen flex flex-col gap-6 lg:max-w-6xl mx-auto text-sm min-w-0 max-w-full overflow-x-hidden">
+      <div className="lg:bg-[#212121] rounded-xl sm:p-6 flex flex-col lg:flex-row gap-6 min-w-0">
         <MarketHeader market={market} />
         <TradePanel
           market={market}
-          betAmount={betAmount}
-          setBetAmount={setBetAmount}
-          selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
+          // betAmount={betAmount}
+          // setBetAmount={setBetAmount}
+          // selectedOption={selectedOption}
+          // setSelectedOption={setSelectedOption}
         />
       </div>
 

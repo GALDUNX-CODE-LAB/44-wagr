@@ -1,0 +1,389 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Check, ChevronDown, CirclePlay, Footprints, Skull, Snowflake, Wallet } from "lucide-react";
+import {
+  RedlightDifficulty,
+  GameMode,
+  REDLIGHT_DIFFICULTY_OPTIONS,
+  RedlightBetResult,
+  FREEZE_GRACE_MS,
+  GAME_DURATION_MS,
+  MULT_INCREMENT,
+} from "../../../interfaces/interface";
+
+const PRIMARY = "#c8a2ff";
+const SURFACE = "#131212";
+
+interface RLGLControlsProps {
+  gameMode: GameMode;
+  onGameModeChange: (m: GameMode) => void;
+  betAmount: number;
+  onBetAmountChange: (v: number) => void;
+  difficulty: RedlightDifficulty;
+  onDifficultyChange: (d: RedlightDifficulty) => void;
+  phase: "idle" | "green" | "red" | "frozen" | "frozen-red" | "eliminated" | "cashedout";
+  currentMultiplier: number;
+  profit: number;
+  betAmountUsed: number;
+  onStartRun: () => void;
+  onFreeze: () => void;
+  onCashout: () => void;
+  onContinue: () => void;
+  results: RedlightBetResult[];
+  isLoading?: boolean;
+  error?: string | null;
+  gameTimeLeft?: number;
+}
+
+export default function RLGLControls({
+  gameMode,
+  onGameModeChange,
+  betAmount,
+  onBetAmountChange,
+  difficulty,
+  onDifficultyChange,
+  phase,
+  currentMultiplier,
+  profit,
+  betAmountUsed,
+  onStartRun,
+  onFreeze,
+  onCashout,
+  onContinue,
+  results,
+  isLoading = false,
+  error,
+  gameTimeLeft = -1,
+}: RLGLControlsProps) {
+  const [diffOpen, setDiffOpen] = useState(false);
+  const isPlaying = phase === "green" || phase === "red";
+  const isFrozen = phase === "frozen" || phase === "frozen-red";
+  const isIdle = phase === "idle" || phase === "eliminated" || phase === "cashedout";
+  const diffOption = REDLIGHT_DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)!;
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 gap-1.5 overflow-y-auto overflow-x-hidden p-2 font-sans text-[#ededed] md:gap-2 md:p-3">
+      {/* Global game clock */}
+      {gameTimeLeft >= 0 && (() => {
+        const total = GAME_DURATION_MS[difficulty];
+        const pct = (gameTimeLeft / total) * 100;
+        const totalSecs = Math.ceil(gameTimeLeft / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        const timeStr = mins > 0 ? `${mins}:${secs.toString().padStart(2, "0")}` : `${secs}s`;
+        const color = pct > 50 ? "#22c55e" : pct > 20 ? "#f59e0b" : "#ef4444";
+        return (
+          <div className="shrink-0 flex flex-col gap-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>TIME LEFT</span>
+              <span className="tabular-nums font-bold" style={{ color }}>{timeStr}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${pct}%`, background: color, transition: "width 0.1s linear, background 0.3s" }}
+              />
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Mode toggle */}
+      <div
+        className="order-4 md:order-1 flex shrink-0 rounded overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,162,255,0.1)" }}
+      >
+        {(["manual", "auto"] as GameMode[]).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => !isPlaying && onGameModeChange(mode)}
+            className="flex-1 py-1.5 text-xs font-semibold transition-all duration-200 capitalize tracking-wide"
+            style={{
+              background: gameMode === mode ? PRIMARY : "transparent",
+              color: gameMode === mode ? SURFACE : "rgba(255,255,255,0.45)",
+              borderRadius: 10,
+              cursor: isPlaying ? "not-allowed" : "pointer",
+            }}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
+
+      {/* Bet Amount */}
+      <div className="order-2 md:order-2 shrink-0">
+        <div className="text-[10px] tracking-wider text-white/50 mb-1">BET AMOUNT</div>
+        <div
+          className="flex items-center gap-2 rounded px-2.5 py-2"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(200,162,255,0.1)",
+            opacity: isPlaying || isFrozen ? 0.5 : 1,
+          }}
+        >
+          <input
+            type="number"
+            value={betAmount}
+            onChange={(e) => !isPlaying && !isFrozen && onBetAmountChange(Math.max(0, parseFloat(e.target.value) || 0))}
+            className="flex-1 min-w-0 rounded bg-transparent px-1 py-1 outline-none text-white text-sm tabular-nums"
+            disabled={isPlaying || isFrozen}
+            step={0.01}
+            min={0}
+          />
+          <div className="hidden items-center gap-2 md:flex">
+            <button
+              type="button"
+              onClick={() => !isPlaying && onBetAmountChange(betAmount / 2)}
+              disabled={isPlaying}
+              className="rounded px-2 py-1 text-[11px] font-semibold"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
+            >
+              ½
+            </button>
+            <button
+              type="button"
+              onClick={() => !isPlaying && onBetAmountChange(betAmount * 2)}
+              disabled={isPlaying}
+              className="rounded px-2 py-1 text-[11px] font-semibold"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
+            >
+              2×
+            </button>
+          </div>
+        </div>
+        {isIdle && (
+          <div className="mt-1.5 hidden gap-1 md:flex">
+            {[1, 5, 10, 25].map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onBetAmountChange(v)}
+                className="flex-1 py-1 rounded text-[11px] transition-all border border-white/[0.08] bg-white/[0.04] text-white/55"
+              >
+                ${v}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Difficulty */}
+      <div className="order-5 md:order-3 shrink-0">
+        <div className="text-[10px] tracking-wider text-white/50 mb-1">DIFFICULTY</div>
+        <div className="relative" style={{ opacity: isPlaying || isFrozen ? 0.5 : 1 }}>
+          <button
+            type="button"
+            onClick={() => !isPlaying && !isFrozen && setDiffOpen(!diffOpen)}
+            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded text-sm text-white"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(200,162,255,0.1)",
+              cursor: isPlaying ? "not-allowed" : "pointer",
+            }}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 shrink-0 rounded-full" style={{ background: diffOption.color }} />
+              <span className="truncate">{diffOption.label}</span>
+              <span className="text-[11px] text-white/30 shrink-0 inline-flex items-center gap-0.5">
+                {diffOption.value === "professional" && <Skull className="w-3 h-3 opacity-70 shrink-0" aria-hidden />}
+                {diffOption.tag}
+              </span>
+            </span>
+            <ChevronDown
+              className="w-3.5 h-3.5 shrink-0 text-white/40 transition-transform duration-200"
+              style={{ transform: diffOpen ? "rotate(180deg)" : "none" }}
+            />
+          </button>
+          <AnimatePresence>
+            {diffOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="absolute left-0 right-0 rounded mt-1 z-20 overflow-hidden"
+                style={{ background: "#131212", border: "1px solid rgba(200,162,255,0.15)" }}
+              >
+                {REDLIGHT_DIFFICULTY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      onDifficultyChange(opt.value);
+                      setDiffOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-sm transition-all"
+                    style={{
+                      color: difficulty === opt.value ? "#fff" : "rgba(255,255,255,0.65)",
+                      background: difficulty === opt.value ? "rgba(200,162,255,0.1)" : "transparent",
+                    }}
+                  >
+                    <span className="w-2 h-2 shrink-0 rounded-full" style={{ background: opt.color }} />
+                    <span>{opt.label}</span>
+                    <span className="ml-auto text-[11px] text-white/30 inline-flex items-center gap-0.5">
+                      {opt.value === "professional" && <Skull className="w-3 h-3 opacity-70 shrink-0" aria-hidden />}
+                      {opt.tag}
+                    </span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Difficulty stats — desktop only */}
+      <div className="order-10 md:order-4 hidden shrink-0 grid-cols-2 gap-2 md:grid">
+        <div
+          className="rounded px-2.5 py-1.5"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="text-[10px] tracking-wider text-white/40">+MULT/2s</div>
+          <div className="text-[11px] font-bold tabular-nums" style={{ color: diffOption.color }}>
+            +{MULT_INCREMENT[difficulty]}
+          </div>
+        </div>
+        <div
+          className="rounded px-2.5 py-1.5"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="text-[10px] tracking-wider text-white/40">GRACE</div>
+          <div className="text-[11px] font-bold tabular-nums" style={{ color: diffOption.color }}>
+            {FREEZE_GRACE_MS[difficulty]}ms
+          </div>
+        </div>
+      </div>
+
+      {/* Live multiplier — desktop only (mobile: HUD on playfield) */}
+      <AnimatePresence>
+        {(isPlaying || isFrozen) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="order-11 md:order-5 hidden rounded px-2.5 py-1.5 md:block"
+            style={{ background: `${diffOption.color}12`, border: `1px solid ${diffOption.color}33` }}
+          >
+            <div className="text-[10px] tracking-wider text-white/50">LIVE MULTIPLIER</div>
+            <div className="text-[11px] font-bold tabular-nums leading-snug" style={{ color: diffOption.color }}>
+              {currentMultiplier.toFixed(2)}×
+            </div>
+            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-white/35">
+              <ArrowRight className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
+              <span>${(betAmountUsed * currentMultiplier).toFixed(2)} if cashed out</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Profit */}
+      <div className="order-6 md:order-6 shrink-0">
+        <div className="mb-1 flex justify-between gap-2 text-[10px] text-white/50 md:text-[11px]">
+          <span className="leading-snug md:truncate">
+            <span className="md:hidden">TOTAL PROFIT</span>
+            <span className="hidden md:inline">TOTAL PROFIT ({currentMultiplier.toFixed(2)}×)</span>
+          </span>
+          <span className="shrink-0 tabular-nums" style={{ color: profit >= 0 ? "#22c55e" : "#ef4444" }}>
+            {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
+          </span>
+        </div>
+        <div
+          className="rounded px-2 py-1 md:px-2.5 md:py-1.5"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <span className="text-[10px] leading-snug text-white tabular-nums md:text-[11px]">
+            {isPlaying || isFrozen ? `$${(betAmountUsed * currentMultiplier).toFixed(2)}` : "0.00"}
+          </span>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="order-1 md:order-7 mt-auto flex flex-col gap-2">
+      {error && (
+        <div className="rounded px-2.5 py-1.5 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20">
+          {error}
+        </div>
+      )}
+      {isIdle && (
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={onStartRun}
+          type="button"
+          disabled={isLoading}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tracking-wide text-[#131212] disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{
+            background: "linear-gradient(135deg, #22c55e 0%, #15803d 100%)",
+            boxShadow: "0 4px 18px rgba(34,197,94,0.28)",
+          }}
+        >
+          <CirclePlay className="h-3 w-3 shrink-0" aria-hidden />
+          {isLoading ? "Starting..." : "START RUN"}
+        </motion.button>
+      )}
+
+      {isPlaying && (
+        <div className="flex flex-col gap-2">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onCashout}
+            type="button"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tabular-nums text-[#131212] tracking-wide"
+            style={{
+              background: `linear-gradient(135deg, ${diffOption.color}, ${diffOption.color}99)`,
+              boxShadow: `0 4px 18px ${diffOption.color}44`,
+            }}
+          >
+            <Wallet className="h-3 w-3 shrink-0" aria-hidden />
+            CASHOUT ${(betAmountUsed * currentMultiplier).toFixed(2)}
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={onFreeze}
+            type="button"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/15 py-2 font-semibold text-[11px] tracking-wide text-white"
+            style={{
+              background: phase === "red" ? "linear-gradient(135deg, #ef4444, #b91c1c)" : "rgba(255,255,255,0.08)",
+              boxShadow: phase === "red" ? "0 4px 18px rgba(239,68,68,0.3)" : "none",
+              animation: phase === "red" ? "pulse 0.3s ease-in-out infinite" : "none",
+            }}
+          >
+            <Snowflake className="h-3 w-3 shrink-0" aria-hidden />
+            FREEZE
+          </motion.button>
+        </div>
+      )}
+
+      {isFrozen && (
+        <div className="flex flex-col gap-2">
+
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onCashout}
+            type="button"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded py-2 font-semibold text-[11px] tabular-nums tracking-wide text-[#131212]"
+            style={{
+              background: "linear-gradient(135deg, #22c55e, #15803d)",
+              boxShadow: "0 4px 18px rgba(34,197,94,0.28)",
+            }}
+          >
+            <Wallet className="h-3 w-3 shrink-0" aria-hidden />
+            CASHOUT ${(betAmountUsed * currentMultiplier).toFixed(2)}
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={onContinue}
+            type="button"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-white/15 bg-white/[0.08] py-2 font-semibold text-[11px] tracking-wide text-white"
+          >
+            <Footprints className="h-3 w-3 shrink-0" aria-hidden />
+            KEEP RUNNING
+          </motion.button>
+        </div>
+      )}
+      </div>
+
+    </div>
+  );
+}

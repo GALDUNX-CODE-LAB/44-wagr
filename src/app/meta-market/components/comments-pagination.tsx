@@ -15,13 +15,13 @@ export default function CommentsPagination({ current, pages, onChange }: Props) 
           <button
             key={p}
             onClick={() => onChange(p)}
-            className={`px-3 py-1 rounded ${current === p ? "bg-[#C8A2FF] text-black" : "bg-[#333]"}`}
+            className={`px-2.5 py-0.5 rounded text-xs ${current === p ? "bg-[#C8A2FF] text-black" : "bg-[#333]"}`}
           >
             {p}
           </button>
         );
       })}
-      {pages > 5 && <span className="px-3 py-1 text-white/60">...</span>}
+      {pages > 5 && <span className="px-2.5 py-0.5 text-xs text-white/60">...</span>}
     </div>
   );
 }

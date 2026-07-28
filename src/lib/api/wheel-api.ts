@@ -5,7 +5,7 @@ export type DynamicSegment = {
   multiplier: number;
 };
 
-// ✅ Hardcoded segments to match backend (do not change this order)
+// Hardcoded segments to match backend (do not change this order)
 export const HARD_CODED_SEGMENTS: DynamicSegment[] = [
   { color: "green", multiplier: 2 },
   { color: "yellow", multiplier: 1.5 },
@@ -30,10 +30,7 @@ export const fetchSegments = async (): Promise<DynamicSegment[]> => {
   return HARD_CODED_SEGMENTS;
 };
 
-export const placeWheelBet = async ({ stake }: { stake: number }) => {
-  const payload = {
-    stake,
-  };
+export const placeWheelBet = async (payload: { stake: number; segments?: number }) => {
   console.log("[placeWheelBet] Payload being sent to backend:", payload);
 
   try {

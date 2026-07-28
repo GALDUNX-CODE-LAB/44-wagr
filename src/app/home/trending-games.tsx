@@ -1,134 +1,54 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { MdOutlineCasino } from "react-icons/md";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/free-mode";
+
+const TRENDING_GAMES = [
+  { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
+  { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
+  { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
+  { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge2.png", link: "/games/glass" },
+  { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines2.png", link: "/games/mines" },
+  { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko2.png", link: "/games/plinko" },
+  { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump2.png", link: "/games/pump" },
+  { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light2.png", link: "/games/redlight" },
+  { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps2.png", link: "/games/rps" },
+  { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
+] as const;
 
 export default function TrendingGames() {
-  const items = Array.from({ length: 20 }).map((_, i) => i + 1);
-  const trendingGames = [
-    { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash.png" },
-    { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip.png" },
-    { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice.png" },
-    { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge.png" },
-    { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines.png" },
-    { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko.png" },
-    { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump.png" },
-    { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light.png" },
-    { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps.png" },
-    { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels.png" },
-  ];
+  const router = useRouter();
+  const swiperRef = useRef<SwiperType | null>(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
 
-  const [startIndex, setStartIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(8);
-  const [direction, setDirection] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const handleSelectGame = (game: (typeof TRENDING_GAMES)[number]) => {
+    try {
+      const stored = localStorage.getItem("continue-playing");
+      let parsed: { name: string; image: string; link: string }[] = stored ? JSON.parse(stored) : [];
 
-  const updateVisibleCount = () => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 768) setVisibleCount(3);
-      else if (window.innerWidth < 1024) setVisibleCount(5);
-      else setVisibleCount(8);
-    }
-  };
-
-  useEffect(() => {
-    updateVisibleCount();
-    window.addEventListener("resize", updateVisibleCount);
-    return () => window.removeEventListener("resize", updateVisibleCount);
-  }, []);
-
-  const handleNext = () => {
-    if (startIndex < trendingGames.length - visibleCount) {
-      setDirection(1);
-      setStartIndex(startIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (startIndex > 0) {
-      setDirection(-1);
-      setStartIndex(startIndex - 1);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX;
-    const walk = startX - x;
-
-    if (Math.abs(walk) > 50) {
-      if (walk > 0 && startIndex < trendingGames.length - visibleCount) {
-        setDirection(1);
-        setStartIndex(startIndex + 1);
-        setIsDragging(false);
-      } else if (walk < 0 && startIndex > 0) {
-        setDirection(-1);
-        setStartIndex(startIndex - 1);
-        setIsDragging(false);
-      }
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX;
-    const walk = startX - x;
-
-    if (Math.abs(walk) > 50) {
-      if (walk > 0 && startIndex < trendingGames.length - visibleCount) {
-        setDirection(1);
-        setStartIndex(startIndex + 1);
-        setIsDragging(false);
-      } else if (walk < 0 && startIndex > 0) {
-        setDirection(-1);
-        setStartIndex(startIndex - 1);
-        setIsDragging(false);
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0 && startIndex < trendingGames.length - visibleCount) {
-      setDirection(1);
-      setStartIndex(startIndex + 1);
-    } else if (e.deltaY < 0 && startIndex > 0) {
-      setDirection(-1);
-      setStartIndex(startIndex - 1);
+      parsed = parsed.filter((g) => g.link !== game.link);
+      parsed.unshift({ name: game.name, image: game.image, link: game.link });
+      localStorage.setItem("continue-playing", JSON.stringify(parsed));
+      router.push(game.link);
+    } catch (err) {
+      console.error("Error updating localStorage:", err);
+      router.push(game.link);
     }
   };
 
   return (
-    <div className="py-6 rounded-lg relative overflow-hidden">
+    <div className="py-3 rounded-lg relative">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-white font-semibold lg:text-lg flex gap-1 items-center">
           <MdOutlineCasino className="text-primary" />
@@ -136,65 +56,94 @@ export default function TrendingGames() {
         </h2>
         <div className="flex gap-2">
           <button
-            onClick={handlePrev}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex === 0}
+            onClick={() => swiperRef.current?.slidePrev()}
+            disabled={isBeginning}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={handleNext}
-            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white disabled:opacity-40"
-            disabled={startIndex >= trendingGames.length - visibleCount}
+            onClick={() => {
+              if (swiperRef.current && !swiperRef.current.isEnd) {
+                swiperRef.current.slideNext();
+              }
+            }}
+            disabled={isEnd}
+            className="lg:w-8 lg:h-8 w-6 h-6 flex items-center justify-center bg-[#243441] rounded-md text-white hover:bg-[#2a3f4f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="relative h-40">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={startIndex}
-            className="absolute top-0 left-0 right-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2"
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onWheel={handleWheel}
-            style={{
-              userSelect: "none",
-              cursor: isDragging ? "grabbing" : "grab",
-            }}
-          >
-            {trendingGames.slice(startIndex, startIndex + visibleCount).map((game: any, index: number) => (
+      <div className="overflow-hidden -mx-2 px-2">
+        <Swiper
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+            // Update state after a brief delay to ensure Swiper has calculated properly
+            setTimeout(() => {
+              setIsBeginning(swiper.isBeginning);
+              setIsEnd(swiper.isEnd);
+            }, 100);
+          }}
+          onSlideChange={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          onReachBeginning={(swiper) => {
+            setIsBeginning(true);
+            setIsEnd(false);
+          }}
+          onReachEnd={(swiper) => {
+            setIsBeginning(false);
+            setIsEnd(true);
+          }}
+          onUpdate={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
+          }}
+          modules={[Navigation, FreeMode, Mousewheel]}
+          spaceBetween={8}
+          slidesPerView="auto"
+          freeMode={false}
+          watchOverflow={true}
+          watchSlidesProgress={true}
+          resistance={true}
+          resistanceRatio={0.5}
+          allowSlideNext={!isEnd}
+          allowSlidePrev={!isBeginning}
+          mousewheel={{
+            forceToAxis: true,
+            sensitivity: 1,
+            releaseOnEdges: true,
+          }}
+        >
+          {TRENDING_GAMES.map((game, index) => (
+            <SwiperSlide key={index} style={{ width: 'auto' }}>
               <div
-                key={index}
-                className="h-40 relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white"
-                draggable={false}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleSelectGame(game)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSelectGame(game);
+                  }
+                }}
+                className="w-[100px] md:w-[120px] lg:w-[140px] aspect-square relative bg-black rounded-lg overflow-hidden flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform duration-200"
               >
-                <Image src={game.image} fill alt={game.name} draggable={false} />
+                <Image
+                  src={game.image}
+                  fill
+                  alt={game.name}
+                  className="object-contain"
+                  draggable={false}
+                  unoptimized
+                />
               </div>
-
-              // <div
-              //   key={index}
-              //   className="h-40 relative bg-black rounded-md flex items-center justify-center text-white select-none"
-              //   draggable={false}
-              // >
-              //   <Image
-              //     src={game.image}
-              //     fill
-              //     alt={game.name}
-              //     className="object-cover rounded-md pointer-events-none"
-              //     draggable={false}
-              //   />
-              // </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   );

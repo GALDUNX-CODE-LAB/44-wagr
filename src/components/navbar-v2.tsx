@@ -11,10 +11,10 @@ import {
   Lock,
   CreditCard,
   Settings,
-  LogOut,
   LogOutIcon,
   ArrowUpRight,
 } from "lucide-react";
+import { TbCards } from "react-icons/tb";
 import Image from "next/image";
 import WalletModal from "./wallet-modal";
 import TransactionsModal from "./transactions-modal";
@@ -27,12 +27,13 @@ import { logout } from "../lib/api/auth";
 import { getCookie } from "../lib/api/cookie";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getUserData } from "../lib/api";
+import { getNotifications } from "../lib/api";
 import { useUser } from "../hooks/useUserData";
+import NotificationsModal from "./notification-modal";
+import { useSidebarCollapsed } from "./sidebar-collapsed-context";
 
 export default function NavbarV2() {
   const [focused, setFocused] = useState(false);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -41,12 +42,11 @@ export default function NavbarV2() {
   const [affiliateModalOpen, setAffiliateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [switchMode, setSwitchMode] = useState(false);
-  const [accountSettingsModalOpen, setAccountSettingsModalOpen] =
-    useState(false);
+  const [accountSettingsModalOpen, setAccountSettingsModalOpen] = useState(false);
+  const [notificationsModalOpen, setNotificationsModalOpen] = useState(false);
 
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
-
   const authMethod: any = "token";
   const router = useRouter();
 
@@ -54,6 +54,7 @@ export default function NavbarV2() {
     setLoginModalOpen(false);
     setSwitchMode(false);
   };
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -61,69 +62,95 @@ export default function NavbarV2() {
     if (token) setIsLoggedIn(true);
   }, []);
 
-  const { data: userData, isLoading } = useQuery({
-    queryKey: ["user-data"],
-    queryFn: getUserData,
+  const { balance } = useUser();
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
+    enabled: isLoggedIn,
+    refetchInterval: 30000,
   });
 
-  const { balance } = useUser();
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
+
+  const { collapsed: sidebarCollapsed } = useSidebarCollapsed();
 
   return (
     <>
+      {/* Backdrop: close profile dropdown when tapping outside */}
+      {userDropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setUserDropdownOpen(false)}
+          aria-hidden
+        />
+      )}
       <div className="wrap relative h-[65px] w-full" />
-      <div className="lg:w-[calc(100vw-220px)] w-full h-[66px] bg-[#212121] fixed top-0 z-50">
-        <nav className="w-full h-full sm:border-b border-white/15  text-white flex items-center justify-between px-6 py-3">
-          <div
-            className="wrap lg:hidden max-h-[70px]"
-            onClick={() => router.push("/")}
-          >
-            <Image
-              src={"/assets/44.png"}
-              alt="44-wager"
-              width={70}
-              height={70}
-            />
+      <div className="fixed left-0 top-0 z-50 h-[66px] w-full bg-[#212121] lg:left-[var(--sidebar-width)] lg:w-[calc(100vw-var(--sidebar-width))]">
+        <nav className="w-full h-full sm:border-b border-white/15 text-white flex items-center justify-between px-6 py-3">
+          <div className="wrap lg:hidden max-h-[70px]" onClick={() => router.push("/")}>
+            <Image src={"/assets/44.png"} alt="44-wager" width={70} height={70} />
           </div>
-          <div className="flex-1 max-w-md hidden lg:block">
-            <div className="flex h-[30px] items-center border border-white/20 rounded-md px-3 py-2">
-              <Search className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex lg:max-w-xl">
+            {sidebarCollapsed && (
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="shrink-0 rounded-md py-1 transition-opacity hover:opacity-90"
+                aria-label="Home"
+              >
+                <Image
+                  src="/assets/44.png"
+                  alt="44-wager"
+                  width={100}
+                  height={44}
+                  className="h-9 w-auto max-w-[100px] object-contain"
+                />
+              </button>
+            )}
+            <div className="flex min-w-0 flex-1 items-center border border-white/20 rounded-md px-3 py-2 h-[30px]">
+              <Search className="mr-2 h-4 w-4 shrink-0 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="bg-transparent outline-none flex-1 text-xs"
+                className="min-w-0 flex-1 bg-transparent text-xs outline-none"
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
               />
             </div>
           </div>
+
           {isLoggedIn && (
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 bg-primary/20 text-sm rounded-lg px-0 p-1">
                 <div className="relative rounded-lg w-4 h-4 flex items-center justify-center ml-2">
-                  <Image
-                    src="/assets/usdt.png"
-                    alt="USDT"
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src="/assets/usdt.png" alt="USDT" fill className="object-contain" />
                 </div>
-                <span className="truncate">{balance?.toFixed(2)}</span>
+                <span className="truncate pr-2">{balance?.toFixed(2)}</span>
                 <button
-                  className="bg-primary text-black p-1 px-2 rounded-lg text-l"
+                  className="hidden lg:block bg-primary text-black p-1 px-2 rounded-lg text-l"
                   onClick={() => setWalletModalOpen(true)}
                 >
                   <small>Wallet</small>
                 </button>
               </div>
-              <Coins
-                className="w-5 h-5 text-yellow-500 cursor-pointer"
-                onClick={() => setPointsModalOpen(true)}
-              />
+
+              <Coins className="hidden lg:block w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
+
               <div className="relative">
-                <User
-                  className="w-5 h-5 cursor-pointer"
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                <Bell
+                  className="w-5 h-5 text-white/70 cursor-pointer hover:text-white transition"
+                  onClick={() => setNotificationsModalOpen(true)}
                 />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#212121]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
+
+              <div className="relative">
+                <User className="w-5 h-5 cursor-pointer" onClick={() => setUserDropdownOpen(!userDropdownOpen)} />
                 {userDropdownOpen && (
                   <div
                     className="absolute top-12 right-0 z-50 w-[220px] rounded-[10px] border border-[#FFFFFF33] bg-white text-black shadow-xl"
@@ -133,18 +160,33 @@ export default function NavbarV2() {
                     <div className="p-4 flex flex-col gap-3 text-sm font-medium">
                       <div className="text-xs text-gray-500 border-b border-gray-200 pb-2">
                         Logged in with:{" "}
-                        {authMethod === "wallet"
-                          ? "MetaMask"
-                          : authMethod === "token"
-                          ? "Google"
-                          : "Unknown"}
+                        {authMethod === "wallet" ? "MetaMask" : authMethod === "token" ? "Google" : "Unknown"}
                         {isConnected && (
                           <div className="mt-1 text-green-600">
-                            Wallet: {address?.slice(0, 6)}...
-                            {address?.slice(-4)}
+                            Wallet: {address?.slice(0, 6)}...{address?.slice(-4)}
                           </div>
                         )}
                       </div>
+                      <button
+                        className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
+                        onClick={() => {
+                          setPointsModalOpen(true);
+                          setUserDropdownOpen(false);
+                        }}
+                      >
+                        <Coins className="w-3 h-3" />
+                        Points
+                      </button>
+                      <button
+                        className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
+                        onClick={() => {
+                          router.push("/bets");
+                          setUserDropdownOpen(false);
+                        }}
+                      >
+                        <TbCards className="w-3 h-3" />
+                        My Bets
+                      </button>
                       <button
                         className="flex items-center cursor-pointer gap-2 hover:text-[#C8A2FF] transition text-xs"
                         onClick={() => setAccountSettingsModalOpen(true)}
@@ -184,6 +226,7 @@ export default function NavbarV2() {
                   </div>
                 )}
               </div>
+
               <div className="wrap hidden lg:block">
                 <div className="min-h-5 min-w-5 rounded-full relative bg-white" />
               </div>
@@ -191,15 +234,12 @@ export default function NavbarV2() {
           )}
 
           {!isLoggedIn && (
-            <>
-              <div className="wrap" onClick={() => setLoginModalOpen(true)}>
-                <button className="bg-primary text-black rounded-lg text-sm p-2 px-3">
-                  Login
-                </button>
-              </div>
-            </>
+            <div className="wrap" onClick={() => setLoginModalOpen(true)}>
+              <button className="bg-primary text-black rounded-lg text-sm p-2 px-3">Login</button>
+            </div>
           )}
         </nav>
+
         <AnimatePresence>
           {focused && (
             <motion.div
@@ -210,7 +250,7 @@ export default function NavbarV2() {
             >
               <div className="grid grid-cols-8 gap-4">
                 {Array.from({ length: 14 }).map((_, i) => (
-                  <div key={i} className="h-20 bg-[#111] rounded-md"></div>
+                  <div key={i} className="h-20 bg-[#111] rounded-md" />
                 ))}
               </div>
             </motion.div>
@@ -218,31 +258,13 @@ export default function NavbarV2() {
         </AnimatePresence>
       </div>
 
-      <WalletModal
-        open={walletModalOpen}
-        onClose={() => setWalletModalOpen(false)}
-      />
-      <TransactionsModal
-        open={transactionsModalOpen}
-        onClose={() => setTransactionsModalOpen(false)}
-      />
-      <PointsModal
-        open={pointsModalOpen}
-        onClose={() => setPointsModalOpen(false)}
-      />
-      <AffiliateModal
-        open={affiliateModalOpen}
-        onClose={() => setAffiliateModalOpen(false)}
-      />
-      <LoginModal
-        open={loginModalOpen}
-        onClose={handleLoginModalClose}
-        switchMode={switchMode}
-      />
-      <AccountSettingsModal
-        open={accountSettingsModalOpen}
-        onClose={() => setAccountSettingsModalOpen(false)}
-      />
+      <WalletModal open={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
+      <TransactionsModal open={transactionsModalOpen} onClose={() => setTransactionsModalOpen(false)} />
+      <PointsModal open={pointsModalOpen} onClose={() => setPointsModalOpen(false)} />
+      <AffiliateModal open={affiliateModalOpen} onClose={() => setAffiliateModalOpen(false)} />
+      <LoginModal open={loginModalOpen} onClose={handleLoginModalClose} switchMode={switchMode} />
+      <AccountSettingsModal open={accountSettingsModalOpen} onClose={() => setAccountSettingsModalOpen(false)} />
+      <NotificationsModal open={notificationsModalOpen} onClose={() => setNotificationsModalOpen(false)} />
     </>
   );
 }

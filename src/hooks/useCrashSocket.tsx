@@ -10,7 +10,7 @@ export default function useCrashSocket(
     heartbeatMs?: number;
     maxRetries?: number;
     url?: string;
-  }
+  },
 ) {
   const heartbeatMs = opts?.heartbeatMs ?? 25000;
   const maxRetries = opts?.maxRetries ?? 5;
@@ -22,18 +22,35 @@ export default function useCrashSocket(
   const wsRef = useRef<WebSocket | null>(null);
   const hbRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectRef = useRef<NodeJS.Timeout | null>(null);
+  const onMessageRef = useRef(onMessage);
+  const retriesRef = useRef(0);
+
+  onMessageRef.current = onMessage;
+  retriesRef.current = retries;
 
   const resolveUrl = useCallback(() => {
-    const raw = opts?.url || process.env.NEXT_PUBLIC_WS || "";
-    if (raw) {
-      if (raw.startsWith("http")) return raw.replace(/^http/, "ws");
-      return raw;
+    let url = "";
+
+    const explicitWs = (opts?.url || process.env.NEXT_PUBLIC_WS || "").trim();
+    if (explicitWs) {
+      url = explicitWs.startsWith("http") ? explicitWs.replace(/^http/, "ws") : explicitWs;
+    } else {
+      const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim();
+      if (apiBase) {
+        url = apiBase.startsWith("http") ? apiBase.replace(/^http/, "ws") : `ws://${apiBase}`;
+      } else if (typeof window !== "undefined") {
+        const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        url = `${proto}//${window.location.host}`;
+      }
     }
-    if (typeof window !== "undefined") {
-      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-      return `${proto}//${window.location.host}/ws`;
+
+    // Browsers block ws:// connections from HTTPS pages (mixed content).
+    // Always upgrade to wss:// when the page is served over HTTPS.
+    if (typeof window !== "undefined" && window.location.protocol === "https:") {
+      url = url.replace(/^ws:\/\//, "wss://");
     }
-    return "";
+
+    return url;
   }, [opts?.url]);
 
   const cleanup = useCallback(() => {
@@ -62,7 +79,7 @@ export default function useCrashSocket(
     const url = resolveUrl();
     if (!url) {
       setStatus("error");
-      setError("Missing NEXT_PUBLIC_WS or url");
+      setError("Missing NEXT_PUBLIC_WS or NEXT_PUBLIC_API_BASE_URL");
       return;
     }
 
@@ -89,8 +106,7 @@ export default function useCrashSocket(
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
-          console.log(msg);
-          onMessage(msg);
+          onMessageRef.current?.(msg);
         } catch (err: any) {
           setError(err?.message || "parse error");
         }
@@ -103,9 +119,11 @@ export default function useCrashSocket(
 
       ws.onclose = () => {
         setStatus("closed");
-        if (retries < maxRetries) {
-          const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        const currentRetries = retriesRef.current;
+        if (currentRetries < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, currentRetries), 10000);
           reconnectRef.current = setTimeout(() => {
+            retriesRef.current += 1;
             setRetries((r) => r + 1);
             connect();
           }, delay);
@@ -115,15 +133,15 @@ export default function useCrashSocket(
       setStatus("error");
       setError(err?.message || "connect error");
     }
-  }, [cleanup, heartbeatMs, maxRetries, onMessage, resolveUrl, retries]);
+  }, [cleanup, heartbeatMs, maxRetries, resolveUrl]);
 
   useEffect(() => {
     connect();
     return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connect, cleanup]);
 
   const manualReconnect = useCallback(() => {
+    retriesRef.current = 0;
     setRetries(0);
     connect();
   }, [connect]);

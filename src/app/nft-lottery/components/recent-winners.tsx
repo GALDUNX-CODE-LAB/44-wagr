@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Bitcoin } from "lucide-react";
-import { fetchLotteryWinners } from "../../../lib/api";
+import { Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchRecentLotteryWinners } from "../../../lib/api";
 
 interface LotteryWinner {
   username: string;
@@ -12,72 +12,54 @@ interface LotteryWinner {
 }
 
 export default function RecentWinners() {
-  const [winners, setWinners] = useState<LotteryWinner[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: winners = [], isLoading: loading, isError } = useQuery({
+    queryKey: ["lottery", "recent-winners", 10],
+    queryFn: async () => {
+      const response = await fetchRecentLotteryWinners(10);
+      const winnersData = Array.isArray(response) ? response : [];
+      return winnersData.map((winner: any) => ({
+        username: winner.userId?.username || "Unknown User",
+        payout: winner.payout ? `$${winner.payout.toLocaleString()}` : "$0",
+        userImage: winner.userId?.imageUrl || "/assets/user.png",
+      }));
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    const loadWinners = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetchLotteryWinners();
-        setWinners(response);
-      } catch (err) {
-        console.error("Error fetching lottery winners:", err);
-        setError("Failed to load recent winners");
-        setWinners([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadWinners();
-  }, []);
+  const error = isError ? "Failed to load recent winners" : null;
 
   return (
-    <div className="w-full max-w-[600px] max-h-[500px] bg-[#212121] border border-white/[0.1] rounded-[20px] p-6 mx-auto flex flex-col">
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-xl font-bold">Recent Winners</h2>
-      </div>
-
-      <div className="bg-[#c8a2ff]/50 rounded-[5px] h-[40px] w-full mb-5" />
-
-      <div className="space-y-4 flex-grow overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-2 py-1">
-          <span className="text-sm font-medium text-white/65">Player</span>
-          <span className="text-sm font-medium text-white/65">Price</span>
+    <div className="w-full bg-[#212121] border border-white/10 rounded-xl p-3 sm:p-4 flex flex-col">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500/15 border border-amber-400/25 flex items-center justify-center">
+          <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" strokeWidth={2} />
         </div>
-
-        {/* Loading State */}
+        <h2 className="text-xs sm:text-sm font-semibold text-white">Recent Winners</h2>
+      </div>
+      <div className="space-y-2 flex-grow overflow-y-auto max-h-[320px] sm:max-h-[380px]">
         {loading && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A2FF]"></div>
+          <div className="flex justify-center items-center py-6">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#C8A2FF]" />
           </div>
         )}
-
-        {/* Error State */}
         {error && (
-          <div className="text-center py-4 text-red-400 text-sm">{error}</div>
+          <div className="text-center py-3 text-red-400 text-xs">{error}</div>
         )}
-
-        {/* Winners List */}
         {!loading &&
           !error &&
           winners.length > 0 &&
           winners.map((winner, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-2 bg-[#1C1C1C]/50 rounded-lg"
+              className="flex items-center justify-between p-2.5 sm:p-3 bg-[#1C1C1C]/50 rounded-lg border border-white/5 hover:border-[#C8A2FF]/30 transition-all group"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-white/10 group-hover:border-[#C8A2FF]/50 transition-colors flex-shrink-0">
                   <Image
                     src={winner.userImage || "/assets/user.png"}
                     width={32}
                     height={32}
-                    className="object-cover"
+                    className="object-cover w-full h-full"
                     alt={winner.username}
                     unoptimized
                     onError={(e) => {
@@ -85,25 +67,21 @@ export default function RecentWinners() {
                     }}
                   />
                 </div>
-                <div>
-                  <p className="font-medium">{winner.username}</p>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white truncate">{winner.username}</p>
+                  <p className="text-[10px] text-white/50">Winner</p>
                 </div>
               </div>
-
-              <div className="text-right flex gap-2">
-                <p className="font-bold text-white">{winner.payout}</p>
-                <div className="bg-yellow-400 rounded-full w-5 h-5 flex mt-0.5 items-center justify-center">
-                  <Bitcoin className="w-3 h-3 text-white" />
+              <div className="text-right flex items-center gap-1.5 flex-shrink-0">
+                <p className="text-xs font-semibold text-[#C8A2FF]">{winner.payout}</p>
+                <div className="w-5 h-5 rounded-full bg-amber-500/10 border border-amber-400/20 flex items-center justify-center">
+                  <Trophy className="w-2.5 h-2.5 text-amber-400" strokeWidth={2} />
                 </div>
               </div>
             </div>
           ))}
-
-        {/* Empty State */}
         {!loading && !error && winners.length === 0 && (
-          <div className="text-center py-8 text-white/50">
-            No recent winners found
-          </div>
+          <div className="text-center py-6 text-white/50 text-xs">No recent winners</div>
         )}
       </div>
     </div>

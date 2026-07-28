@@ -10,6 +10,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --sidebar-width: 220px;
 }
 
 @theme inline {
@@ -18,8 +19,8 @@
   --color-primary: #c8a2ff;
   --color-secondary: #131212;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +52,24 @@ body {
   width: 16px !important;
   height: 4px !important;
   margin-top: 500px !important;
+}
+
+/* Lottery active games swiper – compact bullets */
+.active-games-swiper .lottery-bullet {
+  background: rgba(255, 255, 255, 0.4) !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  transform: none !important;
+  margin: 0 3px !important;
+  margin-top: 0 !important;
+  opacity: 1 !important;
+  transition: background 0.2s, width 0.2s;
+}
+.active-games-swiper .lottery-bullet-active {
+  background: #c8a2ff !important;
+  width: 16px !important;
+  border-radius: 4px !important;
 }
 
 html {

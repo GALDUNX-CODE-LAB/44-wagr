@@ -2,12 +2,16 @@
 import React, { useState } from "react";
 import { createUserWithdrawal } from "../../../lib/api";
 import { useUser } from "../../../hooks/useUserData";
+import SetPasscodeModal from "./set-passcode";
 
 const WithdrawalFormCard = () => {
   const [address, setAddress] = useState("");
+  const [userPasscode, setUserPasscode] = useState();
   const [amount, setAmount] = useState("");
+  const [chain, setChain] = useState<"ETH" | "BSC" | "SOL">("ETH");
+  const [openPasscodeModal, setOpenPasscodeModal] = useState(false);
 
-  const { balance } = useUser();
+  const { balance, passcode } = useUser();
 
   const usdtData = {
     symbol: "USDT",
@@ -38,14 +42,14 @@ const WithdrawalFormCard = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!address || !amount) {
+    if (!address || !amount || !chain) {
       alert("Please fill in all fields");
       return;
     }
 
     try {
       const numAmount = parseFloat(amount);
-      const response = await createUserWithdrawal(numAmount, address);
+      const response = await createUserWithdrawal(numAmount, address, chain, userPasscode);
       console.log("Withdrawal successful:", response);
       alert("Your withdrawal request has been submitted successfully! It will be processed within 24 hours.");
 
@@ -58,72 +62,113 @@ const WithdrawalFormCard = () => {
   };
 
   return (
-    <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-4 flex flex-col">
-      <h2 className="text-white font-normal lg:text-lg mb-4">Withdraw</h2>
+    <>
+      <SetPasscodeModal open={openPasscodeModal} onClose={() => setOpenPasscodeModal(false)} />
+      <div className="w-full bg-[#212121] border border-white/10 rounded-[20px] p-4 flex flex-col">
+        <h2 className="text-white font-normal lg:text-lg mb-4">Withdraw</h2>
 
-      <div className="flex-1 space-y-3">
-        <div className="w-full">
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center pointer-events-none">
-              <img src="/assets/usdt.png" alt="USDT" className="w-4 h-4" />
+        <div className="flex-1 space-y-3">
+          <div className="w-full">
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center pointer-events-none">
+                <img src="/assets/usdt.png" alt="USDT" className="w-4 h-4" />
+              </div>
+              <input
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full h-[40px] pl-8 pr-12 bg-[#1C1C1C] border placeholder:text-xs border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
+              />
+              <button
+                onClick={handleMax}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
+              >
+                Max
+              </button>
             </div>
-            <input
-              type="number"
-              placeholder="Amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full h-[40px] pl-8 pr-12 bg-[#1C1C1C] border placeholder:text-xs border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
-            />
-            <button
-              onClick={handleMax}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
-            >
-              Max
-            </button>
+            <p className="text-white/60 text-xs mt-2 ml-1">Available: {balance?.toFixed(2) || "0.00"}</p>
           </div>
-          <p className="text-white/60 text-xs mt-2 ml-1">Available: {balance?.toFixed(2) || "0.00"}</p>
+
+          <div className="w-full">
+            <label className="text-white/60 text-xs mb-2 block">Chain</label>
+            <select
+              value={chain}
+              onChange={(e) => setChain(e.target.value as "ETH" | "BSC" | "SOL")}
+              className="w-full h-[40px] px-4 bg-[#1C1C1C] border border-white/10 rounded-[15px] text-white focus:outline-none focus:border-purple-500 text-sm mb-3"
+            >
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="BSC">Binance Smart Chain (BSC)</option>
+              <option value="SOL">Solana (SOL)</option>
+            </select>
+          </div>
+
+          <div className="w-full">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="wallet address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full h-[40px] px-4 pr-14 bg-[#1C1C1C] placeholder:text-xs border border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
+              />
+              <button
+                onClick={handlePaste}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
+              >
+                Paste
+              </button>
+            </div>
+          </div>
+
+          {passcode && (
+            <div className="w-full">
+              <div className="relative">
+                <input
+                  type="number"
+                  placeholder="Enter withdrawal passcode"
+                  value={userPasscode}
+                  onChange={(e) => setUserPasscode(e.target.value as any)}
+                  className="w-full h-[40px] px-4 pr-14 bg-[#1C1C1C] placeholder:text-xs border border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="w-full">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="wallet address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full h-[40px] px-4 pr-14 bg-[#1C1C1C] placeholder:text-xs border border-white/10 rounded-[15px] text-white placeholder-white/60 focus:outline-none focus:border-purple-500 text-sm"
-            />
-            <button
-              onClick={handlePaste}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-white text-xs transition-colors cursor-pointer"
-            >
-              Paste
-            </button>
+        {!passcode && (
+          <div className="wrap pt-3">
+            <p className="text-xs">
+              Set withdrawal passcode.{" "}
+              <span className="text-primary" onClick={() => setOpenPasscodeModal(true)}>
+                Enable now
+              </span>
+            </p>
           </div>
+        )}
+
+        <div className="mb-2 mt-4 flex flex-col justify-between gap-4">
+          <div className="space-y-1 flex-1">
+            <div className="flex gap-2 text-white/60 text-xs">
+              <span>Transaction Fee:</span>
+              <span className="text-white">{usdtData.fee}</span>
+            </div>
+            <div className="flex gap-2 text-white/60 font-semibold text-xs">
+              <span>Total Amount:</span>
+              <span className="text-white">{calculateTotal()}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleWithdraw}
+            disabled={!address || !amount || !chain}
+            className="px-4 py-2.5 bg-[#c8a2ff] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-normal rounded-[10px] transition-colors text-xs lg:text-sm whitespace-nowrap"
+          >
+            Withdraw
+          </button>
         </div>
       </div>
-
-      <div className="mb-2 mt-4 flex flex-col justify-between gap-4">
-        <div className="space-y-1 flex-1">
-          <div className="flex gap-2 text-white/60 text-xs">
-            <span>Transaction Fee:</span>
-            <span className="text-white">{usdtData.fee}</span>
-          </div>
-          <div className="flex gap-2 text-white/60 font-semibold text-xs">
-            <span>Total Amount:</span>
-            <span className="text-white">{calculateTotal()}</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleWithdraw}
-          disabled={!address || !amount}
-          className="px-4 py-2.5 bg-[#c8a2ff] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-normal rounded-[10px] transition-colors text-xs lg:text-sm whitespace-nowrap"
-        >
-          Withdraw
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 

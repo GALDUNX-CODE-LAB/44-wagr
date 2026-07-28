@@ -50,7 +50,7 @@ export default function Comments({ market }: { market: Market }) {
         setComments((prev) => [{ ...res.data, user: { _id: res.data.user }, likes: 0 }, ...prev]);
       }
     } catch (err) {
-      console.error("❌ Failed to add comment:", err);
+      console.error("Failed to add comment:", err);
     }
   };
 
@@ -71,7 +71,7 @@ export default function Comments({ market }: { market: Market }) {
     <div className="w-full pb-16 lg:bg-[#212121] rounded-[20px] lg:border border-white/10 lg:p-4 sm:p-6 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <Award className="text-[#c8a2ff]" size={13} />
-        <h2 className="text-base lg:text-xl font-bold text-white/70">Comments</h2>
+        <h2 className="text-sm lg:text-base font-bold text-white/70">Comments</h2>
       </div>
 
       {/* Input */}
@@ -80,14 +80,14 @@ export default function Comments({ market }: { market: Market }) {
       {/* Sort + count */}
       <div className="flex items-center gap-4 mb-4">
         <select
-          className="bg-[#212121] text-white text-xs lg:text-sm px-4 py-2 rounded-md lg:rounded-full border border-white/6"
+          className="bg-[#212121] text-white text-[10px] lg:text-xs px-3 py-1.5 rounded-md lg:rounded-full border border-white/6"
           value={commentSort}
           onChange={(e) => setCommentSort(e.target.value as "Newest" | "Oldest")}
         >
           <option value="Newest">Newest</option>
           <option value="Oldest">Oldest</option>
         </select>
-        <span className="text-sm text-white/60">
+        <span className="text-xs text-white/60">
           {pagination.total} comment{pagination.total !== 1 ? "s" : ""}
         </span>
       </div>
