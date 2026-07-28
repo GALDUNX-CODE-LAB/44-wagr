@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { useRLGLGame } from "../../../hooks/useRedlight";
-import { playGameWin, playGameLose, playGameAction } from "../../../lib/sound-player";
+import { playGameWin, playRedLightDanger, playRedLightWarning } from "../../../lib/sound-player";
 import TrafficLight from "./redlight-trafficlight";
 import RunnerTrack from "./redlight-runner-track";
 import RLGLControls from "./redlight-controls";
@@ -32,8 +32,8 @@ export default function RedLightGame() {
 
   useEffect(() => {
     if (gameState.phase === "cashedout") playGameWin();
-    else if (gameState.phase === "eliminated") playGameLose();
-    else if (gameState.phase === "red" || gameState.phase === "frozen-red") playGameAction(); // red-light warning
+    else if (gameState.phase === "eliminated") playRedLightDanger();
+    else if (gameState.phase === "red" || gameState.phase === "frozen-red") playRedLightWarning(); // red-light warning
   }, [gameState.phase]);
 
   const handleStartRun = () => {

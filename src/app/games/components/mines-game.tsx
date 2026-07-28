@@ -5,7 +5,7 @@ import { useMinesGame } from "../../../hooks/useMinesGame";
 import MinesGrid from "./mines-grid";
 import MinesControls from "./mines-controls";
 import MinesResultOverlay from "./mines-result-overlay";
-import { playGameWin, playGameLose } from "../../../lib/sound-player";
+import { playMinesWin, playMinesLose } from "../../../lib/sound-player";
 
 export default function MinesGame() {
   const {
@@ -27,8 +27,8 @@ export default function MinesGame() {
   } = useMinesGame();
 
   useEffect(() => {
-    if (gameState.phase === "won") playGameWin();
-    else if (gameState.phase === "lost") playGameLose();
+    if (gameState.phase === "won") playMinesWin();
+    else if (gameState.phase === "lost") playMinesLose();
   }, [gameState.phase]);
 
   return (

@@ -10,7 +10,7 @@ import { useUser } from "../../../hooks/useUserData";
 import { useQueryClient } from "@tanstack/react-query";
 import useIsLoggedIn from "../../../hooks/useIsLoggedIn";
 import LoginModal from "../../../components/login-modal";
-import { playGameWin, playGameLose, playGameAction } from "../../../lib/sound-player";
+import { playPlinkoDrop, playPlinkoWin } from "../../../lib/sound-player";
 
 export default function PlinkoGame() {
   const [gameMode, setGameMode] = useState<GameMode>("manual");
@@ -72,8 +72,7 @@ export default function PlinkoGame() {
       };
 
       setLastResult(result);
-      if (result.won) playGameWin();
-      else playGameLose();
+      if (result.won) playPlinkoWin();
     },
     [betAmount, queryClient],
   );
@@ -97,7 +96,7 @@ export default function PlinkoGame() {
         newBalance:  data?.newBalance  ?? 0,
       };
 
-      playGameAction(); // ball drop
+      playPlinkoDrop(); // ball drop
       boardRef.current?.dropBall(data?.bucketIndex ?? 0);
     } catch (err: any) {
       showError(err?.message || "Bet failed");
@@ -149,7 +148,7 @@ export default function PlinkoGame() {
             newBalance:  data?.newBalance  ?? 0,
           };
 
-          playGameAction(); // ball drop
+          playPlinkoDrop(); // ball drop
       boardRef.current?.dropBall(data?.bucketIndex ?? 0);
         } catch (err: any) {
           showError(err?.message || "Bet failed");

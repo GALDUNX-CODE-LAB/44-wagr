@@ -12,7 +12,7 @@ import {
   TILES_PER_ROW,
 } from "../interfaces/interface";
 import { startGlassGame, pickGlassTile, cashoutGlass } from "../lib/api";
-import { playGameAction } from "../lib/sound-player";
+import { playGameAction, playGlassWin, playGlassCashout } from "../lib/sound-player";
 import { useUser } from "./useUserData";
 import useIsLoggedIn from "./useIsLoggedIn";
 
@@ -149,6 +149,7 @@ export function useGlassGame() {
 
         if (data.autoWon) {
           // Cleared all rows
+          playGlassWin();
           setGameState((prev) => {
             const newRows = revealAllSafe(
               prev.rows.map((r, ri) => {
@@ -223,6 +224,7 @@ export function useGlassGame() {
     try {
       const res = await cashoutGlass({ gameId });
       const data = res.data;
+      playGlassCashout();
       setGameState((prev) => {
         const newRows = revealAllSafe(prev.rows, data.safeIndices);
         return {

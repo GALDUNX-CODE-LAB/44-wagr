@@ -6,7 +6,7 @@ import PumpBalloon from "./pump-balloon";
 import PumpControls from "./pump-controls";
 import PumpResultOverlay from "./pump-result-overlay";
 import MultiplierLadder from "./pump-multiple-ladder";
-import { playGameWin, playGameLose } from "../../../lib/sound-player";
+import { playGameWin, playPumpPop } from "../../../lib/sound-player";
 
 export default function PumpGame() {
   const {
@@ -35,7 +35,7 @@ export default function PumpGame() {
 
   useEffect(() => {
     if (gameState.phase === "cashedout") playGameWin();
-    else if (gameState.phase === "busted") playGameLose();
+    else if (gameState.phase === "busted") playPumpPop();
   }, [gameState.phase]);
 
   const handleBet = () => {

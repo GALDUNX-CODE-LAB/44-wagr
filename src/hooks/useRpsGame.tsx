@@ -13,7 +13,7 @@ import {
   RoundResult,
 } from "../interfaces/interface";
 import { startRPSGame, playRPS, cashoutRPS } from "../lib/api";
-import { playGameAction } from "../lib/sound-player";
+import { playRpsRoundWin } from "../lib/sound-player";
 
 const MAX_ROUNDS = 5;
 
@@ -167,7 +167,7 @@ export function useRPSGame() {
           };
         });
 
-        if (result !== "lose") playGameAction(); // round win / draw — loss handled by win/lose effect
+        if (result === "win") playRpsRoundWin(); // round win — draw/loss handled elsewhere
 
         setTimeout(() => {
           setGameState((prev) => {
