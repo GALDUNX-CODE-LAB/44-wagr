@@ -37,6 +37,12 @@ const apiHandler = async <T = any>(
       removeCookie("access-token");
       if (typeof window !== "undefined") window.location.reload();
     }
+    // Surface what the server actually said. Every caller shows `err.message`,
+    // which is axios's generic "Request failed with status code 403" — so a
+    // deliberate response like "Dice is currently unavailable" was invisible.
+    // Mutating in place keeps .response/.status intact for callers that use them.
+    const serverMessage = error.response?.data?.message || error.response?.data?.error;
+    if (serverMessage) error.message = serverMessage;
     throw error;
   }
 };
