@@ -71,6 +71,9 @@ function MinesCell({ cell, phase, onClick }: MinesCellProps) {
           <motion.div
             key="hidden"
             initial={{ rotateY: 0 }}
+            /* The reveal waits on the server; without this the tile looks dead
+               for the whole round-trip. Half-flip immediately on click. */
+            animate={cell.animating ? { rotateY: 55, scale: 0.92 } : { rotateY: 0, scale: 1 }}
             exit={{ rotateY: 90, scale: 0.85 }}
             transition={{ duration: 0.08 }}
             className="absolute inset-0 rounded-lg sm:rounded-xl flex items-center justify-center"
