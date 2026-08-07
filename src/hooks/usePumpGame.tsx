@@ -10,7 +10,7 @@ import {
   MULTIPLIER_LADDERS,
 } from "../interfaces/interface";
 import { startPumpGame, pumpGameAction, cashoutPumpGame } from "../lib/api";
-import { playGameAction } from "../lib/sound-player";
+import { playPumpPuff } from "../lib/sound-player";
 import { useUser } from "./useUserData";
 import useIsLoggedIn from "./useIsLoggedIn";
 
@@ -76,6 +76,7 @@ export function usePumpGame() {
 
     setIsPumping(true);
     setError(null);
+    playPumpPuff(); // fires on the click, not after the round-trip — the puff has to land with the press
     try {
       const res = await pumpGameAction({ gameId });
       const data = res.data;
@@ -112,7 +113,6 @@ export function usePumpGame() {
         return { busted: false, autoCashedOut: true };
       }
 
-      playGameAction(); // successful pump
       setGameState((prev) => ({
         ...prev,
         currentStep: data.currentStep,
@@ -222,6 +222,7 @@ export function usePumpGame() {
         }
 
         try {
+          playPumpPuff();
           const pumpRes = await pumpGameAction({ gameId: currentGameId });
           const data = pumpRes.data;
 

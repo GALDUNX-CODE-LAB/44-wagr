@@ -137,17 +137,22 @@ export default function NavbarV2() {
 
               <Coins className="hidden lg:block w-5 h-5 text-yellow-500 cursor-pointer" onClick={() => setPointsModalOpen(true)} />
 
-              <div className="relative">
-                <Bell
-                  className="w-5 h-5 text-white/70 cursor-pointer hover:text-white transition"
-                  onClick={() => setNotificationsModalOpen(true)}
-                />
+              {/* The badge sits on top of a 20px icon, so it was swallowing most
+                  of the clicks. Whole thing is one button now, badge ignores
+                  pointer events. */}
+              <button
+                type="button"
+                className="relative text-white/70 hover:text-white transition"
+                onClick={() => setNotificationsModalOpen(true)}
+                aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+              >
+                <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#212121]">
+                  <span className="pointer-events-none absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#212121]">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
-              </div>
+              </button>
 
               <div className="relative">
                 <User className="w-5 h-5 cursor-pointer" onClick={() => setUserDropdownOpen(!userDropdownOpen)} />

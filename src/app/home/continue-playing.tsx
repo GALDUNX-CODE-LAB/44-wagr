@@ -9,6 +9,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 
+import { gameByLink } from "../../lib/games";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
@@ -25,7 +27,9 @@ export default function ContinuePlaying() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setCachedGames(parsed);
+        // Name/art always come from the canonical list — entries cached before
+        // the placeholder names were fixed would otherwise stay wrong forever.
+        setCachedGames(parsed.map((g: any) => ({ ...g, ...(gameByLink(g.link) ?? {}) })));
       } catch {
         setCachedGames([]);
       }

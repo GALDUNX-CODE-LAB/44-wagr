@@ -9,22 +9,13 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode, Mousewheel } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 
+import { GAMES } from "../../lib/games";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/free-mode";
 
-const TRENDING_GAMES = [
-  { name: "Roulette Royale", players: 1248, image: "/assets/gamesV2/crash2.png", link: "/games/crash" },
-  { name: "Blackjack Pro", players: 1248, image: "/assets/gamesV2/coinflip2.png", link: "/games/coin" },
-  { name: "Slots Mania", players: 1248, image: "/assets/gamesV2/dice2.png", link: "/games/dice" },
-  { name: "Poker Stars", players: 1248, image: "/assets/gamesV2/glass-bridge2.png", link: "/games/glass" },
-  { name: "Baccarat Elite", players: 1248, image: "/assets/gamesV2/mines2.png", link: "/games/mines" },
-  { name: "Craps Champion", players: 1248, image: "/assets/gamesV2/plinko2.png", link: "/games/plinko" },
-  { name: "Texas Holdem", players: 1248, image: "/assets/gamesV2/pump2.png", link: "/games/pump" },
-  { name: "Dice Master", players: 1248, image: "/assets/gamesV2/red-light2.png", link: "/games/redlight" },
-  { name: "Virtual Sports", players: 1248, image: "/assets/gamesV2/rps2.png", link: "/games/rps" },
-  { name: "Wheel of Fortune", players: 1248, image: "/assets/gamesV2/wheels2.png", link: "/games/wheel" },
-] as const;
+const TRENDING_GAMES = GAMES;
 
 export default function TrendingGames() {
   const router = useRouter();

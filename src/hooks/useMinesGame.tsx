@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Cell, GameMode, MineCount, MinesGameState } from "../interfaces/interface";
 import { startMinesGame, revealMinesCell, cashoutMinesGame } from "../lib/api";
-import { playMinesWin } from "../lib/sound-player";
+import { playMinesGem } from "../lib/sound-player";
 import { useUser } from "./useUserData";
 import useIsLoggedIn from "./useIsLoggedIn";
 
@@ -131,7 +131,7 @@ export function useMinesGame() {
         queryClient.invalidateQueries({ queryKey: ["user-data"] });
         setGameId(null);
       } else {
-        playMinesWin(); // safe gem revealed
+        playMinesGem(); // safe gem revealed
         setGameState((prev) => {
           const gemsFound = prev.gemsFound + 1;
           const mult = data.multiplier;

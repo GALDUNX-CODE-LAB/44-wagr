@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchGlassWins } from "../lib/api";
 import { GameType } from "../interfaces/interface";
+import { getWsUrl } from "../lib/ws-url";
 
 interface Win {
   game: string;
@@ -24,12 +25,8 @@ export default function LiveGlassWins() {
   });
 
   useEffect(() => {
-    let wsUrl = (process.env.NEXT_PUBLIC_WS || "").trim();
+    const wsUrl = getWsUrl();
     if (!wsUrl) return;
-
-    if (window.location.protocol === "https:") {
-      wsUrl = wsUrl.replace(/^ws:\/\//, "wss://");
-    }
 
     const socket = new WebSocket(wsUrl);
     ws.current = socket;
